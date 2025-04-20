@@ -1,18 +1,19 @@
-package org.caselli.cognitiveworkflow.core;
+package org.caselli.cognitiveworkflow.knowledge;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.caselli.cognitiveworkflow.operational.WorkflowNode;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component
-public class WorkflowNodeFactory {
-    @Autowired
-    private ApplicationContext context;
+public class NodeFactory {
+    private final ApplicationContext context;
+    private final ObjectMapper mapper;
 
-    @Autowired
-    private ObjectMapper mapper;
+    public NodeFactory(ApplicationContext context, ObjectMapper mapper) {
+        this.context = context;
+        this.mapper = mapper;
+    }
 
     public WorkflowNode create(WorkflowNodeDescriptor desc) throws Exception {
         // Load the WorkflowNode dynamically based on the class name provided in the descriptor.
@@ -30,5 +31,4 @@ public class WorkflowNodeFactory {
 
         return (WorkflowNode) bean;
     }
-
 }

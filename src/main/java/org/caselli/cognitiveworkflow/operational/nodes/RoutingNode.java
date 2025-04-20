@@ -1,8 +1,8 @@
-package org.caselli.cognitiveworkflow.nodes;
+package org.caselli.cognitiveworkflow.operational.nodes;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.caselli.cognitiveworkflow.core.WorkflowNode;
+import org.caselli.cognitiveworkflow.operational.WorkflowNode;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;

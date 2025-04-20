@@ -1,5 +1,6 @@
-package org.caselli.cognitiveworkflow.core;
+package org.caselli.cognitiveworkflow.operational;
 
+import org.caselli.cognitiveworkflow.operational.WorkflowNode;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;

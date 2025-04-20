@@ -1,7 +1,7 @@
 [
   {
     "id": "intentDetection",
-    "className": "org.caselli.cognitiveworkflow.nodes.IntentDetectionNode",
+    "className": "org.caselli.cognitiveworkflow.operational.nodes.IntentDetectionNode",
     "inputKeys": ["userQuestion"],
     "outputKeys": ["intent"],
     "config": {
@@ -12,7 +12,7 @@
   },
   {
     "id": "routing",
-    "className": "org.caselli.cognitiveworkflow.nodes.RoutingNode",
+    "className": "org.caselli.cognitiveworkflow.operational.nodes.RoutingNode",
     "inputKeys": ["intent"],
     "outputKeys": ["route"],
     "config": {

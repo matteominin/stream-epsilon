@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.core;
+package org.caselli.cognitiveworkflow.operational;
 
 import java.util.List;
 import java.util.Map;

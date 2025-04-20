@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.core;
+package org.caselli.cognitiveworkflow.knowledge;
 
 import lombok.Data;
 
