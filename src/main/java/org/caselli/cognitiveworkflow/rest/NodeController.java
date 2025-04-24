@@ -1,11 +1,10 @@
 package org.caselli.cognitiveworkflow.rest;
 
 
-import org.caselli.cognitiveworkflow.knowledge.NodeFactory;
-import org.caselli.cognitiveworkflow.knowledge.NodeMOP;
-import org.caselli.cognitiveworkflow.knowledge.WorkflowNodeDescriptor;
+import org.caselli.cognitiveworkflow.knowledge.*;
 import org.caselli.cognitiveworkflow.operational.WorkflowEngine;
 import org.caselli.cognitiveworkflow.operational.WorkflowNode;
+import org.springframework.ai.document.MetadataMode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
@@ -20,8 +19,11 @@ public class NodeController {
     private final NodeMOP mop;
     private final NodeFactory factory;
 
+    private final MetaNodeRepository metaNodeRepository;
 
-    public NodeController(NodeMOP mop, NodeFactory factory) {
+
+    public NodeController(NodeMOP mop, NodeFactory factory, MetaNodeRepository metaNodeRepository) {
+        this.metaNodeRepository = metaNodeRepository;
         this.mop = mop;
         this.factory = factory;
     }
@@ -31,11 +33,12 @@ public class NodeController {
         return mop.getRegistry().list();
     }
 
-    @PostMapping
-    public ResponseEntity<String> registerNode(@RequestBody WorkflowNodeDescriptor descriptor) {
-        mop.register(descriptor);
+    @PostMapping("/registerNode")
+    public ResponseEntity<String> registerNode(@RequestBody MetaNode descriptor) {
+        this.metaNodeRepository.save(descriptor);
         return ResponseEntity.ok("Node registered: " + descriptor.getId());
     }
+
 
     @PatchMapping("/{id}/config")
     public ResponseEntity<String> updateConfig(@PathVariable String id,
@@ -47,6 +50,7 @@ public class NodeController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> removeNode(@PathVariable String id) {
         mop.remove(id);
+
         return ResponseEntity.ok("Node removed: " + id);
     }
 
