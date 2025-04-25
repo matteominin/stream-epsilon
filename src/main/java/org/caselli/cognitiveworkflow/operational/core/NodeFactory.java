@@ -1,6 +1,7 @@
-package org.caselli.cognitiveworkflow.knowledge;
+package org.caselli.cognitiveworkflow.operational.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.caselli.cognitiveworkflow.knowledge.deprecated.WorkflowNodeDescriptor;
 import org.caselli.cognitiveworkflow.operational.WorkflowNode;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;

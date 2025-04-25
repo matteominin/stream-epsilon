@@ -1,10 +1,13 @@
 package org.caselli.cognitiveworkflow.rest;
 
 
-import org.caselli.cognitiveworkflow.knowledge.*;
-import org.caselli.cognitiveworkflow.operational.WorkflowEngine;
+import org.caselli.cognitiveworkflow.knowledge.deprecated.NodeMOP;
+import org.caselli.cognitiveworkflow.knowledge.deprecated.WorkflowNodeDescriptor;
+import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.repository.NodeMetamodelCatalog;
+import org.caselli.cognitiveworkflow.operational.core.NodeFactory;
+import org.caselli.cognitiveworkflow.operational.core.WorkflowEngine;
 import org.caselli.cognitiveworkflow.operational.WorkflowNode;
-import org.springframework.ai.document.MetadataMode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
@@ -19,11 +22,11 @@ public class NodeController {
     private final NodeMOP mop;
     private final NodeFactory factory;
 
-    private final MetaNodeRepository metaNodeRepository;
+    private final NodeMetamodelCatalog nodeMetamodelCatalog;
 
 
-    public NodeController(NodeMOP mop, NodeFactory factory, MetaNodeRepository metaNodeRepository) {
-        this.metaNodeRepository = metaNodeRepository;
+    public NodeController(NodeMOP mop, NodeFactory factory, NodeMetamodelCatalog nodeMetamodelCatalog) {
+        this.nodeMetamodelCatalog = nodeMetamodelCatalog;
         this.mop = mop;
         this.factory = factory;
     }
@@ -34,8 +37,8 @@ public class NodeController {
     }
 
     @PostMapping("/registerNode")
-    public ResponseEntity<String> registerNode(@RequestBody MetaNode descriptor) {
-        this.metaNodeRepository.save(descriptor);
+    public ResponseEntity<String> registerNode(@RequestBody NodeMetamodel descriptor) {
+        this.nodeMetamodelCatalog.save(descriptor);
         return ResponseEntity.ok("Node registered: " + descriptor.getId());
     }
 

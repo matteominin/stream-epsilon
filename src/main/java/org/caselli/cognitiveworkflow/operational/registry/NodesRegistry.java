@@ -1,10 +1,11 @@
-package org.caselli.cognitiveworkflow.knowledge;
+package org.caselli.cognitiveworkflow.operational.registry;
 
+import org.caselli.cognitiveworkflow.knowledge.deprecated.WorkflowNodeDescriptor;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class NodeRegistry {
+public class NodesRegistry {
     private final Map<String, WorkflowNodeDescriptor> descriptors = new ConcurrentHashMap<>();
 
     public void register(WorkflowNodeDescriptor desc) {

@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.knowledge;
+package org.caselli.cognitiveworkflow.knowledge.model;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -8,7 +8,7 @@ import java.util.Map;
 
 @Data
 @Document(collection = "meta_nodes")
-public class MetaNode {
+public class NodeMetamodel {
     @Id
     private String id;
     private String name;

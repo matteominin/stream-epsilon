@@ -1,5 +1,6 @@
-package org.caselli.cognitiveworkflow.knowledge;
+package org.caselli.cognitiveworkflow.knowledge.deprecated;
 
+import org.caselli.cognitiveworkflow.knowledge.deprecated.WorkflowNodeDescriptor;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;

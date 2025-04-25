@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.knowledge;
+package org.caselli.cognitiveworkflow.knowledge.deprecated;
 
 import lombok.Data;
 
