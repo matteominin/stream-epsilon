@@ -2,7 +2,8 @@ package org.caselli.cognitiveworkflow.operational.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
-import org.caselli.cognitiveworkflow.operational.WorkflowNode;
+import org.caselli.cognitiveworkflow.operational.NodeInstance;
+import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -16,26 +17,23 @@ public class NodeFactory {
         this.mapper = mapper;
     }
 
-    public WorkflowNode create(WorkflowMetamodel desc) throws Exception {
-  /*   // Load the WorkflowNode dynamically based on the class name provided in the descriptor.
-        Class<?> clazz = Class.forName(desc.getClassName());
+    public NodeInstance create(WorkflowMetamodel metamodel) {
+
+        //  TODO: Load the WorkflowNode dynamically based on the class name provided in the metamodel
+        //  Class<?> clazz = Class.forName();
+
+        Class<?> clazz = WorkflowInstance.class;
         Object bean = context.getBean(clazz);
-        WorkflowNode node = (WorkflowNode) bean;
+        NodeInstance node = (NodeInstance) bean;
 
-        // inject config
-        mapper.updateValue(node, desc.getConfig());
+        // TODO: inject config
+        //mapper.updateValue(node, metamodel.getConfig());
 
-        // Copy the static fields
-        node.setId(desc.getId());
-        node.setInputKeys(desc.getInputKeys());
-        node.setOutputKeys(desc.getOutputKeys());
+        // TODO: Copy the static fields
+        // node.setId(desc.getId());
+        // node.setInputKeys(desc.getInputKeys());
+        // node.setOutputKeys(desc.getOutputKeys());
 
-        return (WorkflowNode) bean;
-
-*/
-        return null;
-
-
-
+        return (NodeInstance) bean;
     }
 }

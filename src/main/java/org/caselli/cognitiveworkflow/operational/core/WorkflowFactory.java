@@ -1,16 +1,15 @@
 package org.caselli.cognitiveworkflow.operational.core;
 
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
 import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
 import org.springframework.stereotype.Component;
 
 @Component
 public class WorkflowFactory {
-    private final WorkflowMetamodelCatalog catalog;
+    private final NodeFactory nodeFactory;
 
-    public WorkflowFactory(WorkflowMetamodelCatalog catalog) {
-        this.catalog = catalog;
+    public WorkflowFactory(NodeFactory nodeFactory) {
+        this.nodeFactory = nodeFactory;
     }
 
     public WorkflowInstance createInstance(WorkflowMetamodel metamodel){
