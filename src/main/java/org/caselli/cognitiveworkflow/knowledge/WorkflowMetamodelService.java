@@ -2,6 +2,7 @@ package org.caselli.cognitiveworkflow.knowledge;
 
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,4 +42,7 @@ public class WorkflowMetamodelService {
         return repository.findById(id);
     }
 
+    public List<WorkflowMetamodel> findTopNHandlingIntent(String intentId, int n) {
+        return repository.findByHandledIntents_IntentId(intentId, PageRequest.of(0, n));
+    }
 }

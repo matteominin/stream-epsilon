@@ -2,15 +2,16 @@ package org.caselli.cognitiveworkflow.knowledge.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import java.util.Map;
 
 @Data
-public class WorkflowEdge {
-    @Id
+@Document(collection = "intent_catalog")
+public class IntentMetamodel {
     @Field("_id")
+    @Id
     private String id;
-    private String sourceNodeId;
-    private String targetNodeId;
-    private Map<String,String> bindings;
+    private String description;
+    private Map<String, Object> requiredInputs;
 }

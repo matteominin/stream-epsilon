@@ -1,5 +1,6 @@
 package org.caselli.cognitiveworkflow.operational.core;
 
+import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
 import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
 import org.springframework.stereotype.Component;
@@ -11,7 +12,17 @@ public class WorkflowFactory {
     public WorkflowFactory(WorkflowMetamodelCatalog catalog) {
         this.catalog = catalog;
     }
+
+    public WorkflowInstance createInstance(WorkflowMetamodel metamodel){
+        return null; // TODO
+    }
+
 /*
+
+
+TODO remove
+
+
     public WorkflowInstance createFromDescriptor(String descriptorId) {
         WorkflowDescriptor desc = catalog.findById(descriptorId).orElseThrow();
 
