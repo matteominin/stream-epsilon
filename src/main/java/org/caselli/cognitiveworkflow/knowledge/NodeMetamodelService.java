@@ -1,5 +1,4 @@
 package org.caselli.cognitiveworkflow.knowledge;
-
 import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.NodeMetamodelCatalog;
 import org.springframework.stereotype.Service;

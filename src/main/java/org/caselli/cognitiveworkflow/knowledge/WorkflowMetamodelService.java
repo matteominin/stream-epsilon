@@ -5,6 +5,7 @@ import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatal
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class WorkflowMetamodelService {
@@ -15,11 +16,29 @@ public class WorkflowMetamodelService {
         this.repository = repository;
     }
 
-    public List<WorkflowMetamodel> getAllMetaNodes() {
+    public List<WorkflowMetamodel> getAllWorkflows() {
         return repository.findAll();
     }
 
-    public WorkflowMetamodel saveMetaNode(WorkflowMetamodel workflowMetamodel) {
-        return repository.save(workflowMetamodel);
+    public Optional<WorkflowMetamodel> getWorkflowById(String id) {
+        return repository.findById(id);
     }
+
+    public WorkflowMetamodel saveWorkflow(WorkflowMetamodel workflow) {
+        return repository.save(workflow);
+    }
+
+    public void deleteWorkflow(String id) {
+        repository.deleteById(id);
+    }
+
+
+    public List<WorkflowMetamodel> getAllNodes() {
+        return repository.findAll();
+    }
+
+    public Optional<WorkflowMetamodel> getNodeById(String id) {
+        return repository.findById(id);
+    }
+
 }

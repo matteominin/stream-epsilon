@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.caselli.cognitiveworkflow.knowledge.deprecated.WorkflowNodeDescriptor;
+import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.WorkflowNode;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -16,8 +16,8 @@ public class NodeFactory {
         this.mapper = mapper;
     }
 
-    public WorkflowNode create(WorkflowNodeDescriptor desc) throws Exception {
-        // Load the WorkflowNode dynamically based on the class name provided in the descriptor.
+    public WorkflowNode create(WorkflowMetamodel desc) throws Exception {
+  /*   // Load the WorkflowNode dynamically based on the class name provided in the descriptor.
         Class<?> clazz = Class.forName(desc.getClassName());
         Object bean = context.getBean(clazz);
         WorkflowNode node = (WorkflowNode) bean;
@@ -31,5 +31,11 @@ public class NodeFactory {
         node.setOutputKeys(desc.getOutputKeys());
 
         return (WorkflowNode) bean;
+
+*/
+        return null;
+
+
+
     }
 }

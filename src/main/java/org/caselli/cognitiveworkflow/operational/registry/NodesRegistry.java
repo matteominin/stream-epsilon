@@ -1,33 +1,17 @@
 package org.caselli.cognitiveworkflow.operational.registry;
 
-import org.caselli.cognitiveworkflow.knowledge.deprecated.WorkflowNodeDescriptor;
-import java.util.Collection;
+import org.caselli.cognitiveworkflow.operational.WorkflowNode;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class NodesRegistry {
-    private final Map<String, WorkflowNodeDescriptor> descriptors = new ConcurrentHashMap<>();
-
-    public void register(WorkflowNodeDescriptor desc) {
-        descriptors.put(desc.getId(), desc);
-    }
-
-    public WorkflowNodeDescriptor get(String id) {
-        return descriptors.get(id);
-    }
-
-    public Collection<WorkflowNodeDescriptor> list() {
-        return descriptors.values();
-    }
+public class NodesRegistry extends InstancesRegistry<WorkflowNode> {
 
     public void update(String id, Map<String, Object> newConfig) {
-        WorkflowNodeDescriptor desc = get(id);
-        if (desc != null) {
-            desc.getConfig().putAll(newConfig);
+        // TODO: Implement based on commented code in original class
+        /*
+        WorkflowNode node = get(id);
+        if (node != null) {
+            node.getConfig().putAll(newConfig);
         }
-    }
-
-    public void remove(String id) {
-        descriptors.remove(id);
+        */
     }
 }
