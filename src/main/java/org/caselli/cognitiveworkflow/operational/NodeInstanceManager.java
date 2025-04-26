@@ -10,9 +10,9 @@ import java.util.Optional;
 @Service
 public class NodeInstanceManager {
 
-    NodesRegistry nodesRegistry;
-    NodeFactory nodeFactory;
-    NodeMetamodelService nodeMetamodelService;
+    private final NodesRegistry nodesRegistry;
+    private final NodeFactory nodeFactory;
+    private final NodeMetamodelService nodeMetamodelService;
 
     NodeInstanceManager(
             NodesRegistry nodesRegistry,
