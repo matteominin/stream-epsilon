@@ -2,6 +2,7 @@ package org.caselli.cognitiveworkflow.operational;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ public class NodeInstance {
     public String id;
 
     // Metamodel
-    private WorkflowMetamodel metamodel;
+    private NodeMetamodel metamodel;
 
     void process(Map<String, Object> context) throws Exception {}
 }

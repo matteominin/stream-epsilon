@@ -1,9 +1,8 @@
 package org.caselli.cognitiveworkflow.operational.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.NodeInstance;
-import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -17,12 +16,12 @@ public class NodeFactory {
         this.mapper = mapper;
     }
 
-    public NodeInstance create(WorkflowMetamodel metamodel) {
+    public NodeInstance create(NodeMetamodel metamodel) {
 
         //  TODO: Load the WorkflowNode dynamically based on the class name provided in the metamodel
         //  Class<?> clazz = Class.forName();
 
-        Class<?> clazz = WorkflowInstance.class;
+        Class<?> clazz = NodeMetamodel.class;
         Object bean = context.getBean(clazz);
         NodeInstance node = (NodeInstance) bean;
 
@@ -33,6 +32,9 @@ public class NodeFactory {
         // node.setId(desc.getId());
         // node.setInputKeys(desc.getInputKeys());
         // node.setOutputKeys(desc.getOutputKeys());
+
+        // Set the metamodel
+        node.setMetamodel(metamodel);
 
         return (NodeInstance) bean;
     }

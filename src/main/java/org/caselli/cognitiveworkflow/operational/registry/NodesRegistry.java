@@ -1,16 +1,15 @@
 package org.caselli.cognitiveworkflow.operational.registry;
 
-import org.caselli.cognitiveworkflow.operational.WorkflowNode;
+import org.caselli.cognitiveworkflow.operational.NodeInstance;
+import org.caselli.cognitiveworkflow.operational.core.NodeFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 
 @Component
-public class NodesRegistry extends InstancesRegistry<WorkflowNode> {
+public class NodesRegistry extends InstancesRegistry<NodeInstance> {
+    private final NodeFactory nodeFactory;
 
-    public void update(String id, Map<String, Object> newConfig) {
-        // TODO: Implement based on commented code in original class
-
+    public NodesRegistry(NodeFactory nodeFactory) {
+        this.nodeFactory = nodeFactory;
     }
 }

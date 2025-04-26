@@ -1,6 +1,6 @@
 package org.caselli.cognitiveworkflow.rest;
 
-import org.caselli.cognitiveworkflow.knowledge.WorkflowMetamodelService;
+import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

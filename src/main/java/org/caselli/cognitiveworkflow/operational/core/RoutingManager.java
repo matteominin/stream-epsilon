@@ -1,11 +1,12 @@
 package org.caselli.cognitiveworkflow.operational.core;
 
-import org.caselli.cognitiveworkflow.knowledge.WorkflowMetamodelService;
+import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
 import org.caselli.cognitiveworkflow.operational.registry.WorkflowsRegistry;
 import org.caselli.cognitiveworkflow.operational.utils.TemperatureSampler;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 /**
@@ -17,7 +18,7 @@ import java.util.List;
  *      - If none exists, tries to combine nodes;
  *      - If this fails, it throws an exception.
  */
-@Component
+@Service
 public class RoutingManager {
     private final WorkflowsRegistry workflowsRegistry;
     private final WorkflowFactory workflowFactory;

@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.knowledge;
+package org.caselli.cognitiveworkflow.knowledge.MOP;
 
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
@@ -33,14 +33,6 @@ public class WorkflowMetamodelService {
         repository.deleteById(id);
     }
 
-
-    public List<WorkflowMetamodel> getAllNodes() {
-        return repository.findAll();
-    }
-
-    public Optional<WorkflowMetamodel> getNodeById(String id) {
-        return repository.findById(id);
-    }
 
     public List<WorkflowMetamodel> findTopNHandlingIntent(String intentId, int n) {
         return repository.findByHandledIntents_IntentId(intentId, PageRequest.of(0, n));
