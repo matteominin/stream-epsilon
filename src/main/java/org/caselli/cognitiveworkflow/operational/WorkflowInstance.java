@@ -2,8 +2,10 @@ package org.caselli.cognitiveworkflow.operational;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import java.util.List;
 
@@ -19,6 +21,20 @@ public class WorkflowInstance {
 
     // Nodes
     private List<NodeInstance> nodes;
+
+
+    @EventListener
+    public void onMetaNodeUpdated(WorkflowMetamodelUpdateEvent event) {
+        if (event.getMetamodelId().equals(this.metamodel.getId())) {
+            this.metamodel = event.getUpdatedMetamodel();
+            // TODO
+            // updating the metadata is not sufficient: we have to check what have changed.
+            // The DAG structure may have changed
+        }
+    }
+
+
+
 
 
     /**
