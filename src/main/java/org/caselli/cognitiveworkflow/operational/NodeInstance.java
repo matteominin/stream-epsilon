@@ -4,11 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import java.util.Map;
+
 
 @Setter
 @Getter
@@ -28,5 +27,7 @@ public class NodeInstance {
         }
     }
 
-    void process(Map<String, Object> context) throws Exception {}
+    public void process(ExecutionContext context) throws Exception {
+
+    }
 }

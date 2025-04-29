@@ -22,7 +22,6 @@ public class WorkflowInstance {
     // Nodes
     private List<NodeInstance> nodes;
 
-
     @EventListener
     public void onMetaNodeUpdated(WorkflowMetamodelUpdateEvent event) {
         if (event.getMetamodelId().equals(this.metamodel.getId())) {
@@ -32,10 +31,6 @@ public class WorkflowInstance {
             // The DAG structure may have changed
         }
     }
-
-
-
-
 
     /**
      * Check if the current instance of the workflow can handle an Intent by the intent Id.
