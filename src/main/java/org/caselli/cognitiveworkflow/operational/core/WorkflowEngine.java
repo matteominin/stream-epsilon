@@ -116,9 +116,9 @@ public class WorkflowEngine {
                     logger.info("Edge condition from {} to {} failed, target node will not be processed through this path",
                             currentId, targetId);
                 }
-                }
             }
         }
+
 
         // Check for cycles
         if (processed != nodeMap.size()) {
