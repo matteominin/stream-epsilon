@@ -38,6 +38,6 @@ public class WorkflowEdge {
     @Data
     public static class Condition {
         private String port;
-        private String expectedValue;
+        private String targetValue;
     }
 }

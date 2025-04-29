@@ -11,7 +11,7 @@ import java.util.Map;
  * Describes the structure and metadata of an Intent that can be processed by a workflow.
  */
 @Data
-@Document(collection = "intent_catalog")
+@Document(collection = "intents")
 public class IntentMetamodel {
     @Field("_id")
     @Id

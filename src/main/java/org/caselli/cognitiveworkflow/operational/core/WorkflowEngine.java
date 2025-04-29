@@ -164,7 +164,7 @@ public class WorkflowEngine {
             return false;
         }
 
-        String expectedValue = cond.getExpectedValue();
+        String expectedValue = cond.getTargetValue();
         String actualValue = val.toString();
         boolean pass = expectedValue.equals(actualValue);
 
