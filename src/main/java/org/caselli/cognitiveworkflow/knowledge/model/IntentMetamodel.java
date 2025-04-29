@@ -6,6 +6,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import java.util.Map;
 
+
+/**
+ * Describes the structure and metadata of an Intent that can be processed by a workflow.
+ */
 @Data
 @Document(collection = "intent_catalog")
 public class IntentMetamodel {

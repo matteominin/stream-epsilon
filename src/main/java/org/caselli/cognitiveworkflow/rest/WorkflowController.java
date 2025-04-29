@@ -26,7 +26,7 @@ public class WorkflowController {
 
     @PostMapping
     public ResponseEntity<WorkflowMetamodel> createWorkflow(@RequestBody WorkflowMetamodel workflow) {
-        return ResponseEntity.ok(workflowService.saveWorkflow(workflow));
+        return ResponseEntity.ok(workflowService.createWorkflow(workflow));
     }
 
 
