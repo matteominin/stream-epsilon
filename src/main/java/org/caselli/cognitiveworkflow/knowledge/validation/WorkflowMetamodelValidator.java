@@ -2,11 +2,14 @@ package org.caselli.cognitiveworkflow.knowledge.validation;
 
 import lombok.Getter;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
+import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowEdge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,6 +23,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class WorkflowMetamodelValidator {
+
+    private static final Logger logger = LoggerFactory.getLogger(WorkflowMetamodelValidator.class);
 
 
     /**
@@ -48,12 +53,42 @@ public class WorkflowMetamodelValidator {
         public List<ValidationWarning> getWarnings() {
             return Collections.unmodifiableList(warnings);
         }
+
+        public int getWarningCount() {
+            return warnings.size();
+        }
+
+        public int getErrorCount() {
+            return errors.size();
+        }
+
+        public void printErrors() {
+            if (!errors.isEmpty()) {
+                logger.error("Found {} validation errors:", errors.size());
+                for (int i = 0; i < errors.size(); i++) {
+                    ValidationError error = errors.get(i);
+                    logger.error("[Error {}/{}] Component: {} - Message: {}",
+                            i + 1, errors.size(), error.component, error.message);
+                }
+            }
+        }
+
+        public void printWarnings() {
+            if (!warnings.isEmpty()) {
+                logger.warn("Found {} validation warnings:", warnings.size());
+                for (int i = 0; i < warnings.size(); i++) {
+                    ValidationWarning warning = warnings.get(i);
+                    logger.warn("[Warning {}/{}] Component: {} - Message: {}",
+                            i + 1, warnings.size(), warning.component, warning.message);
+                }
+            }
+        }
     }
 
-    @Getter
+
     public record ValidationError(String message, String component) {}
 
-    @Getter
+
     public record ValidationWarning(String message, String component) {}
 
     private final NodeMetamodelService nodeMetamodelService;
