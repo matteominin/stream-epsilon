@@ -5,6 +5,7 @@ import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Port;
+import org.caselli.cognitiveworkflow.knowledge.model.shared.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowEdge;
 import org.springframework.stereotype.Service;
 import java.util.*;
@@ -115,11 +116,8 @@ public class WorkflowMetamodelValidator {
         // Validate workflow is a DAG (no cycles)
         validateDAG(workflow, result);
 
-        // Validate port compatibility between connected nodes
-        validatePortCompatibility(workflow, result);
-
-        // Validate required inputs
-        validateRequiredInputs(workflow, result);
+        // Validate port compatibility between ports
+        validatePortConnections(workflow, result);
 
         // Validate entry and exit points
         validateEntryAndExitPoints(workflow, result);
@@ -410,12 +408,10 @@ public class WorkflowMetamodelValidator {
                     }
 
                     // Check type compatibility
-                    /// TODO
                     Port sourcePort = sourceOutputs.get(sourceKey);
                     Port targetPort = targetInputs.get(targetKey);
 
-                    if (sourcePort.getSchema() != null && targetPort.getSchema() != null &&
-                            sourcePort.getSchema().getType() != targetPort.getSchema().getType()) {
+                    if (!PortSchema.isCompatible(sourcePort.getSchema(), targetPort.getSchema())) {
                         result.addError("Port type mismatch: " + sourcePort.getSchema().getType() +
                                         " cannot be bound to " + targetPort.getSchema().getType() +
                                         " between nodes " + sourceId + " and " + targetId,
@@ -446,9 +442,7 @@ public class WorkflowMetamodelValidator {
                     Port targetPort = targetInputs.get(targetKey);
 
                     // Check type compatibility
-                    // TODO
-                    if (sourcePort.getSchema() != null && targetPort.getSchema() != null &&
-                            sourcePort.getSchema().getType() != targetPort.getSchema().getType()) {
+                    if (!PortSchema.isCompatible(sourcePort.getSchema(), targetPort.getSchema())) {
                         result.addWarning("Port type mismatch on implicitly matched port '" + targetKey +
                                         "': " + sourcePort.getSchema().getType() +
                                         " to " + targetPort.getSchema().getType() +
