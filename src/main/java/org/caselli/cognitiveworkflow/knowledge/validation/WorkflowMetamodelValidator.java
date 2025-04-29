@@ -1,8 +1,6 @@
 package org.caselli.cognitiveworkflow.knowledge.validation;
 
-import lombok.Getter;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Port;
@@ -19,7 +17,6 @@ import java.util.stream.Collectors;
  * - DAG structure verification
  * - Node reference validity
  * - Port compatibility between connected nodes
- * - Required configurations TODO
  */
 @Service
 public class WorkflowMetamodelValidator {

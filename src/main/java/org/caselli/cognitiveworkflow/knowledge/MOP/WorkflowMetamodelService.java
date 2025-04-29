@@ -4,16 +4,13 @@ import jakarta.annotation.Nonnull;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
 import org.caselli.cognitiveworkflow.knowledge.validation.WorkflowMetamodelValidator;
-import org.caselli.cognitiveworkflow.operational.core.WorkflowEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -155,6 +152,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
             }
         }
 
+        logger.info("-------------------------------------------");
         logger.info("Validation completed. Results:");
         logger.info(" - Total workflows processed: {}", workflows.size());
         logger.info(" - Valid workflows: {}", validCount);

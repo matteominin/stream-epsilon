@@ -25,7 +25,11 @@ public class PortSchema {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Object defaultValue;
 
-    /** Whether the port is required for execution */
+    /**
+     * Whether the port is required or not.
+     * NOTE: This is only for input ports, as output ports are always required.
+     * TODO:gestire diversamente
+     * */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean required;
 
