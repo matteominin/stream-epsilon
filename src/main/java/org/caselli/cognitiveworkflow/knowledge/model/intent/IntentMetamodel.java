@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.knowledge.model;
+package org.caselli.cognitiveworkflow.knowledge.model.intent;
 
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;

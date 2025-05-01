@@ -1,5 +1,5 @@
 package org.caselli.cognitiveworkflow.knowledge.repository;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;

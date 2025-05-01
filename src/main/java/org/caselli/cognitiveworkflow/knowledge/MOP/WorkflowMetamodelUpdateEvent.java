@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 
 import lombok.Getter;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 
 @Getter
 public class WorkflowMetamodelUpdateEvent {

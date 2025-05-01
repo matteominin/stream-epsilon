@@ -1,6 +1,7 @@
-package org.caselli.cognitiveworkflow.knowledge.model.shared;
+package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 
 import lombok.Data;
+
 import javax.validation.constraints.NotNull;
 
 /**

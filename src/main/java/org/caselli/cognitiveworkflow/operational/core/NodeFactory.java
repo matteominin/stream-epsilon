@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.NodeInstance;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;

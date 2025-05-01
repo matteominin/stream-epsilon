@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.rest;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.IntentMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

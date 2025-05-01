@@ -1,7 +1,8 @@
-package org.caselli.cognitiveworkflow.knowledge.model.shared;
+package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+
 import java.util.Map;
 
 

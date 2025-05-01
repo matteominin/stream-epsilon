@@ -1,9 +1,7 @@
-package org.caselli.cognitiveworkflow.knowledge.model;
+package org.caselli.cognitiveworkflow.knowledge.model.workflow;
 
 import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowEdge;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowNode;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;

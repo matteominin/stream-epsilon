@@ -1,8 +1,7 @@
-package org.caselli.cognitiveworkflow.knowledge.model;
+package org.caselli.cognitiveworkflow.knowledge.model.node;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.NodeType;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotNull;

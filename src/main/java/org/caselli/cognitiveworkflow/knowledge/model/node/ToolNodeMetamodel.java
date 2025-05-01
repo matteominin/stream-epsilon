@@ -1,8 +1,7 @@
-package org.caselli.cognitiveworkflow.knowledge.model;
+package org.caselli.cognitiveworkflow.knowledge.model.node;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.NodeType;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -12,15 +11,11 @@ public class ToolNodeMetamodel extends NodeMetamodel {
 
     private ToolType toolType;
 
-
-
-
     public ToolNodeMetamodel() {
         super();
         this.setType(NodeType.TOOL);
     }
 
-    // Define ToolType enum
     public enum ToolType {
         API_REST,
         GRAPHQL,

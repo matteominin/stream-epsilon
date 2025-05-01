@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 
 import jakarta.annotation.Nonnull;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
 import org.caselli.cognitiveworkflow.knowledge.validation.WorkflowMetamodelValidator;
 import org.slf4j.Logger;

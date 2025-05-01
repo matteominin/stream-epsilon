@@ -1,9 +1,13 @@
 package org.caselli.cognitiveworkflow.knowledge.validation;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.*;
+import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

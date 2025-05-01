@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.knowledge.model.shared;
+package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 
 /**
  * Enumerates the supported primitive types for ports.

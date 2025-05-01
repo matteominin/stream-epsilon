@@ -1,6 +1,7 @@
-package org.caselli.cognitiveworkflow.knowledge.model.shared;
+package org.caselli.cognitiveworkflow.knowledge.model.workflow;
 
 import lombok.Data;
+import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 import java.util.Map;

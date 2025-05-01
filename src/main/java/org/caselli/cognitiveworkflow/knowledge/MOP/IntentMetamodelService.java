@@ -1,6 +1,6 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 
-import org.caselli.cognitiveworkflow.knowledge.model.IntentMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.IntentMetamodelCatalog;
 import org.springframework.stereotype.Service;
 import java.util.List;

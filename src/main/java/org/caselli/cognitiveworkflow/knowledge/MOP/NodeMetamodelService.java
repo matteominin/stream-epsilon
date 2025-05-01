@@ -1,5 +1,5 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
-import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.NodeMetamodelCatalog;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

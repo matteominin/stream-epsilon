@@ -1,8 +1,8 @@
-package org.caselli.cognitiveworkflow.knowledge.model;
+package org.caselli.cognitiveworkflow.knowledge.model.node;
 
 import lombok.Data;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.NodeType;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.Port;
+import org.caselli.cognitiveworkflow.knowledge.model.node.NodeType;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;

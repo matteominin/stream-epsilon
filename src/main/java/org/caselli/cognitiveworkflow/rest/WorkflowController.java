@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.rest;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.WorkflowInstanceManager;
 import org.caselli.cognitiveworkflow.operational.core.WorkflowExecutor;

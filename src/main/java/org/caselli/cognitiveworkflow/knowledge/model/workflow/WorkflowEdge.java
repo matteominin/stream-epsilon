@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.knowledge.model.shared;
+package org.caselli.cognitiveworkflow.knowledge.model.workflow;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
