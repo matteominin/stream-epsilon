@@ -5,6 +5,7 @@ import org.caselli.cognitiveworkflow.operational.core.WorkflowFactory;
 import org.caselli.cognitiveworkflow.operational.registry.WorkflowsRegistry;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +28,10 @@ public class WorkflowInstanceManager {
      * @return The existing or newly created NodeInstance
      */
     public WorkflowInstance getOrCreate(WorkflowMetamodel workflowMetamodel) {
+        // Check if the instance already exists
+        var existing = workflowsRegistry.get(workflowMetamodel.getId());
+        if(existing.isPresent()) return existing.get();
+
         // Instantiate the new workflow
         WorkflowInstance instance = workflowFactory.createInstance(workflowMetamodel);
 

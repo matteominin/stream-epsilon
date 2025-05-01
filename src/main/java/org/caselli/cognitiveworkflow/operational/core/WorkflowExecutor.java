@@ -33,15 +33,14 @@ public class WorkflowExecutor {
 
         for (NodeInstance node : workflow.getNodeInstances()) nodeInstancesMap.put(node.getId(), node);
         for (WorkflowNode node : workflow.getMetamodel().getNodes()) workflowNodesMap.put(node.getId(), node);
-
-
-        // TODO remove
-        System.out.println("WorkflowExecutor initialized with workflow: " + workflow.getId());
-        System.out.println("Node instances: " + nodeInstancesMap.keySet());
-        System.out.println("Workflow nodes: " + workflowNodesMap.keySet());
     }
 
     public void execute(ExecutionContext context) {
+
+        // Check if the workflow is enabled
+        if(!this.workflow.getMetamodel().getEnabled())
+            throw new RuntimeException("Cannot execute Workflow " + workflow.getId() + ". It is not enabled.");
+
 
         // Validate that all nodes referenced in edges exist
         List<WorkflowEdge> edges = workflow.getMetamodel().getEdges();

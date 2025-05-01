@@ -10,13 +10,13 @@ import java.util.List;
 public interface WorkflowMetamodelCatalog extends MongoRepository<WorkflowMetamodel, String> {
 
     /**
-     * Finds workflow metamodels that can handle the specified intent.
+     * Finds workflow metamodels that can handle the specified intent and are enabled.
      * Results sorted by the intent's score in descending order
      *
      * @param intentId The ID of the intent to search for
      * @param pageable Pagination and sorting parameters
-     * @return A list of workflow metamodels that handle the intent, sorted by score
+     * @return A list of workflow metamodels that handle the intent and are enabled, sorted by score
      */
-    @Query(value = "{'handledIntents.intentId': ?0}", sort = "{'handledIntents.$[element].score': -1}")
+    @Query(value = "{'handledIntents.intentId': ?0, 'enable': true}", sort = "{'handledIntents.$[element].score': -1}")
     List<WorkflowMetamodel> findByHandledIntents_IntentId(String intentId, org.springframework.data.domain.Pageable pageable);
 }
