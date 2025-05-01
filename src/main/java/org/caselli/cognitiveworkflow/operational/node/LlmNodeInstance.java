@@ -13,24 +13,21 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("prototype")
 public class LlmNodeInstance extends NodeInstance {
-
-    private LlmNodeMetamodel llmMetamodel;
-
+    @Override
+    public LlmNodeMetamodel getMetamodel() {
+        return (LlmNodeMetamodel) super.getMetamodel();
+    }
 
     @Override
     public void setMetamodel(NodeMetamodel metamodel) {
-        if (metamodel instanceof LlmNodeMetamodel) {
-            super.setMetamodel(metamodel);
-            this.llmMetamodel = (LlmNodeMetamodel) metamodel;
-        } else {
-            throw new IllegalArgumentException("Cannot assign metamodel of type " + metamodel.getClass().getSimpleName() + " to LlmNodeInstance");
+        if (!(metamodel instanceof LlmNodeMetamodel)) {
+            throw new IllegalArgumentException("LlmNodeInstance requires LlmNodeMetamodel");
         }
+        super.setMetamodel(metamodel);
     }
-
 
     @Override
     public void process(ExecutionContext context) throws Exception {
         System.out.println("Processing LLM Node Instance: " + getId());
-
     }
 }
