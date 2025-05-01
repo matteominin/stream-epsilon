@@ -5,7 +5,6 @@ import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.NodeInstanceManager;
 import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
-import org.caselli.cognitiveworkflow.operational.registry.NodesRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -44,11 +43,11 @@ public class WorkflowFactory {
         // Get the instances of the nodes
         List<NodeInstance> nodeInstances = metamodel.getNodes().stream()
                 .map(nodeMeta -> {
-                    return nodeInstanceManager.getOrCreate(nodeMeta.getNodeId());
+                    return nodeInstanceManager.getOrCreate(nodeMeta.getNodeMetamodelId());
                 })
                 .toList();
 
-        bean.setNodes(nodeInstances);
+        bean.setNodeInstances(nodeInstances);
 
         // TODO: print bean
         System.out.println("Created workflow bean=" + bean + " with id=" + bean.getId());

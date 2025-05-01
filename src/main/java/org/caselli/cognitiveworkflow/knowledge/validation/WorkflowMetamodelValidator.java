@@ -3,10 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.validation;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.Port;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.PortSchema;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.PortType;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowEdge;
+import org.caselli.cognitiveworkflow.knowledge.model.shared.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -205,8 +202,8 @@ public class WorkflowMetamodelValidator {
 
         Set<String> nodeIds = new HashSet<>();
 
-        for (WorkflowMetamodel.WorkflowNodeDependency node : workflow.getNodes()) {
-            String nodeId = node.getNodeId();
+        for (WorkflowNode node : workflow.getNodes()) {
+            String nodeId = node.getNodeMetamodelId();
 
             // Check if node ID is valid
             if (nodeId == null || nodeId.isEmpty()) {
@@ -234,7 +231,7 @@ public class WorkflowMetamodelValidator {
         if (workflow.getEdges() == null || workflow.getNodes() == null) return;
 
         Set<String> nodeIds = workflow.getNodes().stream()
-                .map(WorkflowMetamodel.WorkflowNodeDependency::getNodeId)
+                .map(WorkflowNode::getId)
                 .collect(Collectors.toSet());
 
         for (WorkflowEdge edge : workflow.getEdges()) {
@@ -274,8 +271,8 @@ public class WorkflowMetamodelValidator {
         Map<String, List<String>> adjacencyList = new HashMap<>();
         Map<String, Integer> inDegree = new HashMap<>();
 
-        for (WorkflowMetamodel.WorkflowNodeDependency node : workflow.getNodes()) {
-            String nodeId = node.getNodeId();
+        for (WorkflowNode node : workflow.getNodes()) {
+            String nodeId = node.getNodeMetamodelId();
             adjacencyList.put(nodeId, new ArrayList<>());
             inDegree.put(nodeId, 0);
         }
@@ -344,7 +341,7 @@ public class WorkflowMetamodelValidator {
         Set<String> allNodeIds = workflow
                 .getNodes()
                 .stream()
-                .map(WorkflowMetamodel.WorkflowNodeDependency::getNodeId)
+                .map(WorkflowNode::getNodeMetamodelId)
                 .collect(Collectors.toSet());
 
         Set<String> nodesWithIncomingEdges = new HashSet<>();
@@ -381,8 +378,8 @@ public class WorkflowMetamodelValidator {
         if (workflow.getEdges() == null || workflow.getNodes() == null) return;
 
         Map<String, NodeMetamodel> nodesById = new HashMap<>();
-        for (WorkflowMetamodel.WorkflowNodeDependency nodeDep : workflow.getNodes()) {
-            String nodeId = nodeDep.getNodeId();
+        for (WorkflowNode nodeDep : workflow.getNodes()) {
+            String nodeId = nodeDep.getNodeMetamodelId();
             NodeMetamodel node = getNodeMetamodelById(nodeId);
             if (node != null) nodesById.put(nodeId, node);
         }
@@ -531,8 +528,8 @@ public class WorkflowMetamodelValidator {
 
         Map<String, NodeMetamodel> nodesById = workflow.getNodes().stream()
                 .collect(Collectors.toMap(
-                        WorkflowMetamodel.WorkflowNodeDependency::getNodeId,
-                        node -> getNodeMetamodelById(node.getNodeId()
+                        WorkflowNode::getNodeMetamodelId,
+                        node -> getNodeMetamodelById(node.getNodeMetamodelId()
                 )));
 
 
