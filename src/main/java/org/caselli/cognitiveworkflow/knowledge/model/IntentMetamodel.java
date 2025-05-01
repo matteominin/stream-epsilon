@@ -1,10 +1,13 @@
 package org.caselli.cognitiveworkflow.knowledge.model;
 
 import lombok.Data;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 
 /**
@@ -15,7 +18,15 @@ import java.util.Map;
 public class IntentMetamodel {
     @Field("_id")
     @Id
-    private String id;
+    private String id = UUID.randomUUID().toString();
+
+    private String name;
     private String description;
-    private Map<String, Object> requiredInputs;
+
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 }
