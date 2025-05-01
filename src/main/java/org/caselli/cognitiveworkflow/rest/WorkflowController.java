@@ -3,9 +3,8 @@ package org.caselli.cognitiveworkflow.rest;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
-import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
 import org.caselli.cognitiveworkflow.operational.WorkflowInstanceManager;
-import org.caselli.cognitiveworkflow.operational.core.WorkflowEngine;
+import org.caselli.cognitiveworkflow.operational.core.WorkflowExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,13 +17,11 @@ public class WorkflowController {
 
     private final WorkflowMetamodelService workflowMetamodelService;
     private final WorkflowInstanceManager workflowInstanceManager;
-    private final WorkflowEngine engine;
 
     @Autowired
-    public WorkflowController(WorkflowMetamodelService workflowService,WorkflowInstanceManager workflowInstanceManager, WorkflowEngine engine) {
+    public WorkflowController(WorkflowMetamodelService workflowService,WorkflowInstanceManager workflowInstanceManager) {
         this.workflowMetamodelService = workflowService;
         this.workflowInstanceManager = workflowInstanceManager;
-        this.engine = engine;
     }
 
     @GetMapping
@@ -53,7 +50,9 @@ public class WorkflowController {
 
             ExecutionContext context = new ExecutionContext();
 
-            engine.execute(workflow, context);
+            WorkflowExecutor workflowExecutor = new WorkflowExecutor(workflow);
+
+            workflowExecutor.execute(context);
         }
 
         return ResponseEntity.ok("ciao");

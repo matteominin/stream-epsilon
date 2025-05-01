@@ -3,6 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.model;
 import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowEdge;
+import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowNode;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -26,11 +27,12 @@ public class WorkflowMetamodel {
 
 
     /**
-     * List of node dependencies included in this workflow.
-     * Each dependency defines a reference to a node and its specific configuration for this workflow.
+     * List of nodes included in this workflow.
+     * Each node represents a dependency that defines a reference to a meta-node and
+     * its specific configuration for this workflow.
      */
     @Field("nodes")
-    private List<WorkflowNodeDependency> nodes;
+    private List<WorkflowNode> nodes;
 
     /**
      * List of edges representing the connections (transitions) between nodes in the DAG workflow.
@@ -57,15 +59,5 @@ public class WorkflowMetamodel {
         private String intentId;
         private Date lastExecuted;
         private Double score;
-    }
-
-    /**
-     * Represents a dependency of a workflow on a specific node.
-     */
-    @Data
-    public static class WorkflowNodeDependency {
-        private String nodeId;
-        private Map<String, Object> configurationOverrides;
-        private Version version;
     }
 }

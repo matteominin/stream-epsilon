@@ -56,16 +56,10 @@ public class NodeInstanceManager {
         Optional<NodeInstance> existing = nodesRegistry.get(nodeMetamodelId);
         if (existing.isPresent()) return existing.get();
 
-        // Create the new NodeInstance if it doesn't exist
-
-        // 1) Fetch the MetaModel
+        // Fetch the MetaModel
         Optional<NodeMetamodel> metamodel = nodeMetamodelService.getNodeById(nodeMetamodelId);
         if(metamodel.isEmpty()) throw new RuntimeException("Node metamodel not found");
-        // 2) Create a new instance
-        NodeInstance newInstance = nodeFactory.create(metamodel.get());
-        // 3) Register the new instance
-        nodesRegistry.register(nodeMetamodelId, newInstance);
 
-        return newInstance;
+        return this.getOrCreate(metamodel.get());
     }
 }

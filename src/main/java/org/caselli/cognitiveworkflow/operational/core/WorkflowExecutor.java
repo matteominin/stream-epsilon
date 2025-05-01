@@ -1,35 +1,51 @@
 package org.caselli.cognitiveworkflow.operational.core;
 
 import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowEdge;
+import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
- * Core service for executing workflows.
- * The WorkflowEngine orchestrates the execution of a set of WorkflowInstance nodes,
+ * Class for executing workflows.
+ * The WorkflowExecutor orchestrates the execution of a set of WorkflowInstance's nodes,
  * respecting port bindings and transition conditions.
  * Execution progresses in a topological order.
  */
-@Service
-public class WorkflowEngine {
-    private static final Logger logger = LoggerFactory.getLogger(WorkflowEngine.class);
+@Component
+@Scope("prototype")
+public class WorkflowExecutor {
+    private static final Logger logger = LoggerFactory.getLogger(WorkflowExecutor.class);
+    /** Workflow to execute */
+    private final WorkflowInstance workflow;
+    /** Map meta-node IDs to instances */
+    private final Map<String, NodeInstance> nodeInstancesMap = new HashMap<>();
+    /** Map workflow nodes by their workflow-specific id */
+    private final  Map<String, WorkflowNode> workflowNodesMap = new HashMap<>();
+
+    public WorkflowExecutor(WorkflowInstance workflow){
+        this.workflow = workflow;
+
+        for (NodeInstance node : workflow.getNodeInstances()) nodeInstancesMap.put(node.getId(), node);
+        for (WorkflowNode node : workflow.getMetamodel().getNodes()) workflowNodesMap.put(node.getId(), node);
 
 
-    public void execute(WorkflowInstance workflow, ExecutionContext context) {
-        // Map node IDs to instances
-        // TODO: Having metamodel IDs as instance IDs limits workflows to one metamodel instance each
-        Map<String, NodeInstance> nodeMap = new HashMap<>();
-        for (NodeInstance node : workflow.getNodes()) nodeMap.put(node.getId(), node);
+        // TODO remove
+        System.out.println("WorkflowExecutor initialized with workflow: " + workflow.getId());
+        System.out.println("Node instances: " + nodeInstancesMap.keySet());
+        System.out.println("Workflow nodes: " + workflowNodesMap.keySet());
+    }
 
+    public void execute(ExecutionContext context) {
 
         // Validate that all nodes referenced in edges exist
         List<WorkflowEdge> edges = workflow.getMetamodel().getEdges();
-        validateEdges(edges, nodeMap);
+        validateEdges(edges);
 
         // Adjacency list
         Map<String, List<WorkflowEdge>> outgoing = new HashMap<>();
@@ -37,7 +53,7 @@ public class WorkflowEngine {
 
         // outgoings = For each node, store the edges that go out from it
         // inDegree = For each node, store the number of incoming edges
-        for (String nodeId : nodeMap.keySet())
+        for (String nodeId : workflowNodesMap.keySet())
             inDegree.put(nodeId, 0);
 
         for (WorkflowEdge edge : edges) {
@@ -47,23 +63,27 @@ public class WorkflowEngine {
 
         // Starting Queue
         // All the nodes with in-degree 0 (the nodes that can be processed first are those with no incoming edges)
-        Queue<NodeInstance> queue = new LinkedList<>();
+        Queue<String> queue = new LinkedList<>();
         for (Map.Entry<String, Integer> entry : inDegree.entrySet()) {
             if (entry.getValue() == 0) {
-                queue.add(nodeMap.get(entry.getKey()));
+                queue.add(workflowNodesMap.get(entry.getKey()).getId());
             }
         }
 
-        // Keep track of the number of processed nodes in order to detect cycles
-        int processed = 0;
+
         Set<String> processedNodeIds = new HashSet<>();
 
         // Process nodes in topological order
         while (!queue.isEmpty()) {
-            NodeInstance current = queue.poll();
-            String currentId = current.getId();
+            String currentId = queue.poll();
+            NodeInstance current = getInstanceByWorkflowNodeId(currentId);
 
             logger.info("Processing node: {}", currentId);
+
+            if(current == null) {
+                logger.error("Node instance not found for ID: {}", currentId);
+                continue;
+            }
 
             try {
                 current.process(context);
@@ -73,8 +93,6 @@ public class WorkflowEngine {
                 throw new RuntimeException("Error processing node " + currentId, e);
             }
 
-            processed++;
-
             // Propagate outputs to all the outgoing edges
             List<WorkflowEdge> outs = outgoing.getOrDefault(currentId, Collections.emptyList());
 
@@ -83,7 +101,8 @@ public class WorkflowEngine {
                 String targetId = edge.getTargetNodeId();
 
                 // Get target node
-                NodeInstance targetNode = nodeMap.get(targetId);
+                NodeInstance targetNode = getInstanceByWorkflowNodeId(targetId);
+
                 if (targetNode == null) {
                     logger.warn("Edge references non-existent target node ID: {}", targetId);
                     continue;
@@ -101,7 +120,7 @@ public class WorkflowEngine {
 
                     // Enqueue the target node if it is ready (no incoming edges)
                     if (inDegree.get(targetId) == 0) {
-                        queue.add(targetNode);
+                        queue.add(targetId);
                         logger.info("Node {} is now ready for execution", targetId);
                     }
                 } else {
@@ -110,32 +129,19 @@ public class WorkflowEngine {
             }
         }
 
-
-        // Check for cycles
-        if (processed != nodeMap.size()) {
-            Set<String> unprocessedNodes = new HashSet<>(nodeMap.keySet());
-            unprocessedNodes.removeAll(processedNodeIds);
-
-            logger.error("Cycle detected in workflow. Processed {} of {} nodes. Unprocessed nodes: {}",
-                    processed, nodeMap.size(), unprocessedNodes);
-
-            throw new IllegalStateException("Cycle detected in workflow, processed " + processed +
-                    " of " + nodeMap.size() + " nodes. Unprocessed: " + unprocessedNodes);
-        }
-
-        logger.info("Workflow execution completed successfully. Processed {} nodes.", processed);
+        logger.info("Workflow execution completed successfully. Processed nodes={}", processedNodeIds);
     }
 
     /**
      * Validates that all nodes referenced in edges exist in the node map.
      */
-    private void validateEdges(List<WorkflowEdge> edges, Map<String, NodeInstance> nodeMap) {
+    private void validateEdges(List<WorkflowEdge> edges) {
         for (WorkflowEdge edge : edges) {
             String sourceId = edge.getSourceNodeId();
             String targetId = edge.getTargetNodeId();
 
-            if (!nodeMap.containsKey(sourceId)) logger.warn("Edge references non-existent source node ID: {}", sourceId);
-            if (!nodeMap.containsKey(targetId)) logger.warn("Edge references non-existent target node ID: {}", targetId);
+            if (getInstanceByWorkflowNodeId(sourceId) == null) logger.warn("Edge references non-existent source node ID: {}", sourceId);
+            if (getInstanceByWorkflowNodeId(targetId) == null) logger.warn("Edge references non-existent target node ID: {}", targetId);
         }
     }
 
@@ -181,5 +187,15 @@ public class WorkflowEngine {
                 logger.warn("Cannot apply binding: source key '{}' not found in context", sourceKey);
             }
         }
+    }
+
+    /***
+     * Returns the instance of a node by the workflow-specific node ID
+     * @param id the workflow-node ID
+     */
+    private NodeInstance getInstanceByWorkflowNodeId(String id){
+        var workflowNode = this.workflowNodesMap.get(id);
+        if(workflowNode == null) return null;
+        return this.nodeInstancesMap.get(workflowNode.getNodeMetamodelId());
     }
 }

@@ -23,17 +23,8 @@ public class WorkflowInstance {
     private WorkflowMetamodel metamodel;
 
     // Nodes
-    private List<NodeInstance> nodes;
+    private List<NodeInstance> nodeInstances;
 
-    @EventListener
-    public void onMetaNodeUpdated(WorkflowMetamodelUpdateEvent event) {
-        if (event.getMetamodelId().equals(this.metamodel.getId())) {
-            this.metamodel = event.getUpdatedMetamodel();
-            // TODO
-            // updating the metadata is not sufficient: we have to check what have changed.
-            // The DAG structure may have changed
-        }
-    }
 
     /**
      * Check if the current instance of the workflow can handle an Intent by the intent Id.
@@ -58,5 +49,18 @@ public class WorkflowInstance {
                 .findFirst()
                 .map(WorkflowMetamodel.WorkflowIntentCapability::getScore)
                 .orElse(0.0);
+    }
+
+
+
+    // TODO
+    @EventListener
+    public void onMetaNodeUpdated(WorkflowMetamodelUpdateEvent event) {
+        if (event.getMetamodelId().equals(this.metamodel.getId())) {
+            this.metamodel = event.getUpdatedMetamodel();
+            // TODO
+            // updating the metadata is not sufficient: we have to check what have changed.
+            // The DAG structure may have changed
+        }
     }
 }
