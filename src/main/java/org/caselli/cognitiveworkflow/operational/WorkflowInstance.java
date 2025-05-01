@@ -7,6 +7,8 @@ import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Setter
@@ -14,6 +16,7 @@ import java.util.List;
 @Component
 @Scope("prototype")
 public class WorkflowInstance {
+    @NotNull
     public String id;
 
     // Metamodel

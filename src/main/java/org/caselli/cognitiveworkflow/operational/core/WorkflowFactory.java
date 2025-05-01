@@ -27,6 +27,9 @@ public class WorkflowFactory {
     public WorkflowInstance createInstance(WorkflowMetamodel metamodel) {
         WorkflowInstance bean = context.getBean(WorkflowInstance.class);
 
+        // TODO; inject id (separate instance id and metamodel id)
+        bean.setId(metamodel.getId());
+
         // TODO: inject config
         // mapper.updateValue(node, metamodel.getConfig());
 
@@ -46,6 +49,9 @@ public class WorkflowFactory {
                 .toList();
 
         bean.setNodes(nodeInstances);
+
+        // TODO: print bean
+        System.out.println("Created workflow bean=" + bean + " with id=" + bean.getId());
 
         return bean;
     }

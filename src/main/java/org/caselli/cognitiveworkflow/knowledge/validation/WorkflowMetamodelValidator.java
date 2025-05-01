@@ -537,10 +537,6 @@ public class WorkflowMetamodelValidator {
 
 
         for (WorkflowEdge edge : workflow.getEdges()) {
-
-            System.out.println("Processing edge" + edge.getId() + " with condition: " +
-                    (edge.getCondition() != null ? edge.getCondition().getPort() : "null"));
-
             if (edge.getCondition() == null) continue;
 
             if (edge.getCondition().getPort() == null) {

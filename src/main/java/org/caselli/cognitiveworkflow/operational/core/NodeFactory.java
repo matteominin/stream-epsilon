@@ -21,9 +21,12 @@ public class NodeFactory {
         //  TODO: Load the WorkflowNode dynamically based on the class name provided in the metamodel
         //  Class<?> clazz = Class.forName();
 
-        Class<?> clazz = NodeMetamodel.class;
+        Class<?> clazz = NodeInstance.class;
         Object bean = context.getBean(clazz);
         NodeInstance node = (NodeInstance) bean;
+
+        // TODO: refactor id
+        node.setId(metamodel.getId());
 
         // TODO: inject config
         //mapper.updateValue(node, metamodel.getConfig());

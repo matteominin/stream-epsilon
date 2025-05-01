@@ -20,19 +20,16 @@ import java.util.*;
 public class WorkflowEngine {
     private static final Logger logger = LoggerFactory.getLogger(WorkflowEngine.class);
 
-    private final WorkflowInstance workflow;
 
-    public WorkflowEngine(WorkflowInstance workflow) {
-        this.workflow = workflow;
-    }
-
-    public void execute(ExecutionContext context) {
+    public void execute(WorkflowInstance workflow, ExecutionContext context) {
         // Map node IDs to instances
         // TODO: Having metamodel IDs as instance IDs limits workflows to one metamodel instance each
         Map<String, NodeInstance> nodeMap = new HashMap<>();
-        for (NodeInstance node : workflow.getNodes()) {
-            nodeMap.put(node.getId(), node);
-        }
+        for (NodeInstance node : workflow.getNodes()) nodeMap.put(node.getId(), node);
+
+
+
+
 
         // Validate that all nodes referenced in edges exist
         List<WorkflowEdge> edges = workflow.getMetamodel().getEdges();
@@ -44,9 +41,8 @@ public class WorkflowEngine {
 
         // outgoings = For each node, store the edges that go out from it
         // inDegree = For each node, store the number of incoming edges
-        for (String nodeId : nodeMap.keySet()) {
+        for (String nodeId : nodeMap.keySet())
             inDegree.put(nodeId, 0);
-        }
 
         for (WorkflowEdge edge : edges) {
             outgoing.computeIfAbsent(edge.getSourceNodeId(), k -> new ArrayList<>()).add(edge);
@@ -113,8 +109,7 @@ public class WorkflowEngine {
                         logger.info("Node {} is now ready for execution", targetId);
                     }
                 } else {
-                    logger.info("Edge condition from {} to {} failed, target node will not be processed through this path",
-                            currentId, targetId);
+                    logger.info("Edge condition from {} to {} is not met", currentId, targetId);
                 }
             }
         }
@@ -160,7 +155,7 @@ public class WorkflowEngine {
         Object val = context.get(portKey);
 
         if (val == null) {
-            logger.warn("Edge condition failed: port '{}' has null value", portKey);
+            logger.info("Edge condition failed: port '{}' has null value", portKey);
             return false;
         }
 
@@ -168,10 +163,7 @@ public class WorkflowEngine {
         String actualValue = val.toString();
         boolean pass = expectedValue.equals(actualValue);
 
-        if (!pass) {
-            logger.debug("Edge condition not met: expected '{}' but got '{}' for port '{}'",
-                    expectedValue, actualValue, portKey);
-        }
+        if (!pass) logger.debug("Edge condition not met: expected '{}' but got '{}' for port '{}'", expectedValue, actualValue, portKey);
 
         return pass;
     }
