@@ -5,6 +5,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.PortSchema;
+import org.caselli.cognitiveworkflow.knowledge.model.shared.PortType;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +155,9 @@ public class WorkflowMetamodelValidator {
         // Validate entry and exit points
         validateEntryAndExitPoints(workflow, result);
 
+        // Validate edge conditions
+        validateEdgeConditions(workflow, result);
+
         return result;
     }
 
@@ -178,6 +182,16 @@ public class WorkflowMetamodelValidator {
 
         if (workflow.getEdges() == null)
             result.addError("Workflow edges list cannot be null", "workflow.edges");
+        else{
+            for (var edge : workflow.getEdges()) {
+                if (edge.getId() == null || edge.getId().isEmpty()) {
+                    result.addError("All workflow edges must have a non-null and non-empty ID", "workflow.edges");
+                    break;
+                }
+            }
+        }
+
+
     }
 
 
@@ -504,6 +518,118 @@ public class WorkflowMetamodelValidator {
                             String.join(", ", unsatisfied), "workflow.nodes." + targetId);
                 }
             }
+        }
+    }
+
+    /**
+     * Validates that edge conditions reference existing ports with compatible types.
+     * @param workflow Current workflow
+     * @param result Validation result
+     */
+    private void validateEdgeConditions(WorkflowMetamodel workflow, ValidationResult result) {
+        if (workflow.getEdges() == null || workflow.getNodes() == null) return;
+
+        Map<String, NodeMetamodel> nodesById = workflow.getNodes().stream()
+                .collect(Collectors.toMap(
+                        WorkflowMetamodel.WorkflowNodeDependency::getNodeId,
+                        node -> getNodeMetamodelById(node.getNodeId()
+                )));
+
+
+        for (WorkflowEdge edge : workflow.getEdges()) {
+
+            System.out.println("Processing edge" + edge.getId() + " with condition: " +
+                    (edge.getCondition() != null ? edge.getCondition().getPort() : "null"));
+
+            if (edge.getCondition() == null) continue;
+
+            if (edge.getCondition().getPort() == null) {
+                result.addError(
+                        "Condition port cannot be null or empty",
+                        "workflow.edges." + edge.getId()
+                );
+                continue;
+            }
+
+            if(edge.getCondition().getTargetValue() == null){
+                result.addError(
+                        "Condition target value cannot be null or empty",
+                        "workflow.edges." + edge.getId()
+                );
+                continue;
+            }
+
+
+            String sourceNodeId = edge.getSourceNodeId();
+            String expectedValue = edge.getCondition().getTargetValue();
+
+            NodeMetamodel sourceNode = nodesById.get(sourceNodeId);
+            if (sourceNode == null) continue;
+
+
+            String portKey = edge.getCondition().getPort();
+
+
+
+            // Check if the port exists in the source node's outputs
+            if (sourceNode.getOutputPorts() == null ||
+                    sourceNode.getOutputPorts().stream().noneMatch(p -> p.getKey().equals(portKey))) {
+
+                result.addError(
+                        "Condition references non-existent output port '" + portKey +
+                                "' in node: " + sourceNodeId,
+                        "workflow.edges." + edge.getId()
+                );
+
+                continue;
+            }
+
+            // Check if the port type is compatible with the expected value
+            Optional<Port> port = sourceNode.getOutputPorts().stream()
+                    .filter(p -> p.getKey().equals(portKey))
+                    .findFirst();
+
+            if (port.isPresent()) {
+                PortSchema schema = port.get().getSchema();
+                if (schema != null) {
+                    boolean isValidValue = validateExpectedValue(schema.getType(), expectedValue);
+                    if (!isValidValue) {
+                        result.addError(
+                                "Condition value '" + expectedValue +
+                                        "' is incompatible with port type '" + schema.getType() + "'",
+                                "workflow.edges." + edge.getId()
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if a condition's expected value matches the port's type.
+     * @param portType The type of the port
+     * @param expectedValue The expected value to validate
+     */
+    private boolean validateExpectedValue(PortType portType, String expectedValue) {
+        if (expectedValue == null) return false;
+
+        try {
+            return switch (portType) {
+                case BOOLEAN -> expectedValue.equalsIgnoreCase("true") ||
+                        expectedValue.equalsIgnoreCase("false");
+                case INT -> {
+                    Integer.parseInt(expectedValue);
+                    yield true;
+                }
+                case FLOAT -> {
+                    Float.parseFloat(expectedValue);
+                    yield true;
+                }
+                case STRING -> true;
+                default -> false;
+            };
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 
