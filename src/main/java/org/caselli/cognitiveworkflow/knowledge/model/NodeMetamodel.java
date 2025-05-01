@@ -4,11 +4,17 @@ import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.NodeType;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -17,8 +23,9 @@ import java.util.Map;
 @Data
 @Document(collection = "meta_nodes")
 public class NodeMetamodel {
+    @Field("_id")
     @Id
-    private String id;
+    private String id = UUID.randomUUID().toString();
 
 
     /** Input ports definition for this node */
@@ -36,7 +43,8 @@ public class NodeMetamodel {
     private NodeType type;
     private String description;
     private Boolean enabled;
-    private Date createdAt;
-    private Date updatedAt;
     private Version version;
+
+    @CreatedDate private LocalDateTime createdAt;
+    @LastModifiedDate private LocalDateTime updatedAt;
 }

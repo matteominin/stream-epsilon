@@ -4,13 +4,16 @@ import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowNode;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -21,10 +24,9 @@ import java.util.Map;
 @Document(collection = "meta_workflows")
 @CompoundIndex(name = "handledIntents_intentId_idx", def = "{'handledIntents.intentId': 1}")
 public class WorkflowMetamodel {
-    @Id
     @Field("_id")
-    private String id;
-
+    @Id
+    private String id = UUID.randomUUID().toString();
 
     /**
      * List of nodes included in this workflow.
@@ -46,10 +48,9 @@ public class WorkflowMetamodel {
     private String name;
     private String description;
     private Boolean enabled;
-    private Date createdAt;
-    private Date updatedAt;
     private Version version;
-
+    @CreatedDate private LocalDateTime createdAt;
+    @LastModifiedDate private LocalDateTime updatedAt;
 
     /**
      * Represents a handled intent capability of the workflow for a specific intent.

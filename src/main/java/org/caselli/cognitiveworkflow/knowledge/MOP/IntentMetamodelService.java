@@ -67,7 +67,7 @@ public class IntentMetamodelService {
 
     /**
      * Delete an intent from the catalog
-     * @param id
+     * @param id Id of the intent to update
      */
     public void deleteById(String id) {
         repository.deleteById(id);
