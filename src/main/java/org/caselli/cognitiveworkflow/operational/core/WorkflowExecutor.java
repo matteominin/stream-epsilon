@@ -70,8 +70,7 @@ public class WorkflowExecutor {
             }
         }
 
-        // Keep track of the number of processed nodes in order to detect cycles
-        int processed = 0;
+
         Set<String> processedNodeIds = new HashSet<>();
 
         // Process nodes in topological order
@@ -93,8 +92,6 @@ public class WorkflowExecutor {
                 logger.error("Error processing node {}: {}", currentId, e.getMessage(), e);
                 throw new RuntimeException("Error processing node " + currentId, e);
             }
-
-            processed++;
 
             // Propagate outputs to all the outgoing edges
             List<WorkflowEdge> outs = outgoing.getOrDefault(currentId, Collections.emptyList());
@@ -132,19 +129,7 @@ public class WorkflowExecutor {
             }
         }
 
-        // Check for cycles
-        if (processed != workflowNodesMap.size()) {
-            Set<String> unprocessedNodes = new HashSet<>(workflowNodesMap.keySet());
-            unprocessedNodes.removeAll(processedNodeIds);
-
-            logger.error("Cycle detected in workflow. Processed {} of {} nodes. Unprocessed nodes: {}",
-                    processed, workflowNodesMap.size(), unprocessedNodes);
-
-            throw new IllegalStateException("Cycle detected in workflow, processed " + processed +
-                    " of " + workflowNodesMap.size() + " nodes. Unprocessed: " + unprocessedNodes);
-        }
-
-        logger.info("Workflow execution completed successfully. Processed {} nodes.", processed);
+        logger.info("Workflow execution completed successfully. Processed nodes={}", processedNodeIds);
     }
 
     /**
