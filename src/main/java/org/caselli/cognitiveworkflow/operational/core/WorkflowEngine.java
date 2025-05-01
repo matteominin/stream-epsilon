@@ -7,7 +7,6 @@ import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 
 /**
@@ -26,9 +25,6 @@ public class WorkflowEngine {
         // TODO: Having metamodel IDs as instance IDs limits workflows to one metamodel instance each
         Map<String, NodeInstance> nodeMap = new HashMap<>();
         for (NodeInstance node : workflow.getNodes()) nodeMap.put(node.getId(), node);
-
-
-
 
 
         // Validate that all nodes referenced in edges exist
