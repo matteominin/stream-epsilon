@@ -3,7 +3,7 @@ package org.caselli.cognitiveworkflow.operational.core;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
-import org.caselli.cognitiveworkflow.operational.NodeInstance;
+import org.caselli.cognitiveworkflow.operational.node.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

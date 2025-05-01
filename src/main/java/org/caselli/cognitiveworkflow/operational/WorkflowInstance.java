@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.operational.node.NodeInstance;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
