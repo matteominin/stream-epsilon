@@ -2,7 +2,7 @@ package org.caselli.cognitiveworkflow.operational;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelUpdateEvent;
+import org.caselli.cognitiveworkflow.knowledge.MOP.event.WorkflowMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.node.NodeInstance;
 import org.springframework.context.annotation.Scope;

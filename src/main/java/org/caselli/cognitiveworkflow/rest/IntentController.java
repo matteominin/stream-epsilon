@@ -20,6 +20,7 @@ public class IntentController {
         this.intentService = intentService;
     }
 
+
     @GetMapping
     public ResponseEntity<List<IntentMetamodel>> getAllIntents() {
         List<IntentMetamodel> intents = intentService.findAll();
@@ -36,9 +37,6 @@ public class IntentController {
     @PostMapping
     public ResponseEntity<IntentMetamodel> createIntent(@RequestBody IntentMetamodel intent) {
          try {
-             // Always ignore the ID provided by the user
-             intent.setId(null);
-
              IntentMetamodel createdIntent = intentService.create(intent);
              return ResponseEntity.status(HttpStatus.CREATED).body(createdIntent);
          }

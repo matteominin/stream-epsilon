@@ -39,6 +39,7 @@ public class IntentMetamodelService {
      * @return Created IntentMetamodel
      */
     public IntentMetamodel create(IntentMetamodel intent) {
+        intent.setId(null);  // Always ignore the ID provided by the user
         return repository.save(intent);
     }
 

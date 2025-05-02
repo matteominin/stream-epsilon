@@ -13,9 +13,6 @@ public class ToolNodeMetamodel extends NodeMetamodel {
     /** Type of the tool */
     private ToolType toolType;
 
-    /** Headers required for service invocation */
-    private Map<String, String> headers;
-
     /** Service endpoint URI */
     private String serviceUri;
 

@@ -9,6 +9,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -21,28 +23,33 @@ import java.util.UUID;
 @Data
 @Document(collection = "meta_nodes")
 public class NodeMetamodel {
+    @NotNull
     @Field("_id")
     @Id
     private String id = UUID.randomUUID().toString();
 
-
     /** Input ports definition for this node */
-    private List<Port> inputPorts;
+    @NotNull private List<Port> inputPorts;
 
     /** Output ports definition for this node */
-    private List<Port> outputPorts;
+    @NotNull private List<Port> outputPorts;
 
 
     // Config:
     private Map<String, Object> defaultConfig;
 
     // Metadata:
+    @NotNull private Boolean enabled;
+    @NotNull private Version version;
+
     private String name;
     private NodeType type;
     private String description;
-    private Boolean enabled;
-    private Version version;
     private String author;
+
+    // Update and creation date:
+    @CreatedDate private LocalDateTime createdAt;
+    @LastModifiedDate private LocalDateTime updatedAt;
 
     /** Qualitative descriptor: what the node does (non-predefined format) */
     private JsonNode qualitativeDescriptor;
@@ -50,8 +57,7 @@ public class NodeMetamodel {
     /** Quantitative descriptor (e.g., cSLAs, performance metrics, costs) */
     private JsonNode quantitativeDescriptor;
 
-    @CreatedDate private LocalDateTime createdAt;
-    @LastModifiedDate private LocalDateTime updatedAt;
+
 
 
      public enum NodeType {
