@@ -1,10 +1,11 @@
-package org.caselli.cognitiveworkflow.rest;
+package org.caselli.cognitiveworkflow.rest.controllers;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.validation.WorkflowMetamodelValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,11 +22,11 @@ public class NodeController {
 
     private final NodeMetamodelService nodeMetamodelService;
 
+
     @Autowired
     public NodeController(NodeMetamodelService nodeMetamodelService) {
         this.nodeMetamodelService = nodeMetamodelService;
     }
-
 
     /**
      * Get all node metamodels with pagination

@@ -23,7 +23,6 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
 
     private final WorkflowMetamodelCatalog repository;
     private final ApplicationEventPublisher eventPublisher;
-
     final private  WorkflowMetamodelValidator workflowMetamodelValidator;
 
     public WorkflowMetamodelService(WorkflowMetamodelCatalog repository, ApplicationEventPublisher eventPublisher, WorkflowMetamodelValidator workflowMetamodelValidator) {
@@ -57,6 +56,10 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
             throw new IllegalArgumentException("WorkflowMetamodel with id " + workflowMetamodel.getId() + " already exists.");
         }
 
+        // Validate the workflow
+        var res = workflowMetamodelValidator.validate(workflowMetamodel);
+        if(!res.isValid()) throw new IllegalArgumentException("WorkflowMetamodel is not valid: " + res.getErrors());
+
         return repository.save(workflowMetamodel);
     }
 
@@ -70,8 +73,12 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
     public WorkflowMetamodel updateWorkflow(String id, @Valid WorkflowMetamodel updatedData) {
 
         // Check if the documents exists
-        WorkflowMetamodel existingNode = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("WorkflowMetamodel with id " + id + " does not exist."));
+        repository.findById(id).orElseThrow(() -> new IllegalArgumentException("WorkflowMetamodel with id " + id + " does not exist."));
+
+        // Validate the workflow
+        var res = workflowMetamodelValidator.validate(updatedData);
+        if(!res.isValid()) throw new IllegalArgumentException("WorkflowMetamodel is not valid: " + res.getErrors());
+
 
         WorkflowMetamodel saved = repository.save(updatedData);
 

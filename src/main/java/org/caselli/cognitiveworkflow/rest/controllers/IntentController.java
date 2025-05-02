@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.rest;
+package org.caselli.cognitiveworkflow.rest.controllers;
 
 
 import jakarta.validation.Valid;
