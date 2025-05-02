@@ -1,11 +1,14 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 
+import jakarta.validation.Valid;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.IntentMetamodelCatalog;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 import java.util.List;
 import java.util.Optional;
 
+@Validated
 @Service
 public class IntentMetamodelService {
 
@@ -38,7 +41,7 @@ public class IntentMetamodelService {
      * @param intent Intent to create
      * @return Created IntentMetamodel
      */
-    public IntentMetamodel create(IntentMetamodel intent) {
+    public IntentMetamodel create(@Valid IntentMetamodel intent) {
         intent.setId(null);  // Always ignore the ID provided by the user
         return repository.save(intent);
     }
@@ -48,7 +51,7 @@ public class IntentMetamodelService {
      * @param intent Intent to update
      * @return Updated IntentMetamodel
      */
-    public IntentMetamodel update(IntentMetamodel intent) {
+    public IntentMetamodel update(@Valid IntentMetamodel intent) {
         // Check it exists
         var existingIntent = repository.findById(intent.getId());
         if (existingIntent.isEmpty())

@@ -9,11 +9,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 
@@ -34,18 +32,14 @@ public class NodeMetamodel {
     /** Output ports definition for this node */
     @NotNull private List<Port> outputPorts;
 
-
-    // Config:
-    private Map<String, Object> defaultConfig;
-
     // Metadata:
     @NotNull private Boolean enabled;
     @NotNull private Version version;
 
-    private String name;
-    private NodeType type;
-    private String description;
-    private String author;
+    @NotNull private String name;
+    @NotNull private NodeType type;
+    @NotNull private String description;
+    @NotNull private String author;
 
     // Update and creation date:
     @CreatedDate private LocalDateTime createdAt;
@@ -56,8 +50,6 @@ public class NodeMetamodel {
 
     /** Quantitative descriptor (e.g., cSLAs, performance metrics, costs) */
     private JsonNode quantitativeDescriptor;
-
-
 
 
      public enum NodeType {

@@ -1,6 +1,7 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 
 import jakarta.annotation.Nonnull;
+import jakarta.validation.Valid;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.WorkflowMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
@@ -51,7 +52,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * @param workflowMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
-    public WorkflowMetamodel createWorkflow(WorkflowMetamodel workflowMetamodel) {
+    public WorkflowMetamodel createWorkflow(@Valid WorkflowMetamodel workflowMetamodel) {
         if (workflowMetamodel.getId() != null && repository.existsById(workflowMetamodel.getId())) {
             throw new IllegalArgumentException("WorkflowMetamodel with id " + workflowMetamodel.getId() + " already exists.");
         }
@@ -66,7 +67,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * @param updatedData New Workflow Metamodel
      * @return Return the newly saved Document
      */
-    public WorkflowMetamodel updateWorkflow(String id, WorkflowMetamodel updatedData) {
+    public WorkflowMetamodel updateWorkflow(String id, @Valid WorkflowMetamodel updatedData) {
 
         // Check if the documents exists
         WorkflowMetamodel existingNode = repository.findById(id)

@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Map;
+import jakarta.validation.constraints.NotNull;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -14,7 +15,7 @@ public class RestToolNodeMetamodel extends ToolNodeMetamodel {
     private Map<String, String> headers;
 
     /** Rest Method */
-    private InvocationMethod invocationMethod;
+    @NotNull private InvocationMethod invocationMethod;
 
     public RestToolNodeMetamodel() {
         super();

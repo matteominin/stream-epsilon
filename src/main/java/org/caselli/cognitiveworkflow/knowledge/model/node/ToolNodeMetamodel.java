@@ -3,7 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.model.node;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.mongodb.core.mapping.Document;
-import java.util.Map;
+import jakarta.validation.constraints.NotNull;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -11,10 +11,10 @@ import java.util.Map;
 public class ToolNodeMetamodel extends NodeMetamodel {
 
     /** Type of the tool */
-    private ToolType toolType;
+    @NotNull private ToolType toolType;
 
     /** Service endpoint URI */
-    private String serviceUri;
+    @NotNull private String serviceUri;
 
     public ToolNodeMetamodel() {
         super();

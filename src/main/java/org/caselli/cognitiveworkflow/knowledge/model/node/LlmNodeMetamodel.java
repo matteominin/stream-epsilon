@@ -3,8 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.model.node;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 
@@ -15,11 +14,9 @@ import java.util.Map;
 @Document(collection = "meta_nodes")
 public class LlmNodeMetamodel extends NodeMetamodel {
 
-    @NotNull
-    private String llmProvider;
+    @NotNull private String llmProvider;
 
-    @NotNull
-    private String modelName; // e.g., "gpt-4", "gemini-pro", "claude-3-opus", "llama3"
+    @NotNull private String modelName; // e.g., "gpt-4", "gemini-pro", "claude-3-opus", "llama3"
 
     private String promptTemplate; // Template string with placeholders like {{input_var}}
 
