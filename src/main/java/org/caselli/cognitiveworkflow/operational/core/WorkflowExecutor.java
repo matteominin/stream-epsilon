@@ -4,7 +4,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.node.NodeInstance;
-import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
+import org.caselli.cognitiveworkflow.operational.workflow.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;

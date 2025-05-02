@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational;
+package org.caselli.cognitiveworkflow.operational.core;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;

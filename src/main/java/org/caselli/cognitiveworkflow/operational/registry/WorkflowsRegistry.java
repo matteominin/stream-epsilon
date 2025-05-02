@@ -1,6 +1,6 @@
 package org.caselli.cognitiveworkflow.operational.registry;
 
-import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
+import org.caselli.cognitiveworkflow.operational.workflow.WorkflowInstance;
 import org.springframework.stereotype.Component;
 
 
