@@ -50,7 +50,7 @@ public class NodeMetamodelService {
      * @param updatedData New Metamodel
      * @return Return the newly saved Document
      */
-    public NodeMetamodel updateNode(String id, NodeMetamodel updatedData) {
+    public NodeMetamodel updateNode(String id, @Valid NodeMetamodel updatedData) {
         // TODO: da capire se fa anche senza specializzazione (?)
 
         // Check if the documents exists

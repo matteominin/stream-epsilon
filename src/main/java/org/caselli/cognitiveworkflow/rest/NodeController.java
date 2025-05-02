@@ -4,6 +4,7 @@ import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +53,13 @@ public class NodeController {
             @PathVariable String id,
             @Valid @RequestBody LlmNodeMetamodel llmNodeMetamodel) {
 
+        // Check it is a correct node type
+        var existing = nodeMetamodelService.getNodeById(id);
+        if (existing.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (existing.get().getType() != NodeMetamodel.NodeType.LLM)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+
         llmNodeMetamodel.setId(id);
         LlmNodeMetamodel result = (LlmNodeMetamodel) nodeMetamodelService.updateNode(id, llmNodeMetamodel);
         return ResponseEntity.ok(result);
@@ -73,6 +81,13 @@ public class NodeController {
     public ResponseEntity<RestToolNodeMetamodel> updateRestToolNodeMetamodel(
             @PathVariable String id,
             @Valid @RequestBody RestToolNodeMetamodel restToolNodeMetamodel) {
+
+        // Check it is a correct node type
+        var existing = nodeMetamodelService.getNodeById(id);
+        if (existing.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (existing.get().getType() != NodeMetamodel.NodeType.TOOL || restToolNodeMetamodel.getToolType() != ToolNodeMetamodel.ToolType.REST)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
 
         restToolNodeMetamodel.setId(id);
         RestToolNodeMetamodel result = (RestToolNodeMetamodel) nodeMetamodelService.updateNode(id, restToolNodeMetamodel);
