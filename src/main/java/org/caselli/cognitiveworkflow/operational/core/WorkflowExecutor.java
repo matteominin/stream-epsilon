@@ -66,11 +66,9 @@ public class WorkflowExecutor {
         // Starting Queue
         // All the nodes with in-degree 0 (the nodes that can be processed first are those with no incoming edges)
         Queue<String> queue = new LinkedList<>();
-        for (Map.Entry<String, Integer> entry : inDegree.entrySet()) {
-            if (entry.getValue() == 0) {
+        for (Map.Entry<String, Integer> entry : inDegree.entrySet())
+            if (entry.getValue() == 0)
                 queue.add(workflowNodesMap.get(entry.getKey()).getId());
-            }
-        }
 
 
         Set<String> processedNodeIds = new HashSet<>();
@@ -252,9 +250,7 @@ public class WorkflowExecutor {
      */
     private Port findInputPort(NodeInstance node, String portKey) {
         for (Port port : node.getMetamodel().getInputPorts()) {
-            if (port.getKey().equals(portKey)) {
-                return port;
-            }
+            if (port.getKey().equals(portKey)) return port;
         }
         return null;
     }
