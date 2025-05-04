@@ -19,10 +19,12 @@ public class RestPort extends Port {
      * REST-specific port roles
      */
     public enum RestPortRole {
-        REQUEST_BODY,
-        PATH_VARIABLE,
-        QUERY_PARAMETER,
-        HEADER,
+        REQ_BODY_FIELD,
+        REQ_BODY,
+        REQ_HEADER,
+        REQ_HEADER_FIELD,
+        REQ_PATH_VARIABLE,
+        REQ_QUERY_PARAMETER,
         RESPONSE_BODY,
         RESPONSE_STATUS,
         RESPONSE_HEADERS

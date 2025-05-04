@@ -14,21 +14,19 @@ import org.springframework.stereotype.Component;
 @Getter
 @Component
 @Scope("prototype")
-public class NodeInstance {
+public abstract class NodeInstance {
 
     public String id;
 
     // Metamodel
     private NodeMetamodel metamodel;
 
+    public abstract void process(ExecutionContext context) throws Exception;
+
     @EventListener
     public void onMetaNodeUpdated(NodeMetamodelUpdateEvent event) {
         if (event.getMetamodelId().equals(this.metamodel.getId())) {
             this.metamodel = event.getUpdatedMetamodel();
         }
-    }
-
-    public void process(ExecutionContext context) throws Exception {
-
     }
 }

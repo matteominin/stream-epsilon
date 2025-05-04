@@ -5,7 +5,6 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
-import org.caselli.cognitiveworkflow.knowledge.model.node.port.StandardPort;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
@@ -74,7 +73,7 @@ public class WorkflowMetamodelValidator {
         }
 
         public void printWarnings() {
-            if (!warnings.isEmpty()) {
+            if (!getWarnings().isEmpty()) {
                 logger.warn("Found {} validation warnings:", warnings.size());
                 for (int i = 0; i < warnings.size(); i++) {
                     ValidationWarning warning = warnings.get(i);
