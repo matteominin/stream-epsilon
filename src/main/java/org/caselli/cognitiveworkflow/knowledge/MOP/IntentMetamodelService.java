@@ -3,6 +3,8 @@ package org.caselli.cognitiveworkflow.knowledge.MOP;
 import jakarta.validation.Valid;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.IntentMetamodelCatalog;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import java.util.List;
@@ -23,6 +25,7 @@ public class IntentMetamodelService {
      * Find all intents in the catalog
      * @return List of intents
      */
+    @Cacheable(value = "intents")
     public List<IntentMetamodel> findAll() {
         return repository.findAll();
     }
@@ -33,6 +36,7 @@ public class IntentMetamodelService {
      * @param id Intent id
      * @return Optional of IntentMetamodel
      */
+    @Cacheable(value = "intentModels", key = "#id")
     public Optional<IntentMetamodel> findById(String id) {
         return repository.findById(id);
     }
@@ -42,6 +46,7 @@ public class IntentMetamodelService {
      * @param intent Intent to create
      * @return Created IntentMetamodel
      */
+    @CacheEvict(value = "intentModels", allEntries = true)
     public IntentMetamodel create(@Valid IntentMetamodel intent) {
         intent.setId(UUID.randomUUID().toString());  // Always ignore the ID provided by the user
         return repository.save(intent);
@@ -52,6 +57,7 @@ public class IntentMetamodelService {
      * @param intent Intent to update
      * @return Updated IntentMetamodel
      */
+    @CacheEvict(value = "intentModels", allEntries = true)
     public IntentMetamodel update(@Valid IntentMetamodel intent) {
         // Check it exists
         var existingIntent = repository.findById(intent.getId());
@@ -66,6 +72,7 @@ public class IntentMetamodelService {
      * @param id Intent id
      * @return true if the intent was deleted, false otherwise
      */
+    @Cacheable(value = "intentModels", key = "#id")
     public boolean existsById(String id) {
         return repository.existsById(id);
     }
@@ -74,6 +81,7 @@ public class IntentMetamodelService {
      * Delete an intent from the catalog
      * @param id Id of the intent to update
      */
+    @CacheEvict(value = "intentModels", allEntries = true)
     public void deleteById(String id) {
         repository.deleteById(id);
 
