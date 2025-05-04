@@ -5,6 +5,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.repository.NodeMetamodelCatalog;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -94,6 +95,9 @@ public class NodeMetamodelService {
         // Set correct types
         nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);
         nodeMetamodel.setToolType(ToolNodeMetamodel.ToolType.REST);
+        // Set the correct port types
+        nodeMetamodel.getInputPorts().forEach(port -> port.setPortType(Port.PortImplementationType.REST));
+
         return repository.save(nodeMetamodel);
     }
 }

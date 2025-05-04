@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "meta_nodes")
-public class ToolNodeMetamodel extends NodeMetamodel {
+public abstract class ToolNodeMetamodel extends NodeMetamodel {
 
     /** Type of the tool */
     @NotNull private ToolType toolType;

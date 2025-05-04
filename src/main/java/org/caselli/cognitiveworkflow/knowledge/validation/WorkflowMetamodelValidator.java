@@ -5,6 +5,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.StandardPort;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
@@ -582,7 +583,7 @@ public class WorkflowMetamodelValidator {
             }
 
             // Check if the port type is compatible with the expected value
-            Optional<Port> port = sourceNode.getOutputPorts().stream()
+            Optional<? extends Port> port = sourceNode.getOutputPorts().stream()
                     .filter(p -> p.getKey().equals(portKey))
                     .findFirst();
 

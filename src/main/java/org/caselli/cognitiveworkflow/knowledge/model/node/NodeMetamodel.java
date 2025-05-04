@@ -20,17 +20,11 @@ import java.util.UUID;
  */
 @Data
 @Document(collection = "meta_nodes")
-public class NodeMetamodel {
+public abstract class NodeMetamodel{
     @NotNull
     @Field("_id")
     @Id
     private String id = UUID.randomUUID().toString();
-
-    /** Input ports definition for this node */
-    @NotNull private List<Port> inputPorts;
-
-    /** Output ports definition for this node */
-    @NotNull private List<Port> outputPorts;
 
     // Metadata:
     @NotNull private Boolean enabled;
@@ -52,7 +46,12 @@ public class NodeMetamodel {
     private JsonNode quantitativeDescriptor;
 
 
-     public enum NodeType {
+    // Abstract methods to be implemented by subclasses
+    @NotNull public abstract List<? extends Port> getInputPorts();
+    @NotNull public abstract List<? extends Port> getOutputPorts();
+
+
+    public enum NodeType {
         LLM,
         TOOL,
     }
