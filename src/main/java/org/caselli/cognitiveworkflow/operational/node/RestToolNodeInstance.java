@@ -61,7 +61,8 @@ public class RestToolNodeInstance extends ToolNodeInstance {
 
     @Override
     public void process(ExecutionContext context) {
-        logger.info("Processing Rest Tool Node Instance: {}", getId());
+
+        logger.info("[Node {}]: Processing REST request.", getId());
 
         RestToolNodeMetamodel metamodel = getMetamodel();
         String serviceUri = metamodel.getServiceUri();
@@ -104,7 +105,7 @@ public class RestToolNodeInstance extends ToolNodeInstance {
         // Store response in context
         handleOutputPorts(context, response);
 
-        logger.info("Rest Tool Node Instance processed successfully: {}", getId());
+        logger.info("[Node {}]: REST request processed successfully.", getId());
     }
 
 

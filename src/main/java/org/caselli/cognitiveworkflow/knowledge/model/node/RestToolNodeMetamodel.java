@@ -54,7 +54,6 @@ public class RestToolNodeMetamodel extends ToolNodeMetamodel {
         this.outputPorts = outputPorts != null ? List.copyOf(outputPorts) : Collections.emptyList();
     }
 
-
     /**
      * REST-specific invocation methods of the service.
      */

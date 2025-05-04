@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Validated
@@ -80,7 +81,7 @@ public class NodeMetamodelService {
      * @return Returns the new Metamodel
      */
     public LlmNodeMetamodel createLlmNode(@Valid LlmNodeMetamodel nodeMetamodel) {
-        nodeMetamodel.setId(null); // ignore the pre-existing ID
+        nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         nodeMetamodel.setType(NodeMetamodel.NodeType.LLM);
         return repository.save(nodeMetamodel);
     }
@@ -91,12 +92,14 @@ public class NodeMetamodelService {
      * @return Returns the new Metamodel
      */
     public RestToolNodeMetamodel createRestToolNode(@Valid RestToolNodeMetamodel nodeMetamodel) {
-        nodeMetamodel.setId(null); // ignore the pre-existing ID
+        nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         // Set correct types
         nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);
         nodeMetamodel.setToolType(ToolNodeMetamodel.ToolType.REST);
         // Set the correct port types
         nodeMetamodel.getInputPorts().forEach(port -> port.setPortType(Port.PortImplementationType.REST));
+
+        System.out.println("Creating new RestToolNodeMetamodel: " + nodeMetamodel);
 
         return repository.save(nodeMetamodel);
     }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Validated
 @Service
@@ -42,7 +43,7 @@ public class IntentMetamodelService {
      * @return Created IntentMetamodel
      */
     public IntentMetamodel create(@Valid IntentMetamodel intent) {
-        intent.setId(null);  // Always ignore the ID provided by the user
+        intent.setId(UUID.randomUUID().toString());  // Always ignore the ID provided by the user
         return repository.save(intent);
     }
 

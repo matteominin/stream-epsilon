@@ -8,11 +8,9 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 
 /**
@@ -20,11 +18,9 @@ import java.util.UUID;
  */
 @Data
 @Document(collection = "meta_nodes")
-public abstract class NodeMetamodel{
-    @NotNull
-    @Field("_id")
+public abstract class NodeMetamodel {
     @Id
-    private String id = UUID.randomUUID().toString();
+    private String id;
 
     // Metadata:
     @NotNull private Boolean enabled;
@@ -40,10 +36,10 @@ public abstract class NodeMetamodel{
     @LastModifiedDate private LocalDateTime updatedAt;
 
     /** Qualitative descriptor: what the node does (non-predefined format) */
-    private JsonNode qualitativeDescriptor;
+    private org.bson.Document qualitativeDescriptor;
 
     /** Quantitative descriptor (e.g., cSLAs, performance metrics, costs) */
-    private JsonNode quantitativeDescriptor;
+    private org.bson.Document quantitativeDescriptor;
 
 
     // Abstract methods to be implemented by subclasses

@@ -531,11 +531,12 @@ public class WorkflowMetamodelValidator {
         if (workflow.getEdges() == null || workflow.getNodes() == null) return;
 
         Map<String, NodeMetamodel> nodesById = workflow.getNodes().stream()
+                .filter(node -> node.getNodeMetamodelId() != null)
+                .filter(node -> getNodeMetamodelById(node.getNodeMetamodelId()) != null)
                 .collect(Collectors.toMap(
                         WorkflowNode::getNodeMetamodelId,
-                        node -> getNodeMetamodelById(node.getNodeMetamodelId()
-                )));
-
+                        node -> getNodeMetamodelById(node.getNodeMetamodelId())
+                ));
 
         for (WorkflowEdge edge : workflow.getEdges()) {
             if (edge.getCondition() == null) continue;
