@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -22,10 +21,7 @@ import jakarta.validation.constraints.NotNull;
 @Document(collection = "meta_workflows")
 @CompoundIndex(name = "handledIntents_intentId_idx", def = "{'handledIntents.intentId': 1}")
 public class WorkflowMetamodel {
-    @NotNull
-    @Field("_id")
-    @Id
-    private String id = UUID.randomUUID().toString();
+    @Id private String id;
 
     /**
      * List of nodes included in this workflow.

@@ -5,6 +5,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.repository.NodeMetamodelCatalog;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Validated
@@ -79,7 +81,7 @@ public class NodeMetamodelService {
      * @return Returns the new Metamodel
      */
     public LlmNodeMetamodel createLlmNode(@Valid LlmNodeMetamodel nodeMetamodel) {
-        nodeMetamodel.setId(null); // ignore the pre-existing ID
+        nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         nodeMetamodel.setType(NodeMetamodel.NodeType.LLM);
         return repository.save(nodeMetamodel);
     }
@@ -90,10 +92,15 @@ public class NodeMetamodelService {
      * @return Returns the new Metamodel
      */
     public RestToolNodeMetamodel createRestToolNode(@Valid RestToolNodeMetamodel nodeMetamodel) {
-        nodeMetamodel.setId(null); // ignore the pre-existing ID
+        nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         // Set correct types
         nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);
         nodeMetamodel.setToolType(ToolNodeMetamodel.ToolType.REST);
+        // Set the correct port types
+        nodeMetamodel.getInputPorts().forEach(port -> port.setPortType(Port.PortImplementationType.REST));
+
+        System.out.println("Creating new RestToolNodeMetamodel: " + nodeMetamodel);
+
         return repository.save(nodeMetamodel);
     }
 }

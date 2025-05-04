@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Component
 @Scope("prototype")
-public class ToolNodeInstance extends NodeInstance {
+public abstract class ToolNodeInstance extends NodeInstance {
 
     @Override
     public ToolNodeMetamodel getMetamodel() {
@@ -24,11 +24,5 @@ public class ToolNodeInstance extends NodeInstance {
             throw new IllegalArgumentException("ToolNodeInstance requires ToolNodeMetamodel");
         }
         super.setMetamodel(metamodel);
-    }
-
-    @Override
-    public void process(ExecutionContext context) throws Exception {
-        System.out.println("Processing Tool Node Instance: " + getId());
-
     }
 }

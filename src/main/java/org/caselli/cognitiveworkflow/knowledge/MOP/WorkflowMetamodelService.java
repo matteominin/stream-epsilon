@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class WorkflowMetamodelService implements ApplicationListener<ApplicationReadyEvent> {
@@ -56,9 +57,15 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
             throw new IllegalArgumentException("WorkflowMetamodel with id " + workflowMetamodel.getId() + " already exists.");
         }
 
+        workflowMetamodel.setId(UUID.randomUUID().toString());
+
         // Validate the workflow
         var res = workflowMetamodelValidator.validate(workflowMetamodel);
+
+
         if(!res.isValid()) throw new IllegalArgumentException("WorkflowMetamodel is not valid: " + res.getErrors());
+
+
 
         return repository.save(workflowMetamodel);
     }

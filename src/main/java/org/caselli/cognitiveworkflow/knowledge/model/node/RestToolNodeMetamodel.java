@@ -2,7 +2,10 @@ package org.caselli.cognitiveworkflow.knowledge.model.node;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import jakarta.validation.constraints.NotNull;
 
@@ -23,6 +26,37 @@ public class RestToolNodeMetamodel extends ToolNodeMetamodel {
         this.setToolType(ToolNodeMetamodel.ToolType.REST);
     }
 
+    /** Input ports of the node */
+    @NotNull private List<RestPort> inputPorts = Collections.emptyList();
+
+    /** Output ports of the node */
+    @NotNull private List<RestPort> outputPorts = Collections.emptyList();
+
+    @Override
+    @NotNull
+    public List<RestPort> getInputPorts() {
+        return this.inputPorts;
+    }
+
+    @Override
+    @NotNull
+    public List<RestPort> getOutputPorts() {
+        return this.outputPorts;
+    }
+
+    public void setInputPorts(List<RestPort> inputPorts) {
+        // Use defensive copying
+        this.inputPorts = inputPorts != null ? List.copyOf(inputPorts) : Collections.emptyList();
+    }
+
+    public void setOutputPorts(List<RestPort> outputPorts) {
+        // Use defensive copying
+        this.outputPorts = outputPorts != null ? List.copyOf(outputPorts) : Collections.emptyList();
+    }
+
+    /**
+     * REST-specific invocation methods of the service.
+     */
     public enum InvocationMethod {
         GET,
         POST,
