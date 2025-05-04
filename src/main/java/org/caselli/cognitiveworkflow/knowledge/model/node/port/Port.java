@@ -40,12 +40,8 @@ public class Port {
     @NotNull private PortImplementationType portType;
 
 
-
-
     public enum PortImplementationType {
         STANDARD,
-        REST,
-        DB,
-        LLM
+        REST
     }
 }
