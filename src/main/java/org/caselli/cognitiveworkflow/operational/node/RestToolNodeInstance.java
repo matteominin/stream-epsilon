@@ -33,7 +33,7 @@ import java.util.Map.Entry;
 @Scope("prototype")
 public class RestToolNodeInstance extends ToolNodeInstance {
 
-    private static final Logger logger = LoggerFactory.getLogger(ToolNodeInstance.class);
+    private static final Logger logger = LoggerFactory.getLogger(RestToolNodeInstance.class);
 
     private RestTemplate restTemplate;
 
@@ -55,8 +55,8 @@ public class RestToolNodeInstance extends ToolNodeInstance {
     }
 
     @Override
-    public void process(ExecutionContext context) throws Exception {
-        System.out.println("Processing Rest Tool Node Instance: " + getId());
+    public void process(ExecutionContext context) {
+        logger.info("Processing Rest Tool Node Instance: {}", getId());
 
         RestToolNodeMetamodel metamodel = getMetamodel();
         String serviceUri = metamodel.getServiceUri();
@@ -84,24 +84,22 @@ public class RestToolNodeInstance extends ToolNodeInstance {
         if (headers != null && !headers.isEmpty())
             headers.forEach(httpHeaders::add);
 
-
         // BODY
-        Object requestBody = new Object();
+        Object body = null;
         if (    invocationMethod == RestToolNodeMetamodel.InvocationMethod.POST ||
                 invocationMethod == RestToolNodeMetamodel.InvocationMethod.PUT ||
                 invocationMethod == RestToolNodeMetamodel.InvocationMethod.PATCH
         )
-            requestBody = getBody(context);
+            body = getBody(context);
 
-
-        HttpEntity<?> httpEntity = new HttpEntity<>(requestBody, httpHeaders);
+        // Execute request
+        HttpEntity<?> httpEntity = new HttpEntity<>(body != null ? body : new Object(), httpHeaders);
         ResponseEntity<String> response = executeRequest(finalUri.toString(), invocationMethod, httpEntity);
 
-        // Store response in context (using output ports as per the clarified design)
+        // Store response in context
         handleOutputPorts(context, response);
 
-
-        System.out.println("Rest Tool Node Instance processed successfully: " + getId());
+        logger.info("Rest Tool Node Instance processed successfully: {}", getId());
     }
 
 
@@ -131,7 +129,6 @@ public class RestToolNodeInstance extends ToolNodeInstance {
             case DELETE -> HttpMethod.DELETE;
             case HEAD -> HttpMethod.HEAD;
             case OPTIONS -> HttpMethod.OPTIONS;
-            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
         };
     }
 
@@ -157,7 +154,7 @@ public class RestToolNodeInstance extends ToolNodeInstance {
      * @return A map of headers.
      */
     private Map<String,String> getHeader(ExecutionContext context) {
-        Map<String, String> defaultHeaders = getMetamodel().getHeaders();
+        Map<String, String> defaultHeaders = getDefaultHeaders();
         Map<String, String> portHeaders = new HashMap<>();
         Map<String, String> fieldHeaders = new HashMap<>();
 
@@ -173,10 +170,10 @@ public class RestToolNodeInstance extends ToolNodeInstance {
                             Map<String, String> mapValue = (Map<String, String>) headerValue;
                             portHeaders.putAll(mapValue);
                         } catch (ClassCastException e) {
-                            System.err.println("Warning: Value for port '" + inputPort.getKey() + "' with role REQ_HEADER is not a Map<String, String>.");
+                            logger.warn("Value for port '{}' with role REQ_HEADER is not a Map<String, String>.", inputPort.getKey(), e);
                         }
                     } else if (headerValue != null) {
-                        System.err.println("Warning: Value for port '" + inputPort.getKey() + "' with role REQ_HEADER is not a Map.");
+                        logger.warn("Value for port '{}' with role REQ_HEADER is not a Map.", inputPort.getKey());
                     }
                 }
                 // HANDLE REQ_HEADER_FIELD
@@ -352,18 +349,17 @@ public class RestToolNodeInstance extends ToolNodeInstance {
                     break;
 
                 default:
-                    System.err.println("Warning: Unexpected output port role: " + outputPort.getRole());
+                    logger.warn("Unexpected output port role: {}", outputPort.getRole());
                     break;
             }
 
             if (valueToSet != null) {
                 context.put(outputPort.getKey(), valueToSet);
-                System.out.println("Set output port '" + outputPort.getKey() + "' with value: " + valueToSet);
+                logger.info("Set output port '{}' with value: {}", outputPort.getKey(), valueToSet);
             } else {
                 context.put(outputPort.getKey(), null);
-                System.out.println("Set output port '" + outputPort.getKey() + "' with null value.");
+                logger.info("Set output port '{}' with null value.", outputPort.getKey());
             }
         }
     }
-
 }
