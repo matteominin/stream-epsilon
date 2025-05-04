@@ -1,7 +1,9 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 
 import jakarta.annotation.Nonnull;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
+import jakarta.validation.Valid;
+import org.caselli.cognitiveworkflow.knowledge.MOP.event.WorkflowMetamodelUpdateEvent;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
 import org.caselli.cognitiveworkflow.knowledge.validation.WorkflowMetamodelValidator;
 import org.slf4j.Logger;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class WorkflowMetamodelService implements ApplicationListener<ApplicationReadyEvent> {
@@ -21,7 +24,6 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
 
     private final WorkflowMetamodelCatalog repository;
     private final ApplicationEventPublisher eventPublisher;
-
     final private  WorkflowMetamodelValidator workflowMetamodelValidator;
 
     public WorkflowMetamodelService(WorkflowMetamodelCatalog repository, ApplicationEventPublisher eventPublisher, WorkflowMetamodelValidator workflowMetamodelValidator) {
@@ -50,10 +52,20 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * @param workflowMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
-    public WorkflowMetamodel createWorkflow(WorkflowMetamodel workflowMetamodel) {
+    public WorkflowMetamodel createWorkflow(@Valid WorkflowMetamodel workflowMetamodel) {
         if (workflowMetamodel.getId() != null && repository.existsById(workflowMetamodel.getId())) {
             throw new IllegalArgumentException("WorkflowMetamodel with id " + workflowMetamodel.getId() + " already exists.");
         }
+
+        workflowMetamodel.setId(UUID.randomUUID().toString());
+
+        // Validate the workflow
+        var res = workflowMetamodelValidator.validate(workflowMetamodel);
+
+
+        if(!res.isValid()) throw new IllegalArgumentException("WorkflowMetamodel is not valid: " + res.getErrors());
+
+
 
         return repository.save(workflowMetamodel);
     }
@@ -65,10 +77,15 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * @param updatedData New Workflow Metamodel
      * @return Return the newly saved Document
      */
-    public WorkflowMetamodel updateWorkflow(String id, WorkflowMetamodel updatedData) {
+    public WorkflowMetamodel updateWorkflow(String id, @Valid WorkflowMetamodel updatedData) {
+
         // Check if the documents exists
-        WorkflowMetamodel existingNode = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("WorkflowMetamodel with id " + id + " does not exist."));
+        repository.findById(id).orElseThrow(() -> new IllegalArgumentException("WorkflowMetamodel with id " + id + " does not exist."));
+
+        // Validate the workflow
+        var res = workflowMetamodelValidator.validate(updatedData);
+        if(!res.isValid()) throw new IllegalArgumentException("WorkflowMetamodel is not valid: " + res.getErrors());
+
 
         WorkflowMetamodel saved = repository.save(updatedData);
 

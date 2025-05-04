@@ -1,9 +1,13 @@
 package org.caselli.cognitiveworkflow.knowledge.validation;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.*;
+import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -69,7 +73,7 @@ public class WorkflowMetamodelValidator {
         }
 
         public void printWarnings() {
-            if (!warnings.isEmpty()) {
+            if (!getWarnings().isEmpty()) {
                 logger.warn("Found {} validation warnings:", warnings.size());
                 for (int i = 0; i < warnings.size(); i++) {
                     ValidationWarning warning = warnings.get(i);
@@ -527,11 +531,12 @@ public class WorkflowMetamodelValidator {
         if (workflow.getEdges() == null || workflow.getNodes() == null) return;
 
         Map<String, NodeMetamodel> nodesById = workflow.getNodes().stream()
+                .filter(node -> node.getNodeMetamodelId() != null)
+                .filter(node -> getNodeMetamodelById(node.getNodeMetamodelId()) != null)
                 .collect(Collectors.toMap(
                         WorkflowNode::getNodeMetamodelId,
-                        node -> getNodeMetamodelById(node.getNodeMetamodelId()
-                )));
-
+                        node -> getNodeMetamodelById(node.getNodeMetamodelId())
+                ));
 
         for (WorkflowEdge edge : workflow.getEdges()) {
             if (edge.getCondition() == null) continue;
@@ -578,7 +583,7 @@ public class WorkflowMetamodelValidator {
             }
 
             // Check if the port type is compatible with the expected value
-            Optional<Port> port = sourceNode.getOutputPorts().stream()
+            Optional<? extends Port> port = sourceNode.getOutputPorts().stream()
                     .filter(p -> p.getKey().equals(portKey))
                     .findFirst();
 

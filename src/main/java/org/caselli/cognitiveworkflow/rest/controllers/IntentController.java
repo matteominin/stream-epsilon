@@ -1,14 +1,18 @@
-package org.caselli.cognitiveworkflow.rest;
+package org.caselli.cognitiveworkflow.rest.controllers;
 
+
+import jakarta.validation.Valid;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.IntentMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Validated
 @RestController
 @RequestMapping("/api/intents")
 public class IntentController {
@@ -19,6 +23,7 @@ public class IntentController {
     public IntentController(IntentMetamodelService intentService) {
         this.intentService = intentService;
     }
+
 
     @GetMapping
     public ResponseEntity<List<IntentMetamodel>> getAllIntents() {
@@ -34,11 +39,8 @@ public class IntentController {
     }
 
     @PostMapping
-    public ResponseEntity<IntentMetamodel> createIntent(@RequestBody IntentMetamodel intent) {
+    public ResponseEntity<IntentMetamodel> createIntent(@Valid @RequestBody IntentMetamodel intent) {
          try {
-             // Always ignore the ID provided by the user
-             intent.setId(null);
-
              IntentMetamodel createdIntent = intentService.create(intent);
              return ResponseEntity.status(HttpStatus.CREATED).body(createdIntent);
          }
@@ -48,7 +50,7 @@ public class IntentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<IntentMetamodel> updateIntent(@PathVariable String id, @RequestBody IntentMetamodel intent) {
+    public ResponseEntity<IntentMetamodel> updateIntent(@PathVariable String id, @Valid @RequestBody IntentMetamodel intent) {
         try {
             intent.setId(id);
             IntentMetamodel updatedIntent = intentService.update(intent);

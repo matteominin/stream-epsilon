@@ -1,11 +1,11 @@
-package org.caselli.cognitiveworkflow.knowledge.model.shared;
+package org.caselli.cognitiveworkflow.knowledge.model.workflow;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
-
 import javax.validation.constraints.NotNull;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Represents a directed edge in the workflow graph
@@ -13,9 +13,10 @@ import java.util.Map;
 @Data
 public class WorkflowEdge {
 
+    @NotNull
     @Id
     @Field("_id")
-    private String id;
+    private String id = UUID.randomUUID().toString();
 
     /** The source node identifier */
     @NotNull private String sourceNodeId;

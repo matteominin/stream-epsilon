@@ -1,9 +1,12 @@
-package org.caselli.cognitiveworkflow.knowledge.model.shared;
+package org.caselli.cognitiveworkflow.knowledge.model.workflow;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Represents a specific node of a workflow.
@@ -12,14 +15,16 @@ import java.util.Map;
 public class WorkflowNode {
     @Id
     @Field("_id")
-    private String id;
+    private String id = UUID.randomUUID().toString();
 
     /** The ID of the metamodel of the node*/
+    @NotNull
     private String nodeMetamodelId;
 
     /** TODO */
     private Map<String, Object> configurationOverrides;
 
     /* Specific version of the metamodel */
+    @NotNull
     private Version version;
 }

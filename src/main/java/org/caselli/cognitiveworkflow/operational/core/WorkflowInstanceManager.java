@@ -1,11 +1,10 @@
-package org.caselli.cognitiveworkflow.operational;
+package org.caselli.cognitiveworkflow.operational.core;
 
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
-import org.caselli.cognitiveworkflow.operational.core.WorkflowFactory;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.operational.workflow.WorkflowInstance;
 import org.caselli.cognitiveworkflow.operational.registry.WorkflowsRegistry;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

@@ -1,9 +1,8 @@
 package org.caselli.cognitiveworkflow.operational.core;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
-import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
-import org.caselli.cognitiveworkflow.operational.WorkflowInstanceManager;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.operational.workflow.WorkflowInstance;
 import org.caselli.cognitiveworkflow.operational.utils.TemperatureSampler;
 import org.springframework.stereotype.Service;
 

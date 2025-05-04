@@ -1,7 +1,8 @@
-package org.caselli.cognitiveworkflow.knowledge.model.shared;
+package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+
 import java.util.Map;
 
 
@@ -21,9 +22,6 @@ public class PortSchema {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Map<String, PortSchema> properties;
 
-    /** Default value for the port */
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Object defaultValue;
 
     /**
      * Whether the port is required or not.

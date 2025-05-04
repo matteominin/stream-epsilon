@@ -1,10 +1,11 @@
 package org.caselli.cognitiveworkflow.operational.core;
 
-import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowEdge;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.WorkflowNode;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
-import org.caselli.cognitiveworkflow.operational.NodeInstance;
-import org.caselli.cognitiveworkflow.operational.WorkflowInstance;
+import org.caselli.cognitiveworkflow.operational.node.NodeInstance;
+import org.caselli.cognitiveworkflow.operational.workflow.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -37,6 +38,8 @@ public class WorkflowExecutor {
 
     public void execute(ExecutionContext context) {
 
+        logger.info("-------------------------------------------");
+
         // Check if the workflow is enabled
         if(!this.workflow.getMetamodel().getEnabled())
             throw new RuntimeException("Cannot execute Workflow " + workflow.getId() + ". It is not enabled.");
@@ -63,11 +66,9 @@ public class WorkflowExecutor {
         // Starting Queue
         // All the nodes with in-degree 0 (the nodes that can be processed first are those with no incoming edges)
         Queue<String> queue = new LinkedList<>();
-        for (Map.Entry<String, Integer> entry : inDegree.entrySet()) {
-            if (entry.getValue() == 0) {
+        for (Map.Entry<String, Integer> entry : inDegree.entrySet())
+            if (entry.getValue() == 0)
                 queue.add(workflowNodesMap.get(entry.getKey()).getId());
-            }
-        }
 
 
         Set<String> processedNodeIds = new HashSet<>();
@@ -84,13 +85,20 @@ public class WorkflowExecutor {
                 continue;
             }
 
+            // Apply default values for any missing inputs
+            prepareNodeInputs(current, context);
+
             try {
+                // Process the node
                 current.process(context);
                 processedNodeIds.add(currentId);
             } catch (Exception e) {
                 logger.error("Error processing node {}: {}", currentId, e.getMessage(), e);
                 throw new RuntimeException("Error processing node " + currentId, e);
             }
+
+            // Apply default values for any missing outputs
+            applyDefaultOutputValues(current, context);
 
             // Propagate outputs to all the outgoing edges
             List<WorkflowEdge> outs = outgoing.getOrDefault(currentId, Collections.emptyList());
@@ -129,6 +137,7 @@ public class WorkflowExecutor {
         }
 
         logger.info("Workflow execution completed successfully. Processed nodes={}", processedNodeIds);
+        logger.info("-------------------------------------------");
     }
 
     /**
@@ -153,6 +162,7 @@ public class WorkflowExecutor {
         if (cond == null) return true;
 
         String portKey = cond.getPort();
+
         Object val = context.get(portKey);
 
         if (val == null) {
@@ -174,16 +184,36 @@ public class WorkflowExecutor {
      * Bindings map source port keys to target port keys.
      */
     private void applyEdgeBindings(WorkflowEdge edge, ExecutionContext context) {
+        // Get source and target node instances
+        NodeInstance sourceNode = getInstanceByWorkflowNodeId(edge.getSourceNodeId());
+        NodeInstance targetNode = getInstanceByWorkflowNodeId(edge.getTargetNodeId());
+
+        if (sourceNode == null || targetNode == null) {
+            logger.warn("Cannot apply bindings: source or target node not found");
+            return;
+        }
+
         for (Map.Entry<String, String> bind : edge.getBindings().entrySet()) {
             String sourceKey = bind.getKey();
             String targetKey = bind.getValue();
 
+            // First check if the source key is in the context
             if (context.containsKey(sourceKey)) {
                 Object value = context.get(sourceKey);
                 context.put(targetKey, value);
                 logger.debug("Applied binding: {} -> {} (value: {})", sourceKey, targetKey, value);
             } else {
-                logger.warn("Cannot apply binding: source key '{}' not found in context", sourceKey);
+                // Source key not in context, let's check if target port has a default value
+                Port targetPort = findInputPort(targetNode, targetKey);
+                if (targetPort != null && targetPort.getDefaultValue() != null) {
+                    // Apply default value to target
+                    context.put(targetKey, targetPort.getDefaultValue());
+                    logger.debug("Used default value for target port '{}': {}",
+                            targetKey, targetPort.getDefaultValue());
+                } else {
+                    logger.warn("Cannot apply binding: source key '{}' not found in context and target has no default",
+                            sourceKey);
+                }
             }
         }
     }
@@ -196,5 +226,52 @@ public class WorkflowExecutor {
         var workflowNode = this.workflowNodesMap.get(id);
         if(workflowNode == null) return null;
         return this.nodeInstancesMap.get(workflowNode.getNodeMetamodelId());
+    }
+
+
+    /**
+     * Prepares inputs for a node by applying default values where needed
+     * (only for ports that don't already have values in the context)
+     * @param node the node instance
+     * @param context the execution context
+     */
+    private void prepareNodeInputs(NodeInstance node, ExecutionContext context) {
+        for (Port port : node.getMetamodel().getInputPorts()) {
+            String portKey = port.getKey();
+            // Only apply default if the port doesn't have a value in context
+            if (!context.containsKey(portKey) && port.getDefaultValue() != null) {
+                context.put(portKey, port.getDefaultValue());
+                logger.debug("Applied default value for input port '{}' on node '{}': {}", portKey, node.getId(), port.getDefaultValue());
+            }
+        }
+    }
+
+    /**
+     * Helper method to find an input port on a node by key
+     * @param node the node instance
+     * @param portKey the key of the port to find
+     */
+    private Port findInputPort(NodeInstance node, String portKey) {
+        for (Port port : node.getMetamodel().getInputPorts()) {
+            if (port.getKey().equals(portKey)) return port;
+        }
+        return null;
+    }
+
+
+    /**
+     * Applies default values for output ports that weren't set during node processing.
+     * @param node the node instance that was just processed
+     * @param context the execution context
+     */
+    private void applyDefaultOutputValues(NodeInstance node, ExecutionContext context) {
+        for (Port port : node.getMetamodel().getOutputPorts()) {
+            String portKey = port.getKey();
+            // Only apply default if the port doesn't have a value in context after execution
+            if (!context.containsKey(portKey) && port.getDefaultValue() != null) {
+                context.put(portKey, port.getDefaultValue());
+                logger.debug("Applied default value for output port '{}' on node '{}': {}", portKey, node.getId(), port.getDefaultValue());
+            }
+        }
     }
 }

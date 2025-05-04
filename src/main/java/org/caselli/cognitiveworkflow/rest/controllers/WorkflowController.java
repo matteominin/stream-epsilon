@@ -1,16 +1,19 @@
-package org.caselli.cognitiveworkflow.rest;
+package org.caselli.cognitiveworkflow.rest.controllers;
 
+import jakarta.validation.Valid;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
-import org.caselli.cognitiveworkflow.operational.WorkflowInstanceManager;
+import org.caselli.cognitiveworkflow.operational.core.WorkflowInstanceManager;
 import org.caselli.cognitiveworkflow.operational.core.WorkflowExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Validated
 @RestController
 @RequestMapping("/api/workflows")
 public class WorkflowController {
@@ -30,7 +33,7 @@ public class WorkflowController {
     }
 
     @PostMapping
-    public ResponseEntity<WorkflowMetamodel> createWorkflow(@RequestBody WorkflowMetamodel workflow) {
+    public ResponseEntity<WorkflowMetamodel> createWorkflow(@Valid @RequestBody WorkflowMetamodel workflow) {
         return ResponseEntity.ok(workflowMetamodelService.createWorkflow(workflow));
     }
 

@@ -1,14 +1,14 @@
-package org.caselli.cognitiveworkflow.knowledge.MOP;
+package org.caselli.cognitiveworkflow.knowledge.MOP.event;
 
 import lombok.Getter;
-import org.caselli.cognitiveworkflow.knowledge.model.NodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 
 @Getter
 public class NodeMetamodelUpdateEvent {
     private final String metamodelId;
     private final NodeMetamodel updatedMetamodel;
 
-    NodeMetamodelUpdateEvent(String metamodelId,  NodeMetamodel updatedMetamodel){
+    public NodeMetamodelUpdateEvent(String metamodelId, NodeMetamodel updatedMetamodel){
         this.metamodelId = metamodelId;
         this.updatedMetamodel = updatedMetamodel;
     }
