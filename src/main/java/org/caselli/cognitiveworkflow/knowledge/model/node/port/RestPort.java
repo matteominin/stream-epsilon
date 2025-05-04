@@ -25,8 +25,9 @@ public class RestPort extends Port {
         REQ_HEADER_FIELD,
         REQ_PATH_VARIABLE,
         REQ_QUERY_PARAMETER,
-        RESPONSE_BODY,
-        RESPONSE_STATUS,
-        RESPONSE_HEADERS
+        RES_FULL_BODY,
+        RES_BODY_FIELD,
+        RES_STATUS,
+        RES_HEADERS,
     }
 }

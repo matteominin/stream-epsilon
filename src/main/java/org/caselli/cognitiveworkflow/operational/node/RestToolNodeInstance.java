@@ -1,5 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.node;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
@@ -34,6 +36,9 @@ import java.util.Map.Entry;
 public class RestToolNodeInstance extends ToolNodeInstance {
 
     private static final Logger logger = LoggerFactory.getLogger(RestToolNodeInstance.class);
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
 
     private RestTemplate restTemplate;
 
@@ -314,28 +319,53 @@ public class RestToolNodeInstance extends ToolNodeInstance {
 
     /**
      * Handles the output ports, writing response data to the execution context
-     * based on the output port roles.
+     * based on the output port roles (RES_FULL_BODY, RES_BODY_FIELD, RES_STATUS, RES_HEADERS).
+     * Includes parsing of the response body for RES_BODY_FIELD.
      * @param context The execution context.
      * @param response The ResponseEntity received from the REST call.
      */
     private void handleOutputPorts(ExecutionContext context, ResponseEntity<String> response) {
         List<RestPort> outputPorts = getMetamodel().getOutputPorts();
         if (outputPorts == null || outputPorts.isEmpty()) {
+            logger.info("Node {}: No output ports defined.", getId());
             return;
+        }
+
+        String responseBody = response.getBody();
+        HttpHeaders responseHeaders = response.getHeaders();
+        int responseStatus = response.getStatusCode().value();
+
+        // Check if body parsing is needed (i.e., if there's any RES_BODY_FIELD port)
+        boolean needsBodyParsing = outputPorts.stream()
+                .anyMatch(port -> port.getRole() == RestPort.RestPortRole.RES_BODY_FIELD);
+
+        Map<String, Object> parsedResponseBody = null;
+        if (needsBodyParsing && responseBody != null && !responseBody.trim().isEmpty()) {
+            try {
+                // Parse the body as a JSON
+                parsedResponseBody = objectMapper.readValue(responseBody, new TypeReference<>() {});
+                logger.debug("[Node {}]: Successfully parsed response body.", getId());
+            } catch (Exception e) {
+                logger.warn("[Node {}]: Could not parse response body for field extraction: {}", getId(), e.getMessage());
+                parsedResponseBody = null;
+            }
+        } else if (needsBodyParsing && (responseBody == null || responseBody.trim().isEmpty())) {
+            logger.debug("[Node {}]: Body parsing needed but response body is null or empty.", getId());
         }
 
         for (RestPort outputPort : outputPorts) {
             Object valueToSet = null;
             switch (outputPort.getRole()) {
-                case RESPONSE_BODY:
-                    valueToSet = response.getBody();
+                case RES_FULL_BODY:
+                    valueToSet = responseBody;
+                    logger.debug("[Node {}]: Handling RES_FULL_BODY for port '{}'.", getId(), outputPort.getKey());
                     break;
-                case RESPONSE_STATUS:
-                    valueToSet = response.getStatusCode().value();
+                case RES_STATUS:
+                    valueToSet = responseStatus;
+                    logger.debug("[Node {}]: Handling RES_STATUS for port '{}'.", getId(), outputPort.getKey());
                     break;
-                case RESPONSE_HEADERS:
-                    // Convert HttpHeaders to Map<String, String>
-                    HttpHeaders responseHeaders = response.getHeaders();
+                case RES_HEADERS:
+                    logger.debug("[Node {}]: Handling RES_HEADERS for port '{}'.", getId(), outputPort.getKey());
                     if (responseHeaders != null) {
                         valueToSet = responseHeaders.entrySet().stream()
                                 .collect(Collectors.toMap(
@@ -345,21 +375,31 @@ public class RestToolNodeInstance extends ToolNodeInstance {
                                             return (values == null || values.isEmpty()) ? "" : String.join(",", values);
                                         }
                                 ));
+                    } else {
+                        logger.debug("[Node {}]: Response headers are null.", getId());
+                    }
+                    break;
+                case RES_BODY_FIELD:
+                    logger.debug("[Node {}]: Handling RES_BODY_FIELD for port '{}'.", getId(), outputPort.getKey());
+                    if (parsedResponseBody != null) {
+                        // Use the port key to extract the field from the parsed body
+                        valueToSet = parsedResponseBody.get(outputPort.getKey());
+                        logger.debug("[Node {}]: Extracted body field '{}' with value: {}.", getId(), outputPort.getKey(), valueToSet);
+                    } else {
+                        if (responseBody == null || responseBody.trim().isEmpty())
+                            logger.debug("[Node {}]: Cannot extract body field '{}' because response body is null or empty.", getId(), outputPort.getKey());
+                        else
+                            logger.warn("[Node {}]: Cannot extract body field '{}' because response body was not successfully parsed into a Map-like structure.", getId(), outputPort.getKey());
                     }
                     break;
 
                 default:
-                    logger.warn("Unexpected output port role: {}", outputPort.getRole());
+                    logger.warn("[Node {}]: Output port '{}' has unexpected role: {}. This port will be ignored.", getId(), outputPort.getKey(), outputPort.getRole());
                     break;
             }
 
-            if (valueToSet != null) {
-                context.put(outputPort.getKey(), valueToSet);
-                logger.info("Set output port '{}' with value: {}", outputPort.getKey(), valueToSet);
-            } else {
-                context.put(outputPort.getKey(), null);
-                logger.info("Set output port '{}' with null value.", outputPort.getKey());
-            }
+            context.put(outputPort.getKey(), valueToSet);
+            logger.info("[Node {}]: Set output port '{}' with value: {}.", getId(), outputPort.getKey(), valueToSet);
         }
     }
 }
