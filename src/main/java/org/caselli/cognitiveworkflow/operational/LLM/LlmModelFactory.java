@@ -78,6 +78,8 @@ public class LlmModelFactory {
         if (StringUtils.hasText(modelName))
             optionsBuilder.model(modelName);
 
+        optionsBuilder.maxTokens((options != null ? options.getMaxTokens() : null) == null ? 1000 : options.getMaxTokens());
+
         return AnthropicChatModel.builder()
                 .anthropicApi(new AnthropicApi(apiKey))
                 .defaultOptions(optionsBuilder.build())
