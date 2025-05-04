@@ -22,9 +22,6 @@ public class PortSchema {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Map<String, PortSchema> properties;
 
-    /** Default value for the port */
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Object defaultValue;
 
     /**
      * Whether the port is required or not.

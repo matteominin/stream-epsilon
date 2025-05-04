@@ -1,5 +1,6 @@
 package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotNull;
@@ -26,11 +27,20 @@ public class Port {
     /** The type schema of the port */
     @NotNull private PortSchema schema;
 
+
+    /** Default value for the port */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Object defaultValue;
+
+
     /**
      * The type of the port.
      * Field for polymorphic deserialization
      */
     @NotNull private PortImplementationType portType;
+
+
+
 
     public enum PortImplementationType {
         STANDARD,
