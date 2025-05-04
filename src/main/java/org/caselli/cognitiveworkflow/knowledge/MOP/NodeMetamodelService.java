@@ -14,6 +14,8 @@ import org.caselli.cognitiveworkflow.knowledge.validation.ValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.domain.Page;
@@ -41,6 +43,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
     /**
      * Check if a node metamodel exists by ID.
      */
+    @Cacheable(value = "nodeMetamodels", key = "#id")
     public boolean existsById(String id) {
         return repository.existsById(id);
     }
@@ -50,10 +53,10 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @param id Id of the metamodel
      * @return The requested node
      */
+    @Cacheable(value = "nodeMetamodels", key = "#id")
     public Optional<NodeMetamodel> getNodeById(String id) {
         return repository.findById(id);
     }
-
 
     /**
      * Update an existing Node Metamodel
@@ -62,12 +65,12 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @param updatedData New Metamodel
      * @return Return the newly saved Document
      */
+    @CacheEvict(value = "nodeMetamodels", key = "#id")
     public NodeMetamodel updateNode(String id, @Valid NodeMetamodel updatedData) {
         // TODO: da capire se fa anche senza specializzazione (?)
 
         // Check if the documents exists
-        NodeMetamodel existingNode = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("NodeMetamodel with id " + id + " does not exist."));
+        repository.findById(id).orElseThrow(() -> new IllegalArgumentException("NodeMetamodel with id " + id + " does not exist."));
 
         NodeMetamodel saved = repository.save(updatedData);
 
@@ -81,6 +84,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * Find all node metamodels with pagination.
      * @param pageable Pagination information
      */
+    @Cacheable(value = "nodeMetamodels")
     public Page<NodeMetamodel> findAll(Pageable pageable) {
         return repository.findAll(pageable);
     }
@@ -90,6 +94,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @param nodeMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
+    @CacheEvict(value = "nodeMetamodels", allEntries = true)
     public LlmNodeMetamodel createLlmNode(@Valid LlmNodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         nodeMetamodel.setType(NodeMetamodel.NodeType.LLM);
@@ -105,6 +110,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @param nodeMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
+    @CacheEvict(value = "nodeMetamodels", allEntries = true)
     public RestToolNodeMetamodel createRestToolNode(@Valid RestToolNodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         // Set correct types

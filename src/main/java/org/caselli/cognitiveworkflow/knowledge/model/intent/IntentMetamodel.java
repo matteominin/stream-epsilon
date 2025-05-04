@@ -1,5 +1,6 @@
 package org.caselli.cognitiveworkflow.knowledge.model.intent;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -17,9 +18,11 @@ public class IntentMetamodel {
     @Id
     private String id;
 
+    @NotNull
     private String name;
-    private String description;
 
+    @NotNull
+    private String description;
 
     @CreatedDate
     private LocalDateTime createdAt;

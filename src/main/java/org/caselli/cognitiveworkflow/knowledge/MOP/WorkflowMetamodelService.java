@@ -11,6 +11,8 @@ import org.caselli.cognitiveworkflow.knowledge.validation.WorkflowMetamodelValid
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.domain.PageRequest;
@@ -38,6 +40,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * Get all the Workflows metamodel in the MongoDB collection
      * @return All the existing workflows metamodel
      */
+    @Cacheable(value = "workflowMetamodels")
     public List<WorkflowMetamodel> getAllWorkflows() {
         return repository.findAll();
     }
@@ -45,6 +48,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
     /**
      * Get a specific Workflow metamodel by its ID
      */
+    @Cacheable(value = "workflowMetamodels", key = "#id")
     public Optional<WorkflowMetamodel> getWorkflowById(String id) {
         return repository.findById(id);
     }
@@ -54,6 +58,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * @param workflowMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
+    @CacheEvict(value = "workflowMetamodels", allEntries = true)
     public WorkflowMetamodel createWorkflow(@Valid WorkflowMetamodel workflowMetamodel) throws BadRequestException {
         if (workflowMetamodel.getId() != null && repository.existsById(workflowMetamodel.getId())) {
             throw new BadRequestException("WorkflowMetamodel with id " + workflowMetamodel.getId() + " already exists.");
@@ -75,6 +80,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * @param updatedData New Workflow Metamodel
      * @return Return the newly saved Document
      */
+    @CacheEvict(value = "workflowMetamodels", key = "#id")
     public WorkflowMetamodel updateWorkflow(String id, @Valid WorkflowMetamodel updatedData) {
 
         // Check if the documents exists
@@ -97,6 +103,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * Delete a workflow metamodel by its ID
      * @param id ID of the workflow metamodel to delete
      */
+    @CacheEvict(value = "workflowMetamodels", key = "#id")
     public void deleteWorkflow(String id) {
         repository.deleteById(id);
     }
@@ -109,6 +116,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * @param n The number of workflows to retrieve
      * @return A list of workflow metamodels that handle the intent, sorted by score
      */
+    @Cacheable(value = "workflowMetamodels", key = "#intentId + '_' + #n")
     public List<WorkflowMetamodel> findTopNHandlingIntent(String intentId, int n) {
         return repository.findByHandledIntents_IntentId(intentId, PageRequest.of(0, n));
     }

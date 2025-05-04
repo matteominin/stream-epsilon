@@ -23,32 +23,20 @@ public class WorkflowMetamodelValidator {
 
     private final NodeMetamodelService nodeMetamodelService;
 
-    /**
-     * Cache to avoid repeated calls to the catalog for the same node during the validation process
-     * of a single workflow
-     * TODO: we could implement a cache layer to the NodeMetamodelService itself
-     */
-    private final Map<String, NodeMetamodel> nodesCache = new HashMap<>();
-
 
     public WorkflowMetamodelValidator(NodeMetamodelService nodeMetamodelService) {
         this.nodeMetamodelService = nodeMetamodelService;
     }
 
-    NodeMetamodel getNodeMetamodelById(String nodeId) {
-        // Check cache first
-        if (nodesCache.containsKey(nodeId)) return nodesCache.get(nodeId);
-
-        // If not in cache, fetch from repository
+    /**
+     * Helper method to get a NodeMetamodel by its ID
+     * @param nodeId The ID of the node to retrieve
+     * @return The NodeMetamodel if found, null otherwise
+     */
+    private NodeMetamodel getNodeMetamodelById(String nodeId) {
         Optional<NodeMetamodel> res = nodeMetamodelService.getNodeById(nodeId);
-        NodeMetamodel node = res.orElse(null);
-
-        // Save to cache
-        nodesCache.put(nodeId, node);
-
-        return node;
+        return res.orElse(null);
     }
-
 
     /**
      * Validates a workflow metamodel for correctness
@@ -57,10 +45,6 @@ public class WorkflowMetamodelValidator {
      */
     public ValidationResult validate(WorkflowMetamodel workflow) {
         ValidationResult result = new ValidationResult();
-
-        // Empty the cache (for fresh validation)
-        nodesCache.clear();
-
 
         if (workflow == null) {
             result.addError("Workflow metamodel cannot be null", "workflow");
