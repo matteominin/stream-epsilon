@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.node.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.workflow.WorkflowInstance;
+import org.slf4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,8 @@ public class WorkflowFactory {
     private final ApplicationContext context;
     private final ObjectMapper mapper;
 
+    private final Logger logger = org.slf4j.LoggerFactory.getLogger(WorkflowFactory.class);
+
     public WorkflowFactory(ApplicationContext context, ObjectMapper mapper, NodeInstanceManager nodeInstanceManager) {
         this.nodeInstanceManager = nodeInstanceManager;
         this.context = context;
@@ -25,16 +28,12 @@ public class WorkflowFactory {
     public WorkflowInstance createInstance(WorkflowMetamodel metamodel) {
         WorkflowInstance bean = context.getBean(WorkflowInstance.class);
 
-        // TODO; inject id (separate instance id and metamodel id)
+
         bean.setId(metamodel.getId());
 
         // TODO: inject config
         // mapper.updateValue(node, metamodel.getConfig());
 
-        // TODO: Copy the static fields
-        // node.setId(desc.getId());
-        // node.setInputKeys(desc.getInputKeys());
-        // node.setOutputKeys(desc.getOutputKeys());
 
         // Set the metamodel
         bean.setMetamodel(metamodel);
@@ -48,9 +47,10 @@ public class WorkflowFactory {
 
         bean.setNodeInstances(nodeInstances);
 
-        // TODO: print bean
-        System.out.println("Created workflow bean=" + bean + " with id=" + bean.getId());
+
+        logger.info("Initializing workflow instance with ID: " + bean.getId() + " and nodes: " + nodeInstances.stream().map(NodeInstance::getId).toList());
 
         return bean;
     }
+
 }

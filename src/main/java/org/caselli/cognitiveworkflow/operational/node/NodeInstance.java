@@ -12,8 +12,6 @@ import org.springframework.stereotype.Component;
 
 @Setter
 @Getter
-@Component
-@Scope("prototype")
 public abstract class NodeInstance {
 
     public String id;
