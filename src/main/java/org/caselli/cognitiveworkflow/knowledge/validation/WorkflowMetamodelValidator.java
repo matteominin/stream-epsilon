@@ -8,8 +8,6 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,73 +21,6 @@ import java.util.stream.Collectors;
 @Service
 public class WorkflowMetamodelValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(WorkflowMetamodelValidator.class);
-
-
-    /**
-     * Helper class for storing validation results
-     */
-    public static class ValidationResult {
-        private final List<ValidationError> errors = new ArrayList<>();
-        private final List<ValidationWarning> warnings = new ArrayList<>();
-
-        public void addError(String message, String component) {
-            errors.add(new ValidationError(message, component));
-        }
-
-        public void addWarning(String message, String component) {
-            warnings.add(new ValidationWarning(message, component));
-        }
-
-        public boolean isValid() {
-            return errors.isEmpty();
-        }
-
-        public List<ValidationError> getErrors() {
-            return Collections.unmodifiableList(errors);
-        }
-
-        public List<ValidationWarning> getWarnings() {
-            return Collections.unmodifiableList(warnings);
-        }
-
-        public int getWarningCount() {
-            return warnings.size();
-        }
-
-        public int getErrorCount() {
-            return errors.size();
-        }
-
-        public void printErrors() {
-            if (!errors.isEmpty()) {
-                logger.error("Found {} validation errors:", errors.size());
-                for (int i = 0; i < errors.size(); i++) {
-                    ValidationError error = errors.get(i);
-                    logger.error("[Error {}/{}] Component: {} - Message: {}",
-                            i + 1, errors.size(), error.component, error.message);
-                }
-            }
-        }
-
-        public void printWarnings() {
-            if (!getWarnings().isEmpty()) {
-                logger.warn("Found {} validation warnings:", warnings.size());
-                for (int i = 0; i < warnings.size(); i++) {
-                    ValidationWarning warning = warnings.get(i);
-                    logger.warn("[Warning {}/{}] Component: {} - Message: {}",
-                            i + 1, warnings.size(), warning.component, warning.message);
-                }
-            }
-        }
-    }
-
-
-    public record ValidationError(String message, String component) {}
-
-
-    public record ValidationWarning(String message, String component) {}
-
     private final NodeMetamodelService nodeMetamodelService;
 
     /**
@@ -99,9 +30,7 @@ public class WorkflowMetamodelValidator {
      */
     private final Map<String, NodeMetamodel> nodesCache = new HashMap<>();
 
-    /**
-     * Constructor that accepts a repository of NodeMetamodels for validation purposes
-     */
+
     public WorkflowMetamodelValidator(NodeMetamodelService nodeMetamodelService) {
         this.nodeMetamodelService = nodeMetamodelService;
     }

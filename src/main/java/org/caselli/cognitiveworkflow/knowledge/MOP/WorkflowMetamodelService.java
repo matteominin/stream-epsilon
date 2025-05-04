@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.WorkflowMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
+import org.caselli.cognitiveworkflow.knowledge.validation.ValidationResult;
 import org.caselli.cognitiveworkflow.knowledge.validation.WorkflowMetamodelValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,7 +137,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
 
         for (WorkflowMetamodel workflow : workflows) {
 
-            WorkflowMetamodelValidator.ValidationResult result = workflowMetamodelValidator.validate(workflow);
+            ValidationResult result = workflowMetamodelValidator.validate(workflow);
 
             if (result.isValid()) {
                 validCount++;
@@ -149,7 +150,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
                     logger.warn("Found {} warnings for valid workflow ID {}", warningCount, workflow.getId());
                 }
 
-                result.printWarnings();
+                result.printWarnings(logger);
 
             } else {
                 invalidCount++;
@@ -164,8 +165,8 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
 
                 logger.error("Found {} errors and {} warnings for invalid workflow ID {}", errorCount, warningCount, workflow.getId());
 
-                result.printWarnings();
-                result.printErrors();
+                result.printWarnings(logger);
+                result.printErrors(logger);
             }
         }
 

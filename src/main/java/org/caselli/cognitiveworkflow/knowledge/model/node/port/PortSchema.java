@@ -3,7 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -83,10 +83,7 @@ public class PortSchema {
 
 
         // FLOAT can sometimes be converted to INT (with potential loss of precision)
-        if (source == PortType.FLOAT && target == PortType.INT)
-            return true;
-
-        return false;
+        return source == PortType.FLOAT && target == PortType.INT;
     }
 
     /**
@@ -96,5 +93,108 @@ public class PortSchema {
      */
     public boolean isCompatibleWith(PortSchema target) {
         return isCompatible(this, target);
+    }
+
+    /**
+     * Validates if the given value is compliant with this schema.
+     * @param value The value to validate
+     * @return true if the value is valid according to the schema, false otherwise.
+     */
+    public boolean isValidValue(Object value) {
+        return isValidValue(value, this);
+    }
+
+
+    /**
+     * Method to validate a value against a schema
+     * @param value The current segment of the value being validated.
+     * @param schema The PortSchema segment to validate against.
+     * @return true if the value segment is valid according to the schema segment
+     */
+    private static boolean isValidValue(Object value, PortSchema schema) {
+        if (schema == null || schema.getType() == null) return value == null;
+        if(value == null) return !schema.getRequired();
+
+        PortType schemaType = schema.getType();
+
+        switch (schemaType) {
+            case STRING:
+                return value instanceof String;
+
+            case INT:
+                return value instanceof Integer || value instanceof Long;
+
+            case FLOAT:
+                return value instanceof Float || value instanceof Double;
+
+            case BOOLEAN:
+                return value instanceof Boolean;
+
+            case DATE:
+                return value instanceof Date;
+
+            case ARRAY:
+                if (!(value instanceof List<?> || value instanceof Object[]))
+                    return false;
+
+                PortSchema itemSchema = schema.getItems();
+                if (itemSchema == null) return true;
+
+                if (value instanceof List<?> array)
+                    for (Object item : array) {
+                        if (!isValidValueRecursive(item, itemSchema))
+                            return false;
+                } else {
+                    Object[] array = (Object[]) value;
+                    for (Object item : array)
+                        if (!isValidValueRecursive(item, itemSchema)) return false;
+                }
+                return true;
+
+            case OBJECT:
+                if (!(value instanceof Map<?, ?> || value instanceof org.bson.Document)) return false;
+
+                Map<?, ?> objectMap;
+                if (value instanceof Map)
+                    objectMap = (Map<?, ?>) value;
+                else
+                    objectMap = ((org.bson.Document) value);
+
+
+                Map<String, PortSchema> propertiesSchema = schema.getProperties();
+                List<String> checkedProperties = new ArrayList<>();
+
+                if (propertiesSchema != null) {
+                    for (Map.Entry<?, ?> entry : objectMap.entrySet()) {
+                        Object propKey = entry.getKey();
+                        Object propValue = entry.getValue();
+
+                        if (!(propKey instanceof String propName)) return false;
+
+                        PortSchema propSchema = propertiesSchema.get(propName);
+
+                        if (propSchema == null) return false;
+
+                        if (!isValidValueRecursive(propValue, propSchema)) return false;
+
+                        checkedProperties.add(propName);
+                    }
+
+                    // Check if some required properties are missing
+                    for (Map.Entry<String, PortSchema> entry : propertiesSchema.entrySet()) {
+                        String propName = entry.getKey();
+                        PortSchema propSchema = entry.getValue();
+
+                        if (propSchema.getRequired() != null && propSchema.getRequired() && !checkedProperties.contains(propName))
+                            return false;
+                    }
+                }
+
+
+                return true;
+
+            default:
+                return false;
+        }
     }
 }
