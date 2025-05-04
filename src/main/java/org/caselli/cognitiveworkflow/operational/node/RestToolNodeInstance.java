@@ -99,7 +99,7 @@ public class RestToolNodeInstance extends ToolNodeInstance {
             body = getBody(context);
 
         // Execute request
-        HttpEntity<?> httpEntity = new HttpEntity<>(body != null ? body : new Object(), httpHeaders);
+        HttpEntity<?> httpEntity = new HttpEntity<>(body != null ? body : HttpEntity.EMPTY, httpHeaders);
         ResponseEntity<String> response = executeRequest(finalUri.toString(), invocationMethod, httpEntity);
 
         // Store response in context
