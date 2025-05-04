@@ -142,12 +142,12 @@ public class PortSchema {
 
                 if (value instanceof List<?> array)
                     for (Object item : array) {
-                        if (!isValidValueRecursive(item, itemSchema))
+                        if (!isValidValue(item, itemSchema))
                             return false;
                 } else {
                     Object[] array = (Object[]) value;
                     for (Object item : array)
-                        if (!isValidValueRecursive(item, itemSchema)) return false;
+                        if (!isValidValue(item, itemSchema)) return false;
                 }
                 return true;
 
@@ -175,7 +175,7 @@ public class PortSchema {
 
                         if (propSchema == null) return false;
 
-                        if (!isValidValueRecursive(propValue, propSchema)) return false;
+                        if (!isValidValue(propValue, propSchema)) return false;
 
                         checkedProperties.add(propName);
                     }
