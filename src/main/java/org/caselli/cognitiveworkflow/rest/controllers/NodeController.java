@@ -1,5 +1,6 @@
 package org.caselli.cognitiveworkflow.rest.controllers;
 
+import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
@@ -41,7 +42,7 @@ public class NodeController {
      * Create a new LLM node metamodel
      */
     @PostMapping("/llm")
-    public ResponseEntity<LlmNodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody LlmNodeMetamodel llmNodeMetamodel) {
+    public ResponseEntity<LlmNodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody LlmNodeMetamodel llmNodeMetamodel) throws  BadRequestException{
         LlmNodeMetamodel result = nodeMetamodelService.createLlmNode(llmNodeMetamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
@@ -70,7 +71,7 @@ public class NodeController {
      * Create a new REST Tool node metamodel
      */
     @PostMapping("/rest-tool")
-    public ResponseEntity<RestToolNodeMetamodel> createRestToolNodeMetamodel(@Valid @RequestBody RestToolNodeMetamodel restToolNodeMetamodel) {
+    public ResponseEntity<RestToolNodeMetamodel> createRestToolNodeMetamodel(@Valid @RequestBody RestToolNodeMetamodel restToolNodeMetamodel) throws BadRequestException {
         RestToolNodeMetamodel result = nodeMetamodelService.createRestToolNode(restToolNodeMetamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }

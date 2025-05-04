@@ -111,7 +111,7 @@ public class PortSchema {
      * @param schema The PortSchema segment to validate against.
      * @return true if the value segment is valid according to the schema segment
      */
-    private static boolean isValidValue(Object value, PortSchema schema) {
+    public static boolean isValidValue(Object value, PortSchema schema) {
         if (schema == null || schema.getType() == null) return value == null;
         if(value == null) return !schema.getRequired();
 

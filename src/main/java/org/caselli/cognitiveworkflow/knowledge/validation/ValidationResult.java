@@ -2,7 +2,6 @@ package org.caselli.cognitiveworkflow.knowledge.validation;
 
 
 import org.slf4j.Logger;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

@@ -1,6 +1,7 @@
 package org.caselli.cognitiveworkflow.rest.controllers;
 
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
@@ -33,7 +34,7 @@ public class WorkflowController {
     }
 
     @PostMapping
-    public ResponseEntity<WorkflowMetamodel> createWorkflow(@Valid @RequestBody WorkflowMetamodel workflow) {
+    public ResponseEntity<WorkflowMetamodel> createWorkflow(@Valid @RequestBody WorkflowMetamodel workflow) throws BadRequestException {
         return ResponseEntity.ok(workflowMetamodelService.createWorkflow(workflow));
     }
 

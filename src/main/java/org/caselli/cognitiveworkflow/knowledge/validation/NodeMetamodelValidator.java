@@ -7,11 +7,8 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Service for validating NodeMetamodels correctness.
@@ -23,7 +20,33 @@ import java.util.stream.Collectors;
 @Service
 public class NodeMetamodelValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(NodeMetamodelValidator.class);
+    /**
+     * Validate a NodeMetamodel
+     * @param node The NodeMetamodel to validate.
+     * @return A ValidationResult object
+     */
+    public ValidationResult validate(NodeMetamodel node) {
+        ValidationResult result = new ValidationResult();
+
+        if (node == null) {
+            result.addError("NodeMetamodel cannot be null", "node");
+            return result;
+        }
+
+        validateBasicNodeProperties(node, result);
+        validatePorts(node.getInputPorts(), "input", result);
+        validatePorts(node.getOutputPorts(), "output", result);
+
+        // Validate specific node types
+        if (node instanceof RestToolNodeMetamodel) {
+            validateRestToolNode((RestToolNodeMetamodel) node, result);
+
+        } else if (node instanceof ToolNodeMetamodel) {
+            validateToolNode((ToolNodeMetamodel) node, result);
+        }
+
+        return result;
+    }
 
 
     /**
@@ -62,7 +85,7 @@ public class NodeMetamodelValidator {
      * @param ports Collection of ports to validate
      * @param portType Type of ports (input or output)
      */
-    private void validatePorts(List<? extends Port> ports, String portType, String nodeName, ValidationResult result) {
+    private void validatePorts(List<? extends Port> ports, String portType, ValidationResult result) {
         if (ports == null) {
             result.addError(portType + " ports collection cannot be null", "node." + portType + "Ports");
             return;
@@ -221,7 +244,18 @@ public class NodeMetamodelValidator {
         return variables;
     }
 
+    /**
+     * Validates default values for ports
+     * @param port Port to validate
+     * @param schema PortSchema to validate against
+     * @param componentPath Path to the port in the node
+     */
+    private void validateDefaultValue(Port port, PortSchema schema, String componentPath, ValidationResult result) {
+        Object defaultValue = port.getDefaultValue();
+        if (defaultValue == null) return;
 
-
-
+        // Check if the default value is valid according to the schema
+        if (!PortSchema.isValidValue(defaultValue, schema))
+            result.addError("Default value is not valid for the schema", componentPath + ".defaultValue");
+    }
 }

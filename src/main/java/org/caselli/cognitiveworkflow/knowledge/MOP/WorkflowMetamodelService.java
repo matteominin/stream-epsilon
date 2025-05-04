@@ -2,6 +2,7 @@ package org.caselli.cognitiveworkflow.knowledge.MOP;
 
 import jakarta.annotation.Nonnull;
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.WorkflowMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
@@ -53,20 +54,16 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * @param workflowMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
-    public WorkflowMetamodel createWorkflow(@Valid WorkflowMetamodel workflowMetamodel) {
+    public WorkflowMetamodel createWorkflow(@Valid WorkflowMetamodel workflowMetamodel) throws BadRequestException {
         if (workflowMetamodel.getId() != null && repository.existsById(workflowMetamodel.getId())) {
-            throw new IllegalArgumentException("WorkflowMetamodel with id " + workflowMetamodel.getId() + " already exists.");
+            throw new BadRequestException("WorkflowMetamodel with id " + workflowMetamodel.getId() + " already exists.");
         }
 
         workflowMetamodel.setId(UUID.randomUUID().toString());
 
         // Validate the workflow
         var res = workflowMetamodelValidator.validate(workflowMetamodel);
-
-
-        if(!res.isValid()) throw new IllegalArgumentException("WorkflowMetamodel is not valid: " + res.getErrors());
-
-
+        if(!res.isValid()) throw new BadRequestException("WorkflowMetamodel is not valid: " + res.getErrors());
 
         return repository.save(workflowMetamodel);
     }
@@ -118,6 +115,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
 
     @Override
     public void onApplicationEvent(@Nonnull ApplicationReadyEvent event) {
+        // Only for demo purposes. Not required in production.
         this.validateAllCatalog();
     }
 
@@ -126,6 +124,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      * Prints the validation results to the logs.
      */
     public void validateAllCatalog() {
+        logger.info("-------------------------------------------------");
         logger.info("Starting validation of Workflow Metamodels on Startup...");
 
         List<WorkflowMetamodel> workflows = repository.findAll();
@@ -170,12 +169,13 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
             }
         }
 
-        logger.info("-------------------------------------------");
+
         logger.info("Validation completed. Results:");
         logger.info(" - Total workflows processed: {}", workflows.size());
         logger.info(" - Valid workflows: {}", validCount);
         logger.info(" - Invalid workflows: {}", invalidCount);
         logger.info(" - Total warnings across all workflows: {}", totalWarnings);
         logger.info(" - Total errors across all workflows: {}", totalErrors);
+        logger.info("-------------------------------------------------");
     }
 }
