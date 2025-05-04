@@ -97,6 +97,9 @@ public class WorkflowExecutor {
                 throw new RuntimeException("Error processing node " + currentId, e);
             }
 
+            // Apply default values for any missing outputs
+            applyDefaultOutputValues(current, context);
+
             // Propagate outputs to all the outgoing edges
             List<WorkflowEdge> outs = outgoing.getOrDefault(currentId, Collections.emptyList());
 
@@ -253,5 +256,22 @@ public class WorkflowExecutor {
             if (port.getKey().equals(portKey)) return port;
         }
         return null;
+    }
+
+
+    /**
+     * Applies default values for output ports that weren't set during node processing.
+     * @param node the node instance that was just processed
+     * @param context the execution context
+     */
+    private void applyDefaultOutputValues(NodeInstance node, ExecutionContext context) {
+        for (Port port : node.getMetamodel().getOutputPorts()) {
+            String portKey = port.getKey();
+            // Only apply default if the port doesn't have a value in context after execution
+            if (!context.containsKey(portKey) && port.getDefaultValue() != null) {
+                context.put(portKey, port.getDefaultValue());
+                logger.debug("Applied default value for output port '{}' on node '{}': {}", portKey, node.getId(), port.getDefaultValue());
+            }
+        }
     }
 }
