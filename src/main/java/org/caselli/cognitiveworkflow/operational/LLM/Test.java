@@ -3,6 +3,7 @@ package org.caselli.cognitiveworkflow.operational.LLM;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
@@ -16,22 +17,29 @@ import java.util.Map;
 public class Test implements ApplicationListener<ApplicationReadyEvent> {
 
     private final IntentManager intentManager;
+    private final EmbeddingService embeddingService;
     private final PortAdapterService portAdapterService;
 
-    public Test(IntentManager intentManager, PortAdapterService portAdapterService) {
+    public Test(IntentManager intentManager, PortAdapterService portAdapterService, EmbeddingService embeddingService) {
         this.intentManager = intentManager;
         this.portAdapterService = portAdapterService;
+        this.embeddingService = embeddingService;
     }
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent e) {
 
-
-
-        testAdapter2();
-
+        testEmbeddings();
 
     }
+
+    public void testEmbeddings(){
+        var res = this.embeddingService.generateEmbedding("Hello world");
+        System.out.println("Embedding: " + res);
+        System.out.println("Embedding size: " + res.size());
+    }
+
+
     public void testAdapter1(){
 
         List<Port> sources = new ArrayList<>();
@@ -127,6 +135,8 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         for (String key : adapterPorts.keySet()) {
             System.out.println("Adapter port: " + key + " -> " + adapterPorts.get(key));
         }
-
     }
+
+
+
 }

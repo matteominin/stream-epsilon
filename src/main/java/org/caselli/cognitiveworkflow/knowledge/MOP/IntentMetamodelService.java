@@ -3,6 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.MOP;
 import jakarta.validation.Valid;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.IntentMetamodelCatalog;
+import org.caselli.cognitiveworkflow.operational.LLM.EmbeddingService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,11 @@ public class IntentMetamodelService {
 
     private final IntentMetamodelCatalog repository;
 
-    public IntentMetamodelService(IntentMetamodelCatalog repository) {
+    private final EmbeddingService embeddingService;
+
+    public IntentMetamodelService(IntentMetamodelCatalog repository, EmbeddingService embeddingService) {
         this.repository = repository;
+        this.embeddingService = embeddingService;
     }
 
     /**
@@ -86,5 +90,21 @@ public class IntentMetamodelService {
         repository.deleteById(id);
 
         // TODO: handle deletion of intents that are referenced by workflows
+    }
+
+
+    /**
+     * Private helper method to generate embedding for an intent
+     * and set it on the intent object.
+     * @param intent The intent object to generate embedding for.
+     */
+    private void generateAndSetEmbedding(IntentMetamodel intent) {
+        String textToEmbed = intent.getName() + " " + intent.getDescription();
+
+        // Generate the embedding using the embedding service
+        List<Double> embedding = embeddingService.generateEmbedding(textToEmbed);
+
+        // Set the generated embedding on the intent object
+        intent.setEmbedding(embedding);
     }
 }
