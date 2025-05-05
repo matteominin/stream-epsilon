@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
  * Intent Detector Service
  */
 @Service
-public class IntentDetectorService {
-    private final Logger logger = org.slf4j.LoggerFactory.getLogger(IntentDetectorService.class);
+public class IntentDetectionService {
+    private final Logger logger = org.slf4j.LoggerFactory.getLogger(IntentDetectionService.class);
 
     private final LlmModelFactory llmModelFactory;
 
@@ -72,7 +72,7 @@ public class IntentDetectorService {
 
             """;
 
-    public IntentDetectorService(LlmModelFactory llmModelFactory, IntentMetamodelService intentMetamodelService) {
+    public IntentDetectionService(LlmModelFactory llmModelFactory, IntentMetamodelService intentMetamodelService) {
         this.llmModelFactory = llmModelFactory;
         this.intentMetamodelService = intentMetamodelService;
     }

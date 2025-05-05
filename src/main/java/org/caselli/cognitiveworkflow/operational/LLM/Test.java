@@ -15,12 +15,12 @@ import java.util.Map;
 @Service
 public class Test implements ApplicationListener<ApplicationReadyEvent> {
 
-    private final IntentDetectorService intentDetectorService;
+    private final IntentDetectionService intentDetectionService;
     private final EmbeddingService embeddingService;
     private final PortAdapterService portAdapterService;
 
-    public Test(IntentDetectorService intentDetectorService, PortAdapterService portAdapterService, EmbeddingService embeddingService) {
-        this.intentDetectorService = intentDetectorService;
+    public Test(IntentDetectionService intentDetectionService, PortAdapterService portAdapterService, EmbeddingService embeddingService) {
+        this.intentDetectionService = intentDetectionService;
         this.portAdapterService = portAdapterService;
         this.embeddingService = embeddingService;
     }
@@ -37,7 +37,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         //String userInput = "I want to translate 'money' to french";
         String userInput = "I want to buy a new Iphone 16 pro for my wife and I need it to be delivered by tomorrow";
 
-        IntentDetectorResult result = this.intentDetectorService.detect(userInput);
+        IntentDetectorResult result = this.intentDetectionService.detect(userInput);
 
         System.out.println("Intent detection result: " + result);
 

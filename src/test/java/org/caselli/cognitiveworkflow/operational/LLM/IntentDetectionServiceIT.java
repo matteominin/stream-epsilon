@@ -20,10 +20,10 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 @ActiveProfiles("test")
 
-class IntentDetectorServiceIT {
+class IntentDetectionServiceIT {
 
 
-    @Autowired private IntentDetectorService intentDetectorService;
+    @Autowired private IntentDetectionService intentDetectionService;
 
 
     @Autowired private IntentMetamodelService intentMetamodelService;
@@ -70,7 +70,7 @@ class IntentDetectorServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        IntentDetectorResult result = intentDetectorService.detect(userRequest);
+        IntentDetectorResult result = intentDetectionService.detect(userRequest);
         System.out.println(result);
 
         assertNotNull(result);
@@ -91,7 +91,7 @@ class IntentDetectorServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        IntentDetectorResult result = intentDetectorService.detect(userRequest);
+        IntentDetectorResult result = intentDetectionService.detect(userRequest);
 
         System.out.println(result);
 
@@ -112,7 +112,7 @@ class IntentDetectorServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        IntentDetectorResult result = intentDetectorService.detect(userRequest);
+        IntentDetectorResult result = intentDetectionService.detect(userRequest);
 
         assertNull(result);
     }
@@ -123,7 +123,7 @@ class IntentDetectorServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        IntentDetectorResult result = intentDetectorService.detect(userRequest);
+        IntentDetectorResult result = intentDetectionService.detect(userRequest);
 
         assertNull(result);
     }
