@@ -43,6 +43,10 @@ public class PortAdapterService {
     @Value("${adapter.llm.model:}")
     private String intentModel;
 
+    @Value("${adapter.llm.port-adapter.temperature:0.3}")
+    private double temperature;
+
+
     private static final String SYSTEM_INSTRUCTIONS =
             """
                     You are a port adapter analysis system. Your job is to analyze source and target ports and generate attribute mappings.
@@ -186,7 +190,9 @@ public class PortAdapterService {
      */
     private ChatClient getChatClient() {
         if (chatClient == null) {
-            chatClient = llmModelFactory.createChatClient(intentProvider, intentApiKey, intentModel);
+            var options = new LlmModelFactory.BaseLlmModelOptions();
+            options.setTemperature(temperature);
+            chatClient = llmModelFactory.createChatClient(intentProvider, intentApiKey, intentModel, options);
         }
         return chatClient;
     }
