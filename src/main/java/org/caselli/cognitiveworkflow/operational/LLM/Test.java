@@ -27,8 +27,9 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent e) {
-        testIntentDetector();
-       // testAdapter2();
+        //testIntentDetector();
+       testAdapter2();
+       testAdapter1();
     }
 
     public void testIntentDetector() {
@@ -62,32 +63,44 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
 
         List<Port> sources = new ArrayList<>();
 
-        Port source1 = new Port();
-        PortSchema sourceSchema1 = new PortSchema(PortType.INT, true);
-        source1.setKey("source1");
-        source1.setSchema(sourceSchema1);
+        // Using builder for source ports
+        Port source1 = Port.builder()
+                .withKey("source1")
+                .withSchema(PortSchema.builder()
+                        .intSchema()
+                        .withRequired(true)
+                        .build())
+                .build();
 
-        Port source2 = new Port();
-        PortSchema sourceSchema2 = new PortSchema(PortType.STRING, true);
-        source2.setKey("source2");
-        source2.setSchema(sourceSchema2);
+        Port source2 = Port.builder()
+                .withKey("source2")
+                .withSchema(PortSchema.builder()
+                        .stringSchema()
+                        .withRequired(true)
+                        .build())
+                .build();
 
         sources.add(source1);
         sources.add(source2);
 
-
-
-        // TARGET
+        // Using builder for target ports
         List<Port> targets = new ArrayList<>();
-        Port target1 = new Port();
-        PortSchema targetSchema1 = new PortSchema(PortType.STRING, true);
-        target1.setKey("target1");
-        target1.setSchema(targetSchema1);
 
-        Port target2 = new Port();
-        PortSchema targetSchema2 = new PortSchema(PortType.STRING, true);
-        target2.setKey("target2");
-        target2.setSchema(targetSchema2);
+        Port target1 = Port.builder()
+                .withKey("target1")
+                .withSchema(PortSchema.builder()
+                        .stringSchema()
+                        .withRequired(true)
+                        .build())
+                .build();
+
+        Port target2 = Port.builder()
+                .withKey("target2")
+                .withSchema(PortSchema.builder()
+                        .stringSchema()
+                        .withRequired(true)
+                        .build())
+                .build();
 
         targets.add(target1);
         targets.add(target2);
@@ -104,57 +117,73 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
     }
 
 
-
-    public void testAdapter2(){
-
+    public void testAdapter2() {
         // SOURCE
-        PortSchema source1Schema = new PortSchema();
-        source1Schema.setType(PortType.OBJECT);
-        source1Schema.setProperties(Map.of(
-                "userDetails", new PortSchema(PortType.OBJECT, Map.of(
-                        "email", new PortSchema(PortType.STRING, true),
-                        "phone", new PortSchema(PortType.STRING, false)
-                ), true),
-                "orderId", new PortSchema(PortType.STRING, true)
-        ));
+        PortSchema source1Schema = PortSchema.builder()
+                .objectSchema(Map.of(
+                        "userDetails", PortSchema.builder()
+                                .objectSchema(Map.of(
+                                        "email", PortSchema.builder()
+                                                .stringSchema()
+                                                .withRequired(true)
+                                                .build(),
+                                        "phone", PortSchema.builder()
+                                                .stringSchema()
+                                                .withRequired(false)
+                                                .build()
+                                ))
+                                .withRequired(true)
+                                .build(),
+                        "orderId", PortSchema.builder()
+                                .stringSchema()
+                                .withRequired(true)
+                                .build()
+                ))
+                .build();
 
-        Port source1 = new Port();
-        source1.setKey("source");
-        source1.setSchema(source1Schema);
+        Port source1 = Port.builder()
+                .withKey("source")
+                .withSchema(source1Schema)
+                .build();
 
-        List<Port> sources = new ArrayList<>();
-        sources.add(source1);
+        List<Port> sources = List.of(source1);
 
-         // TARGET
-        PortSchema target1Schema = new PortSchema(PortType.STRING, true);
-        Port target1 = new Port();
-        target1.setKey("email");
-        target1.setSchema(target1Schema);
+        // TARGET
+        Port target1 = Port.builder()
+                .withKey("email")
+                .withSchema(PortSchema.builder()
+                        .stringSchema()
+                        .withRequired(true)
+                        .build())
+                .build();
 
-        PortSchema target2Schema = new PortSchema(PortType.STRING, true);
-        Port target2 = new Port();
-        target2.setKey("phone");
-        target2.setSchema(target2Schema);
+        Port target2 = Port.builder()
+                .withKey("phone")
+                .withSchema(PortSchema.builder()
+                        .stringSchema()
+                        .withRequired(true)
+                        .build())
+                .build();
 
-        PortSchema target3Schema = new PortSchema(PortType.STRING, true);
-        Port target3 = new Port();
-        target3.setKey("orderId");
-        target3.setSchema(target3Schema);
+        Port target3 = Port.builder()
+                .withKey("orderId")
+                .withSchema(PortSchema.builder()
+                        .stringSchema()
+                        .withRequired(true)
+                        .build())
+                .build();
 
-        List<Port> targets = new ArrayList<>();
-        targets.add(target1);
-        targets.add(target2);
-        targets.add(target3);
+        List<Port> targets = List.of(target1, target2, target3);
 
         // ADAPTER
-        PortAdaptation adapter = this.portAdapterService.adaptPorts(targets,sources);
+        PortAdaptation adapter = this.portAdapterService.adaptPorts(targets, sources);
+
         // List adapter ports
         Map<String,String> adapterPorts = adapter.getBindings();
-        for (String key : adapterPorts.keySet()) {
-            System.out.println("Adapter port: " + key + " -> " + adapterPorts.get(key));
+        for (Map.Entry<String, String> entry : adapterPorts.entrySet()) {
+            System.out.println("Adapter port: " + entry.getKey() + " -> " + entry.getValue());
         }
     }
-
 
 
 }

@@ -11,6 +11,14 @@ import java.util.*;
  */
 @Data
 public class PortSchema {
+
+
+    PortSchema(){}
+    public static PortSchemaBuilder builder() {
+        return new PortSchemaBuilder();
+    }
+
+
     /** Basic data type of the port (e.g. STRING, BOOLEAN, etc.) */
     private PortType type;
 
@@ -31,24 +39,8 @@ public class PortSchema {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean required;
 
-    public PortSchema(){}
 
-    public PortSchema(PortType type, Map<String, PortSchema> properties, Boolean required) {
-        this.type = type;
-        this.properties = properties;
-        this.required = required;
-    }
 
-    public PortSchema(PortType type, PortSchema items, Boolean required) {
-        this.type = type;
-        this.items = items;
-        this.required = required;
-    }
-
-    public PortSchema(PortType type, Boolean required) {
-        this.type = type;
-        this.required = required;
-    }
 
     /**
      * Checks if this schema is compatible with another schema for data flow.
@@ -214,6 +206,100 @@ public class PortSchema {
 
             default:
                 return false;
+        }
+    }
+
+
+    /**
+     * Builder
+     */
+    public static class PortSchemaBuilder {
+        private PortType type;
+        private PortSchema items;
+        private Map<String, PortSchema> properties;
+        private Boolean required;
+
+        private PortSchemaBuilder withType(PortType type) {
+            this.type = type;
+            return this;
+        }
+
+        private PortSchemaBuilder withItems(PortSchema items) {
+            this.items = items;
+            return this;
+        }
+
+        private PortSchemaBuilder withProperty(String name, PortSchema propertySchema) {
+            if (this.properties == null) {
+                this.properties = new HashMap<>();
+            }
+            this.properties.put(name, propertySchema);
+            return this;
+        }
+
+        private PortSchemaBuilder withProperties(Map<String, PortSchema> properties) {
+            this.properties = properties;
+            return this;
+        }
+
+        public PortSchemaBuilder withRequired(Boolean required) {
+            this.required = required;
+            return this;
+        }
+
+        public PortSchema build() {
+            PortSchema schema = new PortSchema();
+            schema.setType(type);
+            schema.setItems(items);
+            schema.setProperties(properties);
+            schema.setRequired(required);
+
+
+            if(type == null)
+                throw new IllegalArgumentException("PortSchema type cannot be null");
+
+            if(type == PortType.OBJECT && properties == null)
+                throw new IllegalArgumentException("PortSchema type is OBJECT but properties are null");
+
+            if(type == PortType.ARRAY && items == null)
+                throw new IllegalArgumentException("PortSchema type is ARRAY but items are null");
+
+            if(type != PortType.ARRAY && items != null)
+                throw new IllegalArgumentException("PortSchema type is not ARRAY but items are not null");
+
+            if(type != PortType.OBJECT && properties != null)
+                throw new IllegalArgumentException("PortSchema type is not OBJECT but properties are not null");
+
+
+            return schema;
+        }
+
+        public PortSchemaBuilder stringSchema() {
+            return withType(PortType.STRING);
+        }
+
+        public PortSchemaBuilder intSchema() {
+            return withType(PortType.INT);
+        }
+
+        public PortSchemaBuilder floatSchema() {
+            return withType(PortType.FLOAT);
+        }
+
+        public PortSchemaBuilder booleanSchema() {
+            return withType(PortType.BOOLEAN);
+        }
+
+        public PortSchemaBuilder dateSchema() {
+            return withType(PortType.DATE);
+        }
+
+        public PortSchemaBuilder arraySchema(PortSchema itemsSchema) {
+            return withType(PortType.ARRAY).withItems(itemsSchema);
+        }
+
+        public PortSchemaBuilder objectSchema(Map<String, PortSchema> properties) {
+            return withType(PortType.OBJECT).withProperties(properties);
         }
     }
 }
