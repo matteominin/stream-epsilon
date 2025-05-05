@@ -34,36 +34,40 @@ public class PortAdapterService {
     private final LlmModelFactory llmModelFactory;
     private ChatClient chatClient;
 
-    @Value("${adapter.llm.provider:}")
+    @Value("${port-adapter.llm.provider:}")
     private String intentProvider;
 
-    @Value("${adapter.llm.api-key:}")
+    @Value("${port-adapter.llm.api-key:}")
     private String intentApiKey;
 
-    @Value("${adapter.llm.model:}")
+    @Value("${port-adapter.llm.model:}")
     private String intentModel;
 
-    @Value("${adapter.llm.port-adapter.temperature:0.3}")
+    @Value("${port-adapter.llm.temperature}")
     private double temperature;
 
 
     private static final String SYSTEM_INSTRUCTIONS =
-            """
-                    You are a port adapter analysis system. Your job is to analyze source and target ports and generate attribute mappings.
-
-                    Rules:
-                    - Use direct paths (e.g. "A.B" not "A.schema.properties.B")
-                    - Prioritize required attributes
-                    - Return {"bindings": {}} if no mapping needed
-                    - Return null if mapping impossible
-
-                    You must respond with valid JSON in this format:
-                    {
-                      "bindings": {
-                        "SourcePort.orderId": "TargetPort.id",
-                        "SourcePort.customer.email": "TargetPort.contact.email"
-                      }
-                    }""";
+    """
+    You are a Port Adapter Analysis System.  \s
+    Your task is to analyze source and target ports and generate attribute mappings based on the provided rules.
+                
+    ## Rules:
+    - Use direct paths (e.g., "A.B" not "A.schema.properties.B")
+    - Prioritize required attributes
+    - Return {"bindings": {}} if no mapping needed
+    - Return null if mapping impossible
+                
+    ## Output Guidelines:
+    You must respond with valid JSON in this format:
+    ```json
+    {
+      "bindings": {
+        "SourcePort.orderId": "TargetPort.id",
+        "SourcePort.customer.email": "TargetPort.contact.email"
+      }
+    }
+    """;
 
     public PortAdapterService(LlmModelFactory llmModelFactory) {
         this.llmModelFactory = llmModelFactory;

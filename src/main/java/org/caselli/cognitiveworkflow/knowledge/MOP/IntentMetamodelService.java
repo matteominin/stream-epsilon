@@ -140,6 +140,14 @@ public class IntentMetamodelService {
         intent.setEmbedding(embedding);
     }
 
+
+    /**
+     * Get most similar intents to a given input
+     */
+    public List<IntentMetamodel> findMostSimilarIntent(String input) {
+        return intentSearchService.findMostSimilarIntent(input);
+    }
+
     /**
      * Generate embedding for all intents in the catalog
      * For testing purposes only

@@ -3,7 +3,6 @@ package org.caselli.cognitiveworkflow.operational.LLM;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
@@ -16,21 +15,41 @@ import java.util.Map;
 @Service
 public class Test implements ApplicationListener<ApplicationReadyEvent> {
 
-    private final IntentManager intentManager;
+    private final IntentDetectorService intentDetectorService;
     private final EmbeddingService embeddingService;
     private final PortAdapterService portAdapterService;
 
-    public Test(IntentManager intentManager, PortAdapterService portAdapterService, EmbeddingService embeddingService) {
-        this.intentManager = intentManager;
+    public Test(IntentDetectorService intentDetectorService, PortAdapterService portAdapterService, EmbeddingService embeddingService) {
+        this.intentDetectorService = intentDetectorService;
         this.portAdapterService = portAdapterService;
         this.embeddingService = embeddingService;
     }
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent e) {
+        testIntentDetector();
+       // testAdapter2();
+    }
 
-        testEmbeddings();
+    public void testIntentDetector() {
+        //String userInput = "i like food";
+        //String userInput = "qkjd";
+        //String userInput = "I want to translate 'money' to french";
+        String userInput = "I want to buy a new Iphone 16 pro for my wife and I need it to be delivered by tomorrow";
 
+        IntentDetectorResult result = this.intentDetectorService.detect(userInput);
+
+        System.out.println("Intent detection result: " + result);
+
+        if(result != null)
+        {
+
+
+            System.out.println("Intent: " + result.getIntentName());
+            System.out.println("Confidence: " + result.getConfidence());
+            System.out.println("Is new: " + result.isNew());
+            System.out.println("User variables: " + result.getUserVariables());
+        }
     }
 
     public void testEmbeddings(){
@@ -38,7 +57,6 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         System.out.println("Embedding: " + res);
         System.out.println("Embedding size: " + res.size());
     }
-
 
     public void testAdapter1(){
 
