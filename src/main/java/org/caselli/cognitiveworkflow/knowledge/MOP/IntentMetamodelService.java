@@ -31,22 +31,8 @@ public class IntentMetamodelService {
 
     @PostConstruct
     public void init() {
+        // For testing purposes only:
         //generateEmbeddingForAll();
-        // TODO remove
-
-        System.out.println("Testing the embedding search service...");
-        // Test the embedding search service
-        String testInput = "Test";
-        List<IntentMetamodel> results = intentSearchService.findMostSimilarIntent(testInput);
-        if (results.isEmpty()) {
-            logger.info("No similar intents found for input: {}", testInput);
-        } else {
-            logger.info("Found similar intents for input: {}", testInput);
-            for (IntentMetamodel intent : results) {
-                logger.info("Similar intent: {} - {}", intent.getId(), intent.getName());
-            }
-        }
-
     }
 
     /**

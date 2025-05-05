@@ -48,26 +48,28 @@ public class PortAdapterService {
 
 
     private static final String SYSTEM_INSTRUCTIONS =
-    """
-    You are a Port Adapter Analysis System.  \s
-    Your task is to analyze source and target ports and generate attribute mappings based on the provided rules.
-                
-    ## Rules:
-    - Use direct paths (e.g., "A.B" not "A.schema.properties.B")
-    - Prioritize required attributes
-    - Return {"bindings": {}} if no mapping needed
-    - Return null if mapping impossible
-                
-    ## Output Guidelines:
-    You must respond with valid JSON in this format:
-    ```json
-    {
-      "bindings": {
-        "SourcePort.orderId": "TargetPort.id",
-        "SourcePort.customer.email": "TargetPort.contact.email"
-      }
-    }
-    """;
+            """
+            You are a Port Adapter Analysis System.
+            Your task is to analyze source and target ports and generate attribute mappings based on the provided rules.
+            The user will provide you with a list of source ports and a list of target ports.
+           
+            ## Rules:
+            - Use direct paths (e.g., "A.B" not "A.schema.properties.B")
+            - Prioritize required attributes
+            - Return {"bindings": {}} if no mapping needed
+            - Return null if mapping impossible
+                        
+            ## Output Guidelines:
+            You must respond with valid JSON in this format:
+            ```json
+            {
+              "bindings": {
+                "SourcePort.orderId": "TargetPort.id",
+                "SourcePort.customer.email": "TargetPort.contact.email"
+              }
+            }
+            ```
+            """;
 
     public PortAdapterService(LlmModelFactory llmModelFactory) {
         this.llmModelFactory = llmModelFactory;
@@ -120,22 +122,24 @@ public class PortAdapterService {
 
             String sourcePortsDescription = sourcePorts.stream()
                     .map(this::portToJson)
-                    .collect(Collectors.joining("\n,\n"));
+                    // TODO: note that for now we escape the braces in the JSON string
+                    // As reported by others this is a workaround for a bug in Spring AI
+                    // In fact, without escaping the braces, the template engine tries to find variables in the JSON
+                    // See https://github.com/spring-projects/spring-ai/issues/2836
+                    .map(s -> s.replace("{", "\\{").replace("}", "\\}"))  // Escape braces
+                    .collect(Collectors.joining(",\n"));
+            sourcePortsDescription = "```json\n[" + sourcePortsDescription + "]\n```";
 
             String targetPortsDescription = targetPorts.stream()
                     .map(this::portToJson)
-                    .collect(Collectors.joining("\n,\n"));
-
+                    .map(s -> s.replace("{", "\\{").replace("}", "\\}"))  // Escape braces
+                    .collect(Collectors.joining(",\n"));
+            targetPortsDescription = "```json\n[" + targetPortsDescription + "]\n```";
 
             String userContent = "Source Ports:\n" + sourcePortsDescription + "\n\nTarget Ports:\n" + targetPortsDescription;
 
-            // Log for debugging TODO: remove
-            logger.info("System Instructions:\n{}", SYSTEM_INSTRUCTIONS);
-            logger.info("User Content:\n{}", userContent);
+            Prompt prompt = new Prompt(List.of(new SystemMessage(SYSTEM_INSTRUCTIONS), new UserMessage(userContent)));
 
-            SystemMessage systemMessage = new SystemMessage(SYSTEM_INSTRUCTIONS);
-            UserMessage userMessage = new UserMessage(userContent);
-            Prompt prompt = new Prompt(List.of(userMessage, systemMessage));
 
             // Call the LLM with the prompt
             // Use structured output

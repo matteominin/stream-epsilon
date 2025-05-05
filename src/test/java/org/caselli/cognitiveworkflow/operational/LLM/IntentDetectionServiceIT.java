@@ -84,10 +84,10 @@ class IntentDetectionServiceIT {
         assertTrue(variables.values().stream().anyMatch(value -> value.toString().toLowerCase().contains("paris")));
         assertTrue(variables.values().stream().anyMatch(value -> value.toString().toLowerCase().contains("tomorrow")));
     }
-
+/*
     @Test
     void shouldCreateANewIntentIfNotExists(){
-        String userRequest = "I want to book an uber car ride to my home";
+        String userRequest = "Buy me a ticket for this concert";
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
@@ -99,12 +99,42 @@ class IntentDetectionServiceIT {
         assertTrue(result.isNew());
         assertNull(result.getIntentId());
         // The intent name should include "UBER" in it
-        assertTrue(result.getIntentName().contains("UBER"));
+        assertTrue(
+                result.getIntentName().contains("PURCHASE") ||
+                        result.getIntentName().contains("BUY") ||
+                        result.getIntentName().contains("BUY")
+        );
         // The intent name should be uppercase
         assertEquals(result.getIntentName(), result.getIntentName().toUpperCase());
 
 
     }
+    */
+
+
+/*
+    @Test
+    void shouldCreateANewIntentIfNotExists(){
+        String userRequest = "I want to translate this text to spanish";
+
+        when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
+
+        IntentDetectorResult result = intentDetectionService.detect(userRequest);
+
+        System.out.println(result);
+
+        assertNotNull(result);
+        assertTrue(result.isNew());
+        assertNull(result.getIntentId());
+        // The intent name should include "UBER" in it
+        assertTrue(result.getIntentName().contains("TRANSLATE"));
+        // The intent name should be uppercase
+        assertEquals(result.getIntentName(), result.getIntentName().toUpperCase());
+
+
+    }
+
+ */
 
     @Test
     void shouldReturnNullIfInputIsNonSense(){

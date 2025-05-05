@@ -28,7 +28,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
     @Override
     public void onApplicationEvent(ApplicationReadyEvent e) {
         //testIntentDetector();
-       testAdapter2();
+      // testAdapter2();
        testAdapter1();
     }
 
@@ -67,7 +67,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         Port source1 = Port.builder()
                 .withKey("source1")
                 .withSchema(PortSchema.builder()
-                        .intSchema()
+                        .stringSchema()
                         .withRequired(true)
                         .build())
                 .build();
@@ -107,6 +107,11 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
 
         // ADAPTER
         PortAdaptation adapter = this.portAdapterService.adaptPorts(sources, targets);
+
+        if (adapter == null) {
+            System.out.println("Adapter is null, mapping impossible.");
+            return;
+        }
 
         // List adapter ports
         Map<String,String> adapterPorts = adapter.getBindings();
