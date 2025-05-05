@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
  * Maps source ports to target ports using LLM.
  */
 @Service
-public class AdapterManager {
+public class PortAdapterService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AdapterManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(PortAdapterService.class);
 
     private final LlmModelFactory llmModelFactory;
     private ChatClient chatClient;
@@ -58,10 +58,9 @@ public class AdapterManager {
                     + "\n  }"
                     + "\n}";
 
-    public AdapterManager(LlmModelFactory llmModelFactory) {
+    public PortAdapterService(LlmModelFactory llmModelFactory) {
         this.llmModelFactory = llmModelFactory;
     }
-
 
 
     /**
@@ -133,7 +132,7 @@ public class AdapterManager {
 
             if (adaptationResult != null && adaptationResult.getBindings() != null) {
 
-                logger.info("LLM response mapping to PortAdaptation: " + adaptationResult.toString());
+                logger.info("LLM response mapping to PortAdaptation: " + adaptationResult);
                 Map<String,String> adapterPorts = adaptationResult.getBindings();
                 for (String key : adapterPorts.keySet()) logger.info(key + " -> " + adapterPorts.get(key));
 

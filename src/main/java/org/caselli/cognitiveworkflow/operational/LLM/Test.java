@@ -3,7 +3,6 @@ package org.caselli.cognitiveworkflow.operational.LLM;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
@@ -17,11 +16,11 @@ import java.util.Map;
 public class Test implements ApplicationListener<ApplicationReadyEvent> {
 
     private final IntentManager intentManager;
-    private final AdapterManager adapterManager;
+    private final PortAdapterService portAdapterService;
 
-    public Test(IntentManager intentManager,AdapterManager adapterManager) {
+    public Test(IntentManager intentManager, PortAdapterService portAdapterService) {
         this.intentManager = intentManager;
-        this.adapterManager = adapterManager;
+        this.portAdapterService = portAdapterService;
     }
 
     @Override
@@ -68,7 +67,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         targets.add(target2);
 
         // ADAPTER
-        PortAdaptation adapter = this.adapterManager.adaptPorts(sources, targets);
+        PortAdaptation adapter = this.portAdapterService.adaptPorts(sources, targets);
 
         // List adapter ports
         Map<String,String> adapterPorts = adapter.getBindings();
@@ -122,7 +121,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         targets.add(target3);
 
         // ADAPTER
-        PortAdaptation adapter = this.adapterManager.adaptPorts(targets,sources);
+        PortAdaptation adapter = this.portAdapterService.adaptPorts(targets,sources);
         // List adapter ports
         Map<String,String> adapterPorts = adapter.getBindings();
         for (String key : adapterPorts.keySet()) {
