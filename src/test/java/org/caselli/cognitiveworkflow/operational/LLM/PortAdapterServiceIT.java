@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +20,10 @@ public class PortAdapterServiceIT {
 
     @Autowired private PortAdapterService portAdapterService;
 
+
+    /**
+     * Test the port adapter with simple ports
+     */
     @Test
     public void PortAdapterShouldWorkWithSimplePorts() {
         List<Port> sources = new ArrayList<>();
@@ -75,7 +81,9 @@ public class PortAdapterServiceIT {
         assertEquals(adapterPorts.get("source2"), "target2");
     }
 
-
+    /**
+     * Test the port adapter with nested ports
+     */
     @Test
     public void PortAdapterShouldWorkWithSimpleNestedPorts() {
         // SOURCE
@@ -148,5 +156,321 @@ public class PortAdapterServiceIT {
         assertEquals(invertedAdapter.getBindings().get("phone"), "source.userDetails.phone");
         assertEquals(invertedAdapter.getBindings().get("orderId"), "source.orderId");
         assertEquals(invertedAdapter.getBindings().size(), 3);
+    }
+
+
+    /**
+     * Edge case: Test the port adapter with empty source and target ports
+     */
+    @Test
+    public void testEmptySourcePorts() {
+        List<Port> sources = Collections.emptyList();
+
+        Port target = Port.builder()
+                .withKey("target")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        List<Port> targets = List.of(target);
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        assertNotNull(adapter);
+        assertTrue(adapter.getBindings().isEmpty());
+    }
+
+    /**
+     * Edge case: Test the port adapter with empty target ports
+     */
+    @Test
+    public void testEmptyTargetPorts() {
+        Port source = Port.builder()
+                .withKey("source")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        List<Port> sources = List.of(source);
+        List<Port> targets = Collections.emptyList();
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        assertNotNull(adapter);
+        assertTrue(adapter.getBindings().isEmpty());
+    }
+
+    /**
+     * Edge case: Test the port adapter with empty source and target ports. Should return empty adapter (No matching)
+     */
+    @Test
+    public void testTypeMismatchShouldNotBind() {
+        Port source = Port.builder()
+                .withKey("stringValue")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        Port target = Port.builder()
+                .withKey("numericValue")
+                .withSchema(PortSchema.builder().intSchema().withRequired(true).build())
+                .build();
+
+        List<Port> sources = List.of(source);
+        List<Port> targets = List.of(target);
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        if (adapter.getBindings().containsKey("stringValue")) {
+            assertNotEquals("numericValue", adapter.getBindings().get("stringValue"));
+        }
+    }
+
+    /**
+     * Test the port adapter with array types
+     */
+    @Test
+    public void testArrayTypeHandling() {
+        Port source = Port.builder()
+                .withKey("items")
+                .withSchema(PortSchema.builder()
+                        .arraySchema(PortSchema.builder().stringSchema().build())
+                        .withRequired(true)
+                        .build())
+                .build();
+
+        Port target = Port.builder()
+                .withKey("elements")
+                .withSchema(PortSchema.builder()
+                        .arraySchema(PortSchema.builder().stringSchema().build())
+                        .withRequired(true)
+                        .build())
+                .build();
+
+        List<Port> sources = List.of(source);
+        List<Port> targets = List.of(target);
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        assertNotNull(adapter);
+        assertEquals("elements", adapter.getBindings().get("items"));
+    }
+
+    /**
+     * Test when types are not identical but compatible (e.g., int to string)
+     */
+    @Test
+    public void testTypeCompatibilityMatching() {
+        Port source = Port.builder()
+                .withKey("userId")
+                .withSchema(PortSchema.builder().intSchema().withRequired(true).build())
+                .build();
+
+        Port target = Port.builder()
+                .withKey("userIdString")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        List<Port> sources = List.of(source);
+        List<Port> targets = List.of(target);
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        assertNotNull(adapter);
+        assertEquals("userIdString", adapter.getBindings().get("userId"));
+    }
+
+    /**
+     * Test when there are multiple potential matches based on naming
+     */
+    @Test
+    public void testMultiplePotentialMatches() {
+        Port source = Port.builder()
+                .withKey("email")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        Port target1 = Port.builder()
+                .withKey("userEmail")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        Port target2 = Port.builder()
+                .withKey("contactEmail")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        List<Port> sources = List.of(source);
+        List<Port> targets = List.of(target1, target2);
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        assertNotNull(adapter);
+        assertTrue(adapter.getBindings().containsKey("email"));
+
+        // Should match one of the targets (don't care which one specifically)
+        assertTrue(adapter.getBindings().get("email").equals("userEmail") ||
+                adapter.getBindings().get("email").equals("contactEmail"));
+    }
+
+    /**
+     * Test with missing required fields
+     */
+    @Test
+    public void testMissingRequiredFields() {
+        Port source1 = Port.builder()
+                .withKey("requiredEmail")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        Port source2 = Port.builder()
+                .withKey("optionalPhone")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(false).build())
+                .build();
+
+        // Target only has one required field
+        Port target = Port.builder()
+                .withKey("email")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        List<Port> sources = List.of(source1, source2);
+        List<Port> targets = List.of(target);
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        assertNotNull(adapter);
+        assertEquals("email", adapter.getBindings().get("requiredEmail"));
+    }
+
+    /**
+     * Test with different nesting levels
+     * (when source and target have different nesting levels)
+     */
+    @Test
+    public void testDifferentNestingLevels() {
+        PortSchema sourceSchema = PortSchema.builder()
+                .objectSchema(Map.of(
+                        "user", PortSchema.builder()
+                                .objectSchema(Map.of(
+                                        "address", PortSchema.builder()
+                                                .objectSchema(Map.of(
+                                                        "street", PortSchema.builder().stringSchema().withRequired(true).build(),
+                                                        "city", PortSchema.builder().stringSchema().withRequired(true).build(),
+                                                        "zip", PortSchema.builder().stringSchema().withRequired(true).build()
+                                                ))
+                                                .withRequired(true)
+                                                .build()
+                                ))
+                                .withRequired(true)
+                                .build()
+                ))
+                .build();
+
+        Port source = Port.builder()
+                .withKey("userData")
+                .withSchema(sourceSchema)
+                .build();
+
+        // Flat target structure
+        Port targetStreet = Port.builder()
+                .withKey("street")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        Port targetCity = Port.builder()
+                .withKey("city")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        Port targetZip = Port.builder()
+                .withKey("postalCode")
+                .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
+                .build();
+
+        List<Port> sources = List.of(source);
+        List<Port> targets = List.of(targetStreet, targetCity, targetZip);
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        assertNotNull(adapter);
+        assertEquals("street", adapter.getBindings().get("userData.user.address.street"));
+        assertEquals("city", adapter.getBindings().get("userData.user.address.city"));
+        assertEquals("postalCode", adapter.getBindings().get("userData.user.address.zip"));
+    }
+
+    /**
+     * Test with boolean types
+     */
+    @Test
+    public void testBooleanTypeHandling() {
+        // Test with boolean types
+        Port source = Port.builder()
+                .withKey("isActive")
+                .withSchema(PortSchema.builder().booleanSchema().withRequired(true).build())
+                .build();
+
+        Port target = Port.builder()
+                .withKey("active")
+                .withSchema(PortSchema.builder().booleanSchema().withRequired(true).build())
+                .build();
+
+        List<Port> sources = List.of(source);
+        List<Port> targets = List.of(target);
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        assertNotNull(adapter);
+        assertEquals("active", adapter.getBindings().get("isActive"));
+    }
+
+    /**
+     * Tests if the adapter can map fields that have identical structure but different names
+     */
+    @Test
+    public void testIdenticalStructuresButDifferentFieldNames() {
+        PortSchema sourceSchema = PortSchema.builder()
+                .objectSchema(Map.of(
+                        "person", PortSchema.builder()
+                                .objectSchema(Map.of(
+                                        "firstName", PortSchema.builder().stringSchema().withRequired(true).build(),
+                                        "lastName", PortSchema.builder().stringSchema().withRequired(true).build(),
+                                        "age", PortSchema.builder().intSchema().withRequired(true).build()
+                                ))
+                                .withRequired(true)
+                                .build()
+                ))
+                .build();
+
+        Port source = Port.builder()
+                .withKey("sourceData")
+                .withSchema(sourceSchema)
+                .build();
+
+        PortSchema targetSchema = PortSchema.builder()
+                .objectSchema(Map.of(
+                        "user", PortSchema.builder()
+                                .objectSchema(Map.of(
+                                        "givenName", PortSchema.builder().stringSchema().withRequired(true).build(),
+                                        "familyName", PortSchema.builder().stringSchema().withRequired(true).build(),
+                                        "years", PortSchema.builder().intSchema().withRequired(true).build()
+                                ))
+                                .withRequired(true)
+                                .build()
+                ))
+                .build();
+
+        Port target = Port.builder()
+                .withKey("targetData")
+                .withSchema(targetSchema)
+                .build();
+
+        List<Port> sources = List.of(source);
+        List<Port> targets = List.of(target);
+
+        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+
+        assertNotNull(adapter);
+        // Check that semantically similar fields are mapped correctly
+        assertEquals("targetData.user.givenName", adapter.getBindings().get("sourceData.person.firstName"));
+        assertEquals("targetData.user.familyName", adapter.getBindings().get("sourceData.person.lastName"));
+        assertEquals("targetData.user.years", adapter.getBindings().get("sourceData.person.age"));
     }
 }
