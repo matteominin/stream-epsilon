@@ -22,12 +22,8 @@ public class EmbeddingModelFactory {
     public EmbeddingModel createEmbeddingModel(String provider, String apiKey) {
 
         return switch (provider.toLowerCase()) {
-            case "openai" -> {
-                yield createOpenAiEmbeddingModel(apiKey);
-            }
-            case "vertex" -> {
-                yield createVertexEmbeddingModel(apiKey);
-            }
+            case "openai" -> createOpenAiEmbeddingModel(apiKey);
+            case "vertex" -> createVertexEmbeddingModel(apiKey);
             default -> throw new IllegalStateException("Unexpected value: " + provider.toLowerCase());
         };
     }
@@ -46,6 +42,8 @@ public class EmbeddingModelFactory {
     }
 
     private EmbeddingModel createVertexEmbeddingModel(String apiKey) {
+        if (!StringUtils.hasText(apiKey)) throw new IllegalArgumentException("OpenAI API key is required");
+
         // TODO: Implement Vertex Embedding Model creation
         throw new UnsupportedOperationException("Vertex Embedding Model is not yet implemented.");
     }
