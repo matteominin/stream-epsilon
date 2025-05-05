@@ -31,6 +31,25 @@ public class PortSchema {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean required;
 
+    public PortSchema(){}
+
+    public PortSchema(PortType type, Map<String, PortSchema> properties, Boolean required) {
+        this.type = type;
+        this.properties = properties;
+        this.required = required;
+    }
+
+    public PortSchema(PortType type, PortSchema items, Boolean required) {
+        this.type = type;
+        this.items = items;
+        this.required = required;
+    }
+
+    public PortSchema(PortType type, Boolean required) {
+        this.type = type;
+        this.required = required;
+    }
+
     /**
      * Checks if this schema is compatible with another schema for data flow.
      * @param target The target schema to check compatibility with
