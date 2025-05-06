@@ -1,6 +1,5 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 import jakarta.annotation.Nonnull;
-import jakarta.validation.Valid;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.NodeMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
@@ -66,7 +65,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @return Return the newly saved Document
      */
     @CacheEvict(value = "nodeMetamodels", key = "#id")
-    public NodeMetamodel updateNode(String id, @Valid NodeMetamodel updatedData) {
+    public NodeMetamodel updateNode(String id, NodeMetamodel updatedData) {
         // TODO: da capire se fa anche senza specializzazione (?)
 
         // Check if the documents exists
@@ -95,7 +94,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @return Returns the new Metamodel
      */
     @CacheEvict(value = "nodeMetamodels", allEntries = true)
-    public LlmNodeMetamodel createLlmNode(@Valid LlmNodeMetamodel nodeMetamodel) throws BadRequestException {
+    public LlmNodeMetamodel createLlmNode(LlmNodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         nodeMetamodel.setType(NodeMetamodel.NodeType.LLM);
         // validate
@@ -111,7 +110,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @return Returns the new Metamodel
      */
     @CacheEvict(value = "nodeMetamodels", allEntries = true)
-    public RestToolNodeMetamodel createRestToolNode(@Valid RestToolNodeMetamodel nodeMetamodel) throws BadRequestException {
+    public RestToolNodeMetamodel createRestToolNode(RestToolNodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         // Set correct types
         nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);

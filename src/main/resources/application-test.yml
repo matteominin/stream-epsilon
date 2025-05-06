@@ -1,0 +1,12 @@
+logging:
+  level:
+    root: DEBUG
+
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  data:
+    mongodb:
+      uri: ${MONGO_TEST_URI}

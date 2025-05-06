@@ -1,12 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="CognitiveWorkflowApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
-    <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+  <configuration default="false" name="Run Integration Tests " type="JUnit" factoryName="JUnit">
     <module name="cognitive-workflow" />
-    <selectedOptions>
-      <option name="environmentVariables" />
-    </selectedOptions>
-    <option name="SPRING_BOOT_MAIN_CLASS" value="org.caselli.cognitiveworkflow.CognitiveWorkflowApplication" />
-    <option name="UPDATE_ACTION_UPDATE_POLICY" value="UpdateClassesAndResources" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />
       <option name="IS_SUBST" value="false" />
@@ -18,6 +12,10 @@
         <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH="dev.env" />
       </ENTRIES>
     </extension>
+    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="tags" />
+    <tag value="it" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

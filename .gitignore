@@ -1,4 +1,6 @@
-env
+.env
+dev.env
+test.env
 
 HELP.md
 target/
