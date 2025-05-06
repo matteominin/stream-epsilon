@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -203,5 +204,23 @@ public class PortAdapterService {
             chatClient = llmModelFactory.createChatClient(intentProvider, intentApiKey, intentModel, options);
         }
         return chatClient;
+    }
+
+    /**
+     * Class representing the adaptation of ports.
+     * It contains a map of bindings that represent the adaptation between source and target ports.
+     * Use dot notation for nested attributes (e.g. "A.B").
+     */
+    @Data
+    public static class PortAdaptation {
+
+        private Map<String, String> bindings;
+
+        @Override
+        public String toString() {
+            return "PortAdaptation{" +
+                    "binding=" + bindings +
+                    '}';
+        }
     }
 }

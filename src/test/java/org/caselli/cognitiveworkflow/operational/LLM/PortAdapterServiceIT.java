@@ -67,7 +67,7 @@ public class PortAdapterServiceIT {
             System.out.println("Target port: " + target.getKey() + " -> " + target.getSchema().getType());
 
         // ADAPTER
-        PortAdaptation adapter = this.portAdapterService.adaptPorts(sources, targets);
+        var adapter = this.portAdapterService.adaptPorts(sources, targets);
 
         // List adapter ports
         Map<String,String> adapterPorts = adapter.getBindings();
@@ -136,7 +136,7 @@ public class PortAdapterServiceIT {
         List<Port> targets = List.of(target1, target2, target3);
 
         // ADAPTER
-        PortAdaptation adapter = this.portAdapterService.adaptPorts(sources, targets);
+        var adapter = this.portAdapterService.adaptPorts(sources, targets);
 
         // List adapter ports
         Map<String,String> adapterPorts = adapter.getBindings();
@@ -152,7 +152,7 @@ public class PortAdapterServiceIT {
 
 
         // Check the inversion of the adapter ports
-        PortAdaptation invertedAdapter = this.portAdapterService.adaptPorts(targets,sources);
+        var invertedAdapter = this.portAdapterService.adaptPorts(targets,sources);
         assertEquals(invertedAdapter.getBindings().get("email"), "source.userDetails.email");
         assertEquals(invertedAdapter.getBindings().get("phone_number"), "source.userDetails.phone_number");
         assertEquals(invertedAdapter.getBindings().get("orderId"), "source.orderId");
@@ -174,7 +174,7 @@ public class PortAdapterServiceIT {
 
         List<Port> targets = List.of(target);
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         assertNotNull(adapter);
         assertTrue(adapter.getBindings().isEmpty());
@@ -193,7 +193,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source);
         List<Port> targets = Collections.emptyList();
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         assertNotNull(adapter);
         assertTrue(adapter.getBindings().isEmpty());
@@ -217,7 +217,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source);
         List<Port> targets = List.of(target);
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         if (adapter.getBindings().containsKey("stringValue")) {
             assertNotEquals("numericValue", adapter.getBindings().get("stringValue"));
@@ -248,7 +248,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source);
         List<Port> targets = List.of(target);
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         assertNotNull(adapter);
         assertEquals("elements", adapter.getBindings().get("items"));
@@ -272,7 +272,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source);
         List<Port> targets = List.of(target);
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         assertNotNull(adapter);
         assertEquals("userIdString", adapter.getBindings().get("userId"));
@@ -301,7 +301,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source);
         List<Port> targets = List.of(target1, target2);
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         assertNotNull(adapter);
         assertTrue(adapter.getBindings().containsKey("email"));
@@ -335,7 +335,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source1, source2);
         List<Port> targets = List.of(target);
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         assertNotNull(adapter);
         assertEquals("email", adapter.getBindings().get("requiredEmail"));
@@ -389,7 +389,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source);
         List<Port> targets = List.of(targetStreet, targetCity, targetZip);
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         assertNotNull(adapter);
         assertEquals("street", adapter.getBindings().get("userData.user.address.street"));
@@ -416,7 +416,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source);
         List<Port> targets = List.of(target);
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         assertNotNull(adapter);
         assertEquals("active", adapter.getBindings().get("isActive"));
@@ -466,7 +466,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source);
         List<Port> targets = List.of(target);
 
-        PortAdaptation adapter = portAdapterService.adaptPorts(sources, targets);
+        var adapter = portAdapterService.adaptPorts(sources, targets);
 
         assertNotNull(adapter);
         // Check that semantically similar fields are mapped correctly

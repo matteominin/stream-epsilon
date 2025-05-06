@@ -105,7 +105,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         targets.add(target2);
 
         // ADAPTER
-        PortAdaptation adapter = this.portAdapterService.adaptPorts(sources, targets);
+        var adapter = this.portAdapterService.adaptPorts(sources, targets);
 
         if (adapter == null) {
             System.out.println("Adapter is null, mapping impossible.");
@@ -180,7 +180,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         List<Port> targets = List.of(target1, target2, target3);
 
         // ADAPTER
-        PortAdaptation adapter = this.portAdapterService.adaptPorts(targets, sources);
+        var adapter = this.portAdapterService.adaptPorts(targets, sources);
 
         // List adapter ports
         Map<String,String> adapterPorts = adapter.getBindings();
