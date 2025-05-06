@@ -96,7 +96,7 @@ public class Port {
                 throw new IllegalStateException("Schema must be specified");
 
 
-            if (defaultValue != null && !schema.isValidValue(defaultValue))
+            if (defaultValue != null && schema.isValidValue(defaultValue))
                 throw new IllegalStateException("Default value is not valid for the schema");
 
             return port;

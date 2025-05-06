@@ -130,26 +130,26 @@ public class PortSchema {
 
         switch (schemaType) {
             case STRING:
-                return value instanceof String;
+                return (value instanceof String);
 
             case INT:
-                return value instanceof Integer || value instanceof Long;
+                return (value instanceof Integer) || (value instanceof Long);
 
             case FLOAT:
-                return value instanceof Float || value instanceof Double;
+                return (value instanceof Float) || (value instanceof Double);
 
             case BOOLEAN:
-                return value instanceof Boolean;
+                return (value instanceof Boolean);
 
             case DATE:
-                return value instanceof Date;
+                return (value instanceof Date);
 
             case ARRAY:
                 if (!(value instanceof List<?> || value instanceof Object[]))
                     return false;
 
                 PortSchema itemSchema = schema.getItems();
-                if (itemSchema == null) return true;
+                if (itemSchema == null) return false;
 
                 if (value instanceof List<?> array)
                     for (Object item : array) {
@@ -184,7 +184,7 @@ public class PortSchema {
 
                         PortSchema propSchema = propertiesSchema.get(propName);
 
-                        if (propSchema == null) return false;
+                        if (propSchema == null) return true;
 
                         if (!isValidValue(propValue, propSchema)) return false;
 
@@ -200,13 +200,54 @@ public class PortSchema {
                             return false;
                     }
                 }
-
-
                 return true;
 
             default:
                 return false;
         }
+    }
+
+    /**
+     * Resolves a dot-notated path to a nested PortSchema, starting from this schema.
+     * Example: if this schema is an object with a property "user" which is an object
+     * with a property "name", then calling getSchemaByPath("user.name") on the parent schema
+     * would return the schema for "name".
+     * @param path The dot-notated path string
+     * @return The PortSchema at the end of the path. If path is null/empty, returns this schema.
+     * @throws IllegalArgumentException if the path is invalid
+     */
+    public PortSchema getSchemaByPath(String path) {
+        if (path == null || path.isEmpty()) return this;
+
+        String[] parts = path.split("\\.");
+        PortSchema currentSchema = this;
+
+        for (int i = 0; i < parts.length; i++) {
+            String propertyName = parts[i];
+            if (propertyName.isEmpty()) {
+                String walkedPath = (i > 0) ? String.join(".", Arrays.copyOfRange(parts, 0, i)) : "root";
+                throw new IllegalArgumentException("Path segment cannot be empty at segment " + (i+1) + " (after '" + walkedPath + "') in full path: '" + path + "'.");
+            }
+
+            if (currentSchema.getType() != PortType.OBJECT) {
+                String walkedPath = (i > 0) ? String.join(".", Arrays.copyOfRange(parts, 0, i)) : "root";
+                throw new IllegalArgumentException("Cannot access property '" + propertyName + "' on type " + currentSchema.getType() + ". Schema at '" + walkedPath + "' is not an OBJECT. Full path: '" + path + "'.");
+            }
+
+            if (currentSchema.getProperties() == null) {
+                String walkedPath = (i > 0) ? String.join(".", Arrays.copyOfRange(parts, 0, i)) : "root";
+                throw new IllegalArgumentException("Cannot access property '" + propertyName + "' because parent object schema at '" + walkedPath + "' has no properties defined. Full path: '" + path + "'.");
+            }
+
+            PortSchema nextSchema = currentSchema.getProperties().get(propertyName);
+            if (nextSchema == null) {
+                String walkedPath = (i > 0) ? String.join(".", Arrays.copyOfRange(parts, 0, i)) : "root";
+                throw new IllegalArgumentException("Property '" + propertyName + "' not found in object schema at '" + walkedPath + "'. Full path: '" + path + "'. Available properties: " + currentSchema.getProperties().keySet());
+            }
+
+            currentSchema = nextSchema;
+        }
+        return currentSchema;
     }
 
 
@@ -302,4 +343,6 @@ public class PortSchema {
             return withType(PortType.OBJECT).withProperties(properties);
         }
     }
+
+
 }

@@ -255,7 +255,7 @@ public class NodeMetamodelValidator {
         if (defaultValue == null) return;
 
         // Check if the default value is valid according to the schema
-        if (!PortSchema.isValidValue(defaultValue, schema))
+        if (PortSchema.isValidValue(defaultValue, schema))
             result.addError("Default value is not valid for the schema", componentPath + ".defaultValue");
     }
 }
