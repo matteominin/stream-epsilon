@@ -1,8 +1,6 @@
 logging:
   level:
-    # Enable debug logging
     root: DEBUG
-
 
 spring:
   config:
@@ -11,5 +9,4 @@ spring:
 
   data:
     mongodb:
-      # Override MongoDB URI for tests TODO
-      uri: ${MONGO_URI}
+      uri: ${MONGO_TEST_URI}
