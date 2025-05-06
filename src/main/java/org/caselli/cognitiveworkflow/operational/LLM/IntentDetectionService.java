@@ -1,5 +1,8 @@
 package org.caselli.cognitiveworkflow.operational.LLM;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.operational.utils.StringUtils;
@@ -10,8 +13,8 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.stereotype.Service;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +73,12 @@ public class IntentDetectionService {
                 - "intentId": Include the exact Intent ID from the Available Intents list ONLY when matching an existing intent. OMIT this field entirely when proposing a new intent.
             - **Return `null`** only if the input is absolutely nonsensical or unintelligible as determined in Step 1.
 
+            ## Remember:
+            - If you don't find a strong match in the Available Intents, you MUST propose a new intent with a descriptive name.
+            - Always prioritize matching to existing intents when appropriate.
+            - Never return null for coherent, intelligible input like all common requests.
+            
+            **Think step by step before giving the final answer.**
             """;
 
     public IntentDetectionService(LlmModelFactory llmModelFactory, IntentMetamodelService intentMetamodelService) {
@@ -108,6 +117,9 @@ public class IntentDetectionService {
 
         // Construct prompt
         Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
+
+        // TODO remove
+        System.out.println("Prompt: " + prompt.getContents());
 
         // Call the LLM
         IntentDetectorResult result = getChatClient().prompt(prompt).call().entity(IntentDetectorResult.class);
@@ -181,5 +193,16 @@ public class IntentDetectionService {
             chatClient = llmModelFactory.createChatClient(intentProvider, intentApiKey, intentModel, options);
         }
         return chatClient;
+    }
+
+
+    @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    static public class IntentDetectorResult {
+        @JsonProperty(value = "intentId") private String intentId;
+        @JsonProperty(required = true, value = "intentName") private String intentName;
+        @JsonProperty(required = true, value = "confidence") private double confidence;
+        @JsonProperty(required = true, value = "isNew") private boolean isNew;
+        @JsonProperty(required = true, value = "userVariables") private Map<String,Object> userVariables;
     }
 }

@@ -1,5 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.LLM;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentSearchService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.test.context.ActiveProfiles;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +73,7 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        IntentDetectorResult result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest);
         System.out.println(result);
 
         assertNotNull(result);
@@ -84,14 +87,14 @@ class IntentDetectionServiceIT {
         assertTrue(variables.values().stream().anyMatch(value -> value.toString().toLowerCase().contains("paris")));
         assertTrue(variables.values().stream().anyMatch(value -> value.toString().toLowerCase().contains("tomorrow")));
     }
-/*
+
     @Test
     void shouldCreateANewIntentIfNotExists(){
         String userRequest = "Buy me a ticket for this concert";
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        IntentDetectorResult result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest);
 
         System.out.println(result);
 
@@ -102,24 +105,22 @@ class IntentDetectionServiceIT {
         assertTrue(
                 result.getIntentName().contains("PURCHASE") ||
                         result.getIntentName().contains("BUY") ||
-                        result.getIntentName().contains("BUY")
+                        result.getIntentName().contains("TICKET")
         );
         // The intent name should be uppercase
         assertEquals(result.getIntentName(), result.getIntentName().toUpperCase());
 
 
     }
-    */
 
 
-/*
     @Test
-    void shouldCreateANewIntentIfNotExists(){
+    void shouldCreateANewIntentIfNotExists2(){
         String userRequest = "I want to translate this text to spanish";
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        IntentDetectorResult result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest);
 
         System.out.println(result);
 
@@ -134,7 +135,6 @@ class IntentDetectionServiceIT {
 
     }
 
- */
 
     @Test
     void shouldReturnNullIfInputIsNonSense(){
@@ -142,7 +142,7 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        IntentDetectorResult result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest);
 
         assertNull(result);
     }
@@ -153,7 +153,7 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        IntentDetectorResult result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest);
 
         assertNull(result);
     }

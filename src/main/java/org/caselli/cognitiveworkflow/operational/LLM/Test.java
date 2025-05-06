@@ -2,7 +2,6 @@ package org.caselli.cognitiveworkflow.operational.LLM;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
-import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
@@ -38,7 +37,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         //String userInput = "I want to translate 'money' to french";
         String userInput = "I want to buy a new Iphone 16 pro for my wife and I need it to be delivered by tomorrow";
 
-        IntentDetectorResult result = this.intentDetectionService.detect(userInput);
+        var result = this.intentDetectionService.detect(userInput);
 
         System.out.println("Intent detection result: " + result);
 
