@@ -3,6 +3,10 @@ package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -49,6 +53,28 @@ public class Port {
     public enum PortImplementationType {
         STANDARD,
         REST
+    }
+
+
+
+    /**
+     * Converts a Port object to JSON string representation.
+     * @param port Port object to convert
+     * @return JSON string representation of the Port object
+     */
+    public static String portToJson(Port port) {
+        ObjectMapper mapper = new ObjectMapper();
+        // Exclude null fields
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        try {
+            JsonNode portNode = mapper.valueToTree(port);
+            // Remove "portType"
+            if (portNode instanceof ObjectNode) ((ObjectNode) portNode).remove("portType");
+            return mapper.writeValueAsString(portNode);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize Port to JSON", e);
+        }
     }
 
 

@@ -1,6 +1,6 @@
-logging:
-  level:
-    root: DEBUG
+#logging:
+  #level:
+    #root: DEBUG
 
 spring:
   config:

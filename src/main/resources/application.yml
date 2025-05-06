@@ -50,3 +50,11 @@ port-adapter:
     api-key: ${ANTHROPIC_API_KEY}
     model: claude-3-5-sonnet-20240620
     temperature: 0.3
+
+
+input-mapper:
+  llm:
+    provider: anthropic
+    api-key: ${ANTHROPIC_API_KEY}
+    model: claude-3-5-sonnet-20240620
+    temperature: 0.3

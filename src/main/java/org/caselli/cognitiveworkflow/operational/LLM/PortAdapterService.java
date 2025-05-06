@@ -1,10 +1,5 @@
 package org.caselli.cognitiveworkflow.operational.LLM;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.springframework.ai.chat.client.ChatClient;
@@ -122,7 +117,7 @@ public class PortAdapterService {
         try {
 
             String sourcePortsDescription = sourcePorts.stream()
-                    .map(this::portToJson)
+                    .map(Port::portToJson)
                     // TODO: note that for now we escape the braces in the JSON string
                     // As reported by others this is a workaround for a bug in Spring AI
                     // In fact, without escaping the braces, the template engine tries to find variables in the JSON
@@ -132,7 +127,7 @@ public class PortAdapterService {
             sourcePortsDescription = "```json\n[" + sourcePortsDescription + "]\n```";
 
             String targetPortsDescription = targetPorts.stream()
-                    .map(this::portToJson)
+                    .map(Port::portToJson)
                     .map(s -> s.replace("{", "\\{").replace("}", "\\}"))  // Escape braces
                     .collect(Collectors.joining(",\n"));
             targetPortsDescription = "```json\n[" + targetPortsDescription + "]\n```";
@@ -168,27 +163,6 @@ public class PortAdapterService {
         } catch (Exception e) {
             logger.error("Error during ports list adaptation with LLM structured output: " + e.getMessage(), e);
             return null;
-        }
-    }
-
-
-    /**
-     * Converts a Port object to JSON string representation.
-     * @param port Port object to convert
-     * @return JSON string representation of the Port object
-     */
-    private String portToJson(Port port) {
-        ObjectMapper mapper = new ObjectMapper();
-        // Exclude null fields
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-        try {
-            JsonNode portNode = mapper.valueToTree(port);
-            // Remove "portType"
-            if (portNode instanceof ObjectNode) ((ObjectNode) portNode).remove("portType");
-            return mapper.writeValueAsString(portNode);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize Port to JSON", e);
         }
     }
 
