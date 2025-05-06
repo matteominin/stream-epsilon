@@ -396,69 +396,38 @@ public class WorkflowMetamodelValidator {
         }
     }
 
-
-
     /**
      * Helper method to retrieve and resolve a PortSchema given a full path (e.g., "basePort.nestedField").
-     * It uses PortSchema.getSchemaByPath() for resolving nested parts.
      */
-    private PortSchema getResolvedSchemaForPort(NodeMetamodel nodeMetamodel, String fullPathKey, String direction,
-                                                ValidationResult result, String edgeId, String workflowNodeId) {
-        String edgeIdForContext = (edgeId == null ? "[UNIDENTIFIED_EDGE]" : edgeId);
-        String nodeContextErrorPrefix = direction + " port path '" + fullPathKey + "' on NodeMetamodel ID '" + nodeMetamodel.getId() +
-                "' (WorkflowNode ID: '" + workflowNodeId + "', Edge ID: '" + edgeIdForContext + "'): ";
-        String errorFieldKey = "workflow.edges." + edgeIdForContext;
-
-
-        if (fullPathKey == null || fullPathKey.isEmpty()) {
-            result.addError(nodeContextErrorPrefix + "Path key cannot be null or empty.", errorFieldKey);
-            return null;
-        }
+    private PortSchema getResolvedSchemaForPort(List<? extends Port> ports, String fullPathKey) {
+        if (fullPathKey == null || fullPathKey.isEmpty() || ports == null || ports.isEmpty()) return null;
 
         // Split into base port key and the rest of the path (if any)
         // "port.field.sub" -> parts[0]="port", parts[1]="field.sub"
-        // "port"           -> parts[0]="port", parts.length=1
         String[] parts = fullPathKey.split("\\.", 2);
         String basePortKey = parts[0];
         String nestedPath = (parts.length > 1 && parts[1] != null && !parts[1].isEmpty()) ? parts[1] : null;
 
-        if (basePortKey.isEmpty()) { // Handles cases like ".field" or leading dot
-            result.addError(nodeContextErrorPrefix + "Base port key part of the path cannot be empty.", errorFieldKey);
-            return null;
-        }
-
-        List<? extends Port> ports = (Objects.equals(direction, "INPUT")) ? nodeMetamodel.getInputPorts() : nodeMetamodel.getOutputPorts();
-        if (ports == null) { // Should ideally be an empty list, not null, from NodeMetamodel
-            ports = Collections.emptyList();
-        }
+        if (basePortKey.isEmpty()) return null;
 
         Optional<? extends Port> basePortOpt = ports.stream()
                 .filter(p -> p.getKey() != null && p.getKey().equals(basePortKey))
                 .findFirst();
 
-        if (basePortOpt.isEmpty()) {
-            result.addError(nodeContextErrorPrefix + "Base port key '" + basePortKey + "' does not exist.", errorFieldKey);
-            return null;
-        }
+        if (basePortOpt.isEmpty()) return null;
 
         Port basePort = basePortOpt.get();
         PortSchema baseSchema = basePort.getSchema();
 
-        if (baseSchema == null) {
-            result.addError(nodeContextErrorPrefix + "Base port '" + basePortKey + "' has no schema defined.", errorFieldKey);
-            return null;
-        }
+        if (baseSchema == null) return null;
 
-        // If there's a nested path, resolve it using the base schema's method
         if (nestedPath != null) {
             try {
                 return baseSchema.getSchemaByPath(nestedPath);
             } catch (Exception e) {
-                result.addError(nodeContextErrorPrefix + "Invalid nested path '" + nestedPath + "' within schema of base port '" + basePortKey + "'. Reason: " + e.getMessage(), errorFieldKey);
                 return null;
             }
         } else {
-            // No nested path, the schema is the base port's schema itself
             return baseSchema;
         }
     }
@@ -471,23 +440,21 @@ public class WorkflowMetamodelValidator {
         if (workflow.getNodes() == null || workflow.getEdges() == null) return;
 
         Map<String, NodeMetamodel> workflowNodeIdToMetamodel = new HashMap<>();
-        Map<String, WorkflowNode> workflowNodesMap = new HashMap<>(); // For easy access to WorkflowNode specific info
+        Map<String, WorkflowNode> workflowNodesMap = new HashMap<>();
 
         for (WorkflowNode wn : workflow.getNodes()) {
             if (wn.getId() != null && !wn.getId().isEmpty()) {
                 workflowNodesMap.put(wn.getId(), wn);
                 if (wn.getNodeMetamodelId() != null && !wn.getNodeMetamodelId().isEmpty()) {
                     NodeMetamodel nmm = getNodeMetamodelById(wn.getNodeMetamodelId());
-                    if (nmm != null) {
-                        workflowNodeIdToMetamodel.put(wn.getId(), nmm);
-                    }
-                    // Error for missing NMM already covered by validateNodeReferences
+
+                    if (nmm != null) workflowNodeIdToMetamodel.put(wn.getId(), nmm);
                 }
             }
         }
 
-        Map<String, Set<String>> satisfiedRequiredInputs = new HashMap<>(); // Key: WorkflowNode.id
-        Map<String, Set<String>> allRequiredInputs = new HashMap<>();       // Key: WorkflowNode.id
+        Map<String, Set<String>> satisfiedRequiredInputs = new HashMap<>();
+        Map<String, Set<String>> allRequiredInputs = new HashMap<>();
 
         for (WorkflowNode wn : workflow.getNodes()) {
             String wnId = wn.getId();
@@ -507,54 +474,55 @@ public class WorkflowMetamodelValidator {
         }
 
         for (WorkflowEdge edge : workflow.getEdges()) {
-            String sourceWorkflowNodeId = edge.getSourceNodeId();
-            String targetWorkflowNodeId = edge.getTargetNodeId();
+            String sourceId = edge.getSourceNodeId();
+            String targetId = edge.getTargetNodeId();
             String edgeId = edge.getId();
             String edgeContext = "workflow.edges." + (edgeId == null ? "[UNIDENTIFIED_EDGE]" : edgeId);
 
-            if (sourceWorkflowNodeId == null || targetWorkflowNodeId == null ||
-                    !workflowNodeIdToMetamodel.containsKey(sourceWorkflowNodeId) ||
-                    !workflowNodeIdToMetamodel.containsKey(targetWorkflowNodeId)) {
-                // Errors for invalid edge node IDs or missing metamodels already caught.
+            if (sourceId == null || targetId == null || !workflowNodeIdToMetamodel.containsKey(sourceId) || !workflowNodeIdToMetamodel.containsKey(targetId))
                 continue;
-            }
 
-            NodeMetamodel sourceNodeMetamodel = workflowNodeIdToMetamodel.get(sourceWorkflowNodeId);
-            NodeMetamodel targetNodeMetamodel = workflowNodeIdToMetamodel.get(targetWorkflowNodeId);
 
-            Set<String> boundTargetBasePortKeysInEdge = new HashSet<>(); // Tracks base target ports explicitly bound in this edge
+            NodeMetamodel sourceNodeMetamodel = workflowNodeIdToMetamodel.get(sourceId);
+            NodeMetamodel targetNodeMetamodel = workflowNodeIdToMetamodel.get(targetId);
 
-            // 1. Explicit Bindings
+            // Tracks base target ports explicitly bound in this edge
+            Set<String> boundTargetBasePortKeysInEdge = new HashSet<>();
+
+
+            // 1) Explicit Bindings
             if (edge.getBindings() != null && !edge.getBindings().isEmpty()) {
                 for (Map.Entry<String, String> binding : edge.getBindings().entrySet()) {
                     String sourceFullPath = binding.getKey();
                     String targetFullPath = binding.getValue();
 
-                    PortSchema actualSourceSchema = getResolvedSchemaForPort(sourceNodeMetamodel, sourceFullPath, "OUTPUT", result, edgeId, sourceWorkflowNodeId);
-                    PortSchema actualTargetSchema = getResolvedSchemaForPort(targetNodeMetamodel, targetFullPath,"INPUT", result, edgeId, targetWorkflowNodeId);
+                    PortSchema actualSourceSchema = getResolvedSchemaForPort(sourceNodeMetamodel.getOutputPorts(), sourceFullPath);
+                    PortSchema actualTargetSchema = getResolvedSchemaForPort(targetNodeMetamodel.getInputPorts(), targetFullPath);
 
                     if (actualSourceSchema != null && actualTargetSchema != null) {
                         if (!PortSchema.isCompatible(actualSourceSchema, actualTargetSchema)) {
-                            result.addError("Port type mismatch on explicit binding: Source '" + sourceFullPath + "' (type: " + actualSourceSchema.getType() +
-                                            ") is incompatible with target '" + targetFullPath + "' (type: " + actualTargetSchema.getType() + "). " +
-                                            "Edge: '" + edgeId + "', WorkflowNodes: '" + sourceWorkflowNodeId + "' -> '" + targetWorkflowNodeId + "'.",
-                                    edgeContext + ".binding.typeMismatch");
+                            result.addError("Port type mismatch on explicit binding: Source '" + sourceFullPath + "' (type: " + actualSourceSchema.getType() + ") is incompatible with target '" + targetFullPath + "' (type: " + actualTargetSchema.getType() + "). " + "Edge: '" + edgeId + "', WorkflowNodes: '" + sourceId + "' -> '" + targetId + "'.", edgeContext + ".binding.typeMismatch");
                         }
+
                         // Mark the base target port as having a binding and potentially satisfying requirement
                         String baseTargetKey = targetFullPath.split("\\.", 2)[0];
-                        if (allRequiredInputs.containsKey(targetWorkflowNodeId) && allRequiredInputs.get(targetWorkflowNodeId).contains(baseTargetKey)) {
-                            satisfiedRequiredInputs.get(targetWorkflowNodeId).add(baseTargetKey);
+
+                        if (allRequiredInputs.containsKey(targetId) && allRequiredInputs.get(targetId).contains(baseTargetKey)) {
+                            satisfiedRequiredInputs.get(targetId).add(baseTargetKey);
                         }
+
                         boundTargetBasePortKeysInEdge.add(baseTargetKey);
                     }
                 }
             }
 
-            // 2. Implicit Bindings (only for top-level ports not explicitly bound in this edge)
+            // 2. Implicit Bindings
             if (targetNodeMetamodel.getInputPorts() != null && sourceNodeMetamodel.getOutputPorts() != null) {
+
                 Map<String, Port> targetInputBasePorts = targetNodeMetamodel.getInputPorts().stream()
                         .filter(p -> p.getKey() != null)
-                        .collect(Collectors.toMap(Port::getKey, p -> p, (p1, p2) -> p1)); // Handle duplicates if any, take first
+                        .collect(Collectors.toMap(Port::getKey, p -> p, (p1, p2) -> p1));
+
                 Map<String, Port> sourceOutputBasePorts = sourceNodeMetamodel.getOutputPorts().stream()
                         .filter(p -> p.getKey() != null)
                         .collect(Collectors.toMap(Port::getKey, p -> p, (p1, p2) -> p1));
@@ -567,42 +535,39 @@ public class WorkflowMetamodelValidator {
                     if (!boundTargetBasePortKeysInEdge.contains(targetBaseKey) && sourceOutputBasePorts.containsKey(targetBaseKey)) {
                         Port sourceBasePort = sourceOutputBasePorts.get(targetBaseKey);
                         if (sourceBasePort.getSchema() != null && targetBasePort.getSchema() != null) {
+
                             if (!PortSchema.isCompatible(sourceBasePort.getSchema(), targetBasePort.getSchema())) {
-                                result.addWarning("Port type mismatch on implicitly matched port '" + targetBaseKey + "': Source type " + sourceBasePort.getSchema().getType() +
-                                                " to target type " + targetBasePort.getSchema().getType() + ". Edge: '" + edgeId + "', WorkflowNodes: '" + sourceWorkflowNodeId + "' -> '" + targetWorkflowNodeId + "'.",
-                                        edgeContext + ".implicitBinding.typeMismatch");
+                                result.addWarning("Port type mismatch on implicitly matched port '" + targetBaseKey + "': Source type " + sourceBasePort.getSchema().getType() + " to target type " + targetBasePort.getSchema().getType() + ". Edge: '" + edgeId + "', WorkflowNodes: '" + sourceId + "' -> '" + targetId + "'.", edgeContext + ".implicitBinding.typeMismatch");
                             } else {
                                 // Mark required input as satisfied by implicit binding
-                                if (allRequiredInputs.containsKey(targetWorkflowNodeId) && allRequiredInputs.get(targetWorkflowNodeId).contains(targetBaseKey)) {
-                                    satisfiedRequiredInputs.get(targetWorkflowNodeId).add(targetBaseKey);
+                                if (allRequiredInputs.containsKey(targetId) && allRequiredInputs.get(targetId).contains(targetBaseKey)) {
+                                    satisfiedRequiredInputs.get(targetId).add(targetBaseKey);
                                 }
                             }
                         } else {
-                            // Warning if schemas are null for implicitly matched ports
-                            if (sourceBasePort.getSchema() == null) result.addWarning("Source port '" + targetBaseKey + "' in implicit match has no schema. Node: " + sourceWorkflowNodeId, edgeContext);
-                            if (targetBasePort.getSchema() == null) result.addWarning("Target port '" + targetBaseKey + "' in implicit match has no schema. Node: " + targetWorkflowNodeId, edgeContext);
+                            if (sourceBasePort.getSchema() == null) result.addWarning("Source port '" + targetBaseKey + "' in implicit match has no schema. Node: " + sourceId, edgeContext);
+                            if (targetBasePort.getSchema() == null) result.addWarning("Target port '" + targetBaseKey + "' in implicit match has no schema. Node: " + targetId, edgeContext);
                         }
                     }
                 }
             }
         }
 
-        // 3. Final check for unsatisfied required inputs on each node instance
+        // Final check of all required inputs
         for (Map.Entry<String, Set<String>> entry : allRequiredInputs.entrySet()) {
             String workflowNodeId = entry.getKey();
             Set<String> required = entry.getValue();
             Set<String> satisfied = satisfiedRequiredInputs.getOrDefault(workflowNodeId, Collections.emptySet());
-            Set<String> unsatisfied = new HashSet<>(required); // Start with all required
-            unsatisfied.removeAll(satisfied); // Remove those that were satisfied
+
+            // Remove all satisfied inputs
+            Set<String> unsatisfied = new HashSet<>(required);
+            unsatisfied.removeAll(satisfied);
 
             if (!unsatisfied.isEmpty()) {
-                WorkflowNode wn = workflowNodesMap.get(workflowNodeId); // Get the WorkflowNode for context
+                WorkflowNode wn = workflowNodesMap.get(workflowNodeId);
                 String nmmId = (wn != null && wn.getNodeMetamodelId() != null) ? wn.getNodeMetamodelId() : "[UNKNOWN_METAMODEL]";
-                result.addWarning("WorkflowNode ID '" + workflowNodeId + "' (Metamodel ID: '" + nmmId + "') has unsatisfied required input port(s): " +
-                        String.join(", ", unsatisfied), "workflow.nodes." + workflowNodeId + ".requiredInputs.unsatisfied");
+                result.addWarning("WorkflowNode ID '" + workflowNodeId + "' (Metamodel ID: '" + nmmId + "') has unsatisfied required input port(s): " + String.join(", ", unsatisfied), "workflow.nodes." + workflowNodeId + ".requiredInputs.unsatisfied");
             }
         }
     }
-
-
 }
