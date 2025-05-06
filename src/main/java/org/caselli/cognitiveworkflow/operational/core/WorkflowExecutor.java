@@ -194,42 +194,50 @@ public class WorkflowExecutor {
 
     /**
      * Applies the bindings from an edge to copy data in the execution context.
-     * Bindings map source port keys to target port keys.
+     * Bindings map source port keys to target port keys
      */
     private void applyEdgeBindings(WorkflowEdge edge, ExecutionContext context) {
-        // Get source and target node instances
-        NodeInstance sourceNode = getInstanceByWorkflowNodeId(edge.getSourceNodeId());
-        NodeInstance targetNode = getInstanceByWorkflowNodeId(edge.getTargetNodeId());
-
-        if (sourceNode == null || targetNode == null) {
-            logger.warn("Cannot apply bindings: source or target node not found");
-            return;
-        }
-
         for (Map.Entry<String, String> bind : edge.getBindings().entrySet()) {
             String sourceKey = bind.getKey();
             String targetKey = bind.getValue();
 
-            // First check if the source key is in the context
-            if (context.containsKey(sourceKey)) {
-                Object value = context.get(sourceKey);
-                context.put(targetKey, value);
+            // Attempt to get the source value using dot notation
+            Object value = context.getByDotNotation(sourceKey);
+
+            if (value != null) {
+                // Source value found, set it at the target using dot notation
+                context.putByDotNotation(targetKey, value);
                 logger.debug("Applied binding: {} -> {} (value: {})", sourceKey, targetKey, value);
             } else {
-                // Source key not in context, let's check if target port has a default value
-                Port targetPort = findInputPort(targetNode, targetKey);
-                if (targetPort != null && targetPort.getDefaultValue() != null) {
-                    // Apply default value to target
-                    context.put(targetKey, targetPort.getDefaultValue());
-                    logger.debug("Used default value for target port '{}': {}",
-                            targetKey, targetPort.getDefaultValue());
+                // Source key (or path) not found in context, check if the target port has a default value
+                // This requires finding the *root* port key for the target path.
+                String rootTargetKey = targetKey.split("\\.")[0];
+                NodeInstance targetNode = getInstanceByWorkflowNodeId(edge.getTargetNodeId()); // Get target node instance
+
+                if (targetNode != null) {
+                    Port targetPort = findInputPort(targetNode, rootTargetKey); // Find the root input port
+
+                    if (targetPort != null && targetPort.getDefaultValue() != null) {
+                        // Apply default value to the target using dot notation
+                        // Note: This applies the default value of the *root* target port to the *entire target path*.
+                        // This might be an area for refinement depending on exact requirements for defaults and dot notation.
+                        context.putByDotNotation(targetKey, targetPort.getDefaultValue());
+                        logger.debug("Used default value for target path '{}' (from root port '{}'): {}",
+                                targetKey, rootTargetKey, targetPort.getDefaultValue());
+                    } else {
+                        logger.warn("Cannot apply binding: source key '{}' not found in context and target path '{}' has no default associated with its root port '{}'",
+                                sourceKey, targetKey, rootTargetKey);
+                    }
                 } else {
-                    logger.warn("Cannot apply binding: source key '{}' not found in context and target has no default",
-                            sourceKey);
+                    logger.warn("Cannot apply binding: target node not found for edge from {} to {}", edge.getSourceNodeId(), edge.getTargetNodeId());
                 }
             }
         }
     }
+
+
+
+
 
     /***
      * Returns the instance of a node by the workflow-specific node ID
