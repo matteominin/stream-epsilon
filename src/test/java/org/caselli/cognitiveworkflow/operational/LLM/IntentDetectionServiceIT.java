@@ -5,6 +5,7 @@ import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentSearchService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +19,9 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+
 @SpringBootTest
+@Tag("it")
 @ActiveProfiles("test")
 
 class IntentDetectionServiceIT {

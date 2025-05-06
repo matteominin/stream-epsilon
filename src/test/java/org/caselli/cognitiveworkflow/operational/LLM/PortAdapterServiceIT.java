@@ -2,6 +2,7 @@ package org.caselli.cognitiveworkflow.operational.LLM;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +15,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Tag("it")
 @ActiveProfiles("test")
 public class PortAdapterServiceIT {
 
