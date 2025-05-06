@@ -246,46 +246,18 @@ public class WorkflowMetamodelValidator {
         }
     }
 
-
     /**
      * Validates that the workflow has a clear entry point and exit points
      * @param workflow Current workflow
      * @param result Validation result
      */
     public void validateEntryAndExitPoints(WorkflowMetamodel workflow, ValidationResult result) {
-        if (workflow.getNodes() == null || workflow.getEdges() == null) return;
+        Set<String> entryPoints = workflow.getEntryNodes();
+        if (entryPoints.isEmpty()) result.addError("Workflow has no entry point", "workflow.structure");
 
-        Set<String> allNodeIds = workflow
-                .getNodes()
-                .stream()
-                .map(WorkflowNode::getNodeMetamodelId)
-                .collect(Collectors.toSet());
-
-        Set<String> nodesWithIncomingEdges = new HashSet<>();
-        Set<String> nodesWithOutgoingEdges = new HashSet<>();
-
-        for (WorkflowEdge edge : workflow.getEdges()) {
-            nodesWithIncomingEdges.add(edge.getTargetNodeId());
-            nodesWithOutgoingEdges.add(edge.getSourceNodeId());
-        }
-
-        // Find entry points (nodes with no incoming edges)
-        Set<String> entryPoints = new HashSet<>(allNodeIds);
-        entryPoints.removeAll(nodesWithIncomingEdges);
-
-        if (entryPoints.isEmpty())
-            result.addError("Workflow has no entry point", "workflow.structure");
-
-
-        // Find exit points (nodes with no outgoing edges)
-        Set<String> exitPoints = new HashSet<>(allNodeIds);
-        exitPoints.removeAll(nodesWithOutgoingEdges);
-
-        if (exitPoints.isEmpty())
-            result.addError("Workflow has no exit point (all nodes have outgoing edges)", "workflow.structure");
+        Set<String> exitPoints = workflow.getExitNodes();
+        if (exitPoints.isEmpty()) result.addError("Workflow has no exit point (all nodes have outgoing edges)", "workflow.structure");
     }
-
-
 
     /**
      * Validates that edge conditions reference existing ports with compatible types.
@@ -331,8 +303,6 @@ public class WorkflowMetamodelValidator {
 
 
             String portKey = edge.getCondition().getPort();
-
-
 
             // Check if the port exists in the source node's outputs
             if (sourceNode.getOutputPorts() == null ||
@@ -433,8 +403,19 @@ public class WorkflowMetamodelValidator {
     }
 
     /**
-     * Validates port connections, including type compatibility and satisfaction of required inputs,
-     * supporting dot-notation for bindings.
+     * Validates port connections within a workflow, including type compatibility and satisfaction of required inputs.
+     * Supports dot-notation for bindings.
+     *
+     * <p><b>Important notes:</b>
+     * <ul>
+     *   <li>Port incompatibility issues generate warnings rather than errors, as they are not fatal
+     *       and can be corrected at runtime by a PortAdaptor.</li>
+     *   <li>Errors are only thrown when an implicit binding is incompatible.</li>
+     * </ul>
+     *
+     * @param workflow The workflow metamodel to validate
+     * @param result   The validation result object that will contain any warnings or errors
+     * @throws IllegalArgumentException If the workflow or result parameters are null
      */
     private void validatePortConnections(WorkflowMetamodel workflow, ValidationResult result) {
         if (workflow.getNodes() == null || workflow.getEdges() == null) return;
@@ -556,10 +537,12 @@ public class WorkflowMetamodelValidator {
         // Final check of all required inputs
         for (Map.Entry<String, Set<String>> entry : allRequiredInputs.entrySet()) {
             String workflowNodeId = entry.getKey();
+
+            // Skip entry nodes as their inputs are provided externally
+            if (workflow.getEntryNodes().contains(workflowNodeId)) continue;
+
             Set<String> required = entry.getValue();
             Set<String> satisfied = satisfiedRequiredInputs.getOrDefault(workflowNodeId, Collections.emptySet());
-
-            // Remove all satisfied inputs
             Set<String> unsatisfied = new HashSet<>(required);
             unsatisfied.removeAll(satisfied);
 

@@ -9,8 +9,9 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -60,4 +61,53 @@ public class WorkflowMetamodel {
         private Date lastExecuted;
         private Double score;
     }
+
+
+    /**
+     * Get the entry nodes of the workflow
+     * (no incoming edges)
+     * @return Returns the IDs of the entry WorkflowNodes
+     */
+    public Set<String> getEntryNodes() {
+        if (this.getNodes() == null || this.getEdges() == null) return Collections.emptySet();
+
+        Set<String> allNodeIds = this.getNodes().stream()
+                .map(WorkflowNode::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<String> nodesWithIncomingEdges = this.getEdges().stream()
+                .map(WorkflowEdge::getTargetNodeId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+
+        return allNodeIds.stream()
+                .filter(id1 -> !nodesWithIncomingEdges.contains(id1))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Get the exit nodes of the workflow
+     * (no outgoing edges)
+     * @return Returns the IDs of the exit WorkflowNodes
+     */
+    public Set<String> getExitNodes() {
+        if (this.getNodes() == null || this.getEdges() == null) return Collections.emptySet();
+
+        Set<String> allNodeIds = this.getNodes().stream()
+                .map(WorkflowNode::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<String> nodesWithOutgoingEdges = this.getEdges().stream()
+                .map(WorkflowEdge::getSourceNodeId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        return allNodeIds.stream()
+                .filter(id1 -> !nodesWithOutgoingEdges.contains(id1))
+                .collect(Collectors.toSet());
+    }
+
 }

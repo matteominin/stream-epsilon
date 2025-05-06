@@ -1,7 +1,6 @@
 package org.caselli.cognitiveworkflow.knowledge.validation;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
@@ -16,11 +15,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -74,14 +71,14 @@ public class WorkflowMetamodelValidatorTest {
 
 
     @Test
-    void test(){
+    void shouldDetect_SatisfiedInputPort_ImplicitBinding(){
         RestPort IA1 = createStringPort("I_A_1");
         RestPort IA2 = createStringPort("I_A_1");
         RestPort OA1 = createStringPort("O_A_1");
         NodeMetamodel nodeA = createNode("node_A", List.of(IA1, IA2), List.of(OA1));
         when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(nodeA));
 
-        RestPort IB1 = createStringPort("O_A_1");  // <----
+        RestPort IB1 = createStringPort("O_A_1");  // <---- IMPLICIT BINDING: OA1 => IB1
         RestPort OB1 = createStringPort("O_B_1");
         NodeMetamodel nodeB = createNode("node_B", List.of(IB1), List.of(OB1));
         when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(nodeB));
@@ -109,5 +106,121 @@ public class WorkflowMetamodelValidatorTest {
 
         assertEquals(res.getErrorCount(),0);
         assertEquals(res.getWarningCount(),0);
+    }
+
+    @Test
+    void shouldDetect_UnsatisfiedInputPort_ImplicitBinding(){
+        RestPort IA1 = createStringPort("I_A_1");
+        RestPort IA2 = createStringPort("I_A_1");
+        RestPort OA1 = createStringPort("O_A_1");
+        NodeMetamodel nodeA = createNode("node_A", List.of(IA1, IA2), List.of(OA1));
+        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(nodeA));
+
+        RestPort IB1 = createStringPort("NO_MATCHING");  // <---- NO MATCHING
+        RestPort OB1 = createStringPort("O_B_1");
+        NodeMetamodel nodeB = createNode("node_B", List.of(IB1), List.of(OB1));
+        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(nodeB));
+
+
+        WorkflowNode wNodeA = new WorkflowNode();
+        wNodeA.setId("A");
+        wNodeA.setNodeMetamodelId(nodeA.getId());
+
+        WorkflowNode wNodeB = new WorkflowNode();
+        wNodeB.setId("B");
+        wNodeB.setNodeMetamodelId(nodeB.getId());
+
+        WorkflowEdge edge = new WorkflowEdge();
+        edge.setId("1");
+        edge.setSourceNodeId("A");
+        edge.setTargetNodeId("B");
+
+        WorkflowMetamodel workflow = createWorkflow("workflow1", List.of(wNodeA, wNodeB),List.of(edge));
+
+        var res = validator.validate(workflow);
+
+        res.printWarnings(logger);
+        res.printErrors(logger);
+
+        assertEquals(res.getErrorCount(),0); // Ports errors should be warning not errors!
+        assertTrue(res.getWarningCount() > 0);
+    }
+
+
+    @Test
+    void shouldDetect_SatisfiedInputPort_ExplicitBinding(){
+        RestPort IA1 = createStringPort("I_A_1");
+        RestPort IA2 = createStringPort("I_A_1");
+        RestPort OA1 = createStringPort("O_A_1");
+        NodeMetamodel nodeA = createNode("node_A", List.of(IA1, IA2), List.of(OA1));
+        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(nodeA));
+
+        RestPort IB1 = createStringPort("NO_MATCHING");  // <---- NO MATCHING
+        RestPort OB1 = createStringPort("O_B_1");
+        NodeMetamodel nodeB = createNode("node_B", List.of(IB1), List.of(OB1));
+        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(nodeB));
+
+
+        WorkflowNode wNodeA = new WorkflowNode();
+        wNodeA.setId("A");
+        wNodeA.setNodeMetamodelId(nodeA.getId());
+
+        WorkflowNode wNodeB = new WorkflowNode();
+        wNodeB.setId("B");
+        wNodeB.setNodeMetamodelId(nodeB.getId());
+
+        WorkflowEdge edge = new WorkflowEdge();
+        edge.setId("1");
+        edge.setSourceNodeId("A");
+        edge.setTargetNodeId("B");
+        edge.setBindings(Map.of("O_A_1","NO_MATCHING")); // <--- EXPLICIT BINDING
+
+        WorkflowMetamodel workflow = createWorkflow("workflow1", List.of(wNodeA, wNodeB),List.of(edge));
+
+        var res = validator.validate(workflow);
+
+        res.printWarnings(logger);
+        res.printErrors(logger);
+
+        assertEquals(res.getErrorCount(),0);
+        assertEquals(res.getWarningCount(),0);
+    }
+
+    @Test
+    void shouldDetect_UnsatisfiedInputPort_ExplicitBinding(){
+        RestPort IA1 = createStringPort("I_A_1");
+        RestPort IA2 = createStringPort("I_A_1");
+        RestPort OA1 = createStringPort("O_A_1");
+        NodeMetamodel nodeA = createNode("node_A", List.of(IA1, IA2), List.of(OA1));
+        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(nodeA));
+
+        RestPort IB1 = createStringPort("NO_MATCHING");  // <---- NO MATCHING
+        RestPort OB1 = createStringPort("O_B_1");
+        NodeMetamodel nodeB = createNode("node_B", List.of(IB1), List.of(OB1));
+        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(nodeB));
+
+
+        WorkflowNode wNodeA = new WorkflowNode();
+        wNodeA.setId("A");
+        wNodeA.setNodeMetamodelId(nodeA.getId());
+
+        WorkflowNode wNodeB = new WorkflowNode();
+        wNodeB.setId("B");
+        wNodeB.setNodeMetamodelId(nodeB.getId());
+
+        WorkflowEdge edge = new WorkflowEdge();
+        edge.setId("1");
+        edge.setSourceNodeId("A");
+        edge.setTargetNodeId("B");
+        edge.setBindings(Map.of("O_A_1","NO_MATCHING_2")); // <--- WRONG EXPLICIT BINDING
+
+        WorkflowMetamodel workflow = createWorkflow("workflow1", List.of(wNodeA, wNodeB),List.of(edge));
+
+        var res = validator.validate(workflow);
+
+        res.printWarnings(logger);
+        res.printErrors(logger);
+
+        assertTrue(res.getErrorCount() > 0 || res.getWarningCount()>0);
     }
 }
