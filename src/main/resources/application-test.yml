@@ -1,9 +1,15 @@
+logging:
+  level:
+    # Enable debug logging
+    root: DEBUG
+
+
 spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioSpeechAutoConfiguration
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioTranscriptionAutoConfiguration
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiImageAutoConfiguration
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiModerationAutoConfiguration
+  config:
+    activate:
+      on-profile: test
+
+  data:
+    mongodb:
+      # Override MongoDB URI for tests TODO
+      uri: ${MONGO_URI}

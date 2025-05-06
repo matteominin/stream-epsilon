@@ -1,4 +1,7 @@
 spring:
+  application:
+    name: cognitive-workflow
+
   autoconfigure:
     exclude:
       - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioSpeechAutoConfiguration
@@ -7,3 +10,43 @@ spring:
       - org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration
       - org.springframework.ai.model.openai.autoconfigure.OpenAiImageAutoConfiguration
       - org.springframework.ai.model.openai.autoconfigure.OpenAiModerationAutoConfiguration
+
+  data:
+    mongodb:
+      # MONGO DB
+      uri: ${MONGO_URI}
+
+# SPRING WEB
+server:
+  port: 3001
+
+# EMBEDDINGS SERVICE
+embedding:
+  provider: openai
+  apikey: ${OPENAI_API_KEY}
+
+# INTENT MANAGER SERVICE
+intent-detector:
+  llm:
+    provider: openai
+    api-key: ${OPENAI_API_KEY}
+    model: gpt-4o
+    temperature: 0.4
+
+# PORTS ADAPTER SERVICE
+
+# Using Claude 3.5 Sonnet for Port Adaptation Service
+# Chosen for its great schema handling, reliable structured output, and lower cost than Claude 3.7
+# - Handles complex schema formats
+# - Strong at reasoning about attribute relationships
+# - Solves more coding tasks than Opus (64% vs 38%)
+# - 2x faster and 5x cheaper than Opus
+# https://docs.anthropic.com/en/docs/about-claude/models/all-models#model-comparison-table
+# https://www.arsturn.com/blog/claude-3-5-sonnet-vs-claude-3-opus-whats-new
+# https://www.arsturn.com/blog/claude-3-5-sonnet-vs-opus-key-differences
+port-adapter:
+  llm:
+    provider: anthropic
+    api-key: ${ANTHROPIC_API_KEY}
+    model: claude-3-5-sonnet-20240620
+    temperature: 0.3
