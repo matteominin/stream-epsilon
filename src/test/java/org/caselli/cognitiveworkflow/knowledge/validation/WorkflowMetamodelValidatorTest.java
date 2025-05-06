@@ -71,7 +71,7 @@ public class WorkflowMetamodelValidatorTest {
 
 
     @Test
-    void shouldDetect_SatisfiedInputPort_ImplicitBinding(){
+    void validate_shouldPass_whenImplicitBindingMatchesPorts(){
         RestPort IA1 = createStringPort("I_A_1");
         RestPort IA2 = createStringPort("I_A_1");
         RestPort OA1 = createStringPort("O_A_1");
@@ -109,7 +109,7 @@ public class WorkflowMetamodelValidatorTest {
     }
 
     @Test
-    void shouldDetect_UnsatisfiedInputPort_ImplicitBinding(){
+    void validate_shouldGenerateWarning_whenImplicitBindingDoesNotMatchPorts(){
         RestPort IA1 = createStringPort("I_A_1");
         RestPort IA2 = createStringPort("I_A_1");
         RestPort OA1 = createStringPort("O_A_1");
@@ -148,7 +148,7 @@ public class WorkflowMetamodelValidatorTest {
 
 
     @Test
-    void shouldDetect_SatisfiedInputPort_ExplicitBinding(){
+    void validate_shouldPass_whenExplicitBindingMatchesPorts(){
         RestPort IA1 = createStringPort("I_A_1");
         RestPort IA2 = createStringPort("I_A_1");
         RestPort OA1 = createStringPort("O_A_1");
@@ -187,7 +187,7 @@ public class WorkflowMetamodelValidatorTest {
     }
 
     @Test
-    void shouldDetect_UnsatisfiedInputPort_ExplicitBinding(){
+    void validate_shouldGenerateErrorOrWarning_whenExplicitBindingDoesNotMatchPorts(){
         RestPort IA1 = createStringPort("I_A_1");
         RestPort IA2 = createStringPort("I_A_1");
         RestPort OA1 = createStringPort("O_A_1");
