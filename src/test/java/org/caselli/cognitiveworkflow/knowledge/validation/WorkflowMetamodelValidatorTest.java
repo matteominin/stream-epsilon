@@ -15,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -223,4 +225,148 @@ public class WorkflowMetamodelValidatorTest {
 
         assertTrue(res.getErrorCount() > 0 || res.getWarningCount()>0);
     }
+
+    @Test
+    void validate_shouldFail_whenWorkflowHasCycle() {
+        // Create nodes
+        WorkflowNode wNodeA = new WorkflowNode();
+        wNodeA.setId("A");
+        wNodeA.setNodeMetamodelId("node_A");
+
+        WorkflowNode wNodeB = new WorkflowNode();
+        wNodeB.setId("B");
+        wNodeB.setNodeMetamodelId("node_B");
+
+        WorkflowNode wNodeC = new WorkflowNode();
+        wNodeC.setId("C");
+        wNodeC.setNodeMetamodelId("node_C");
+
+        WorkflowNode wNodeD = new WorkflowNode();
+        wNodeD.setId("D");
+        wNodeD.setNodeMetamodelId("node_D");
+
+        // Create edges forming:
+        // A (entry) → B → C → B (cycle) → D
+        WorkflowEdge edge1 = new WorkflowEdge();
+        edge1.setId("1");
+        edge1.setSourceNodeId("A");
+        edge1.setTargetNodeId("B");
+
+        WorkflowEdge edge2 = new WorkflowEdge();
+        edge2.setId("2");
+        edge2.setSourceNodeId("B");
+        edge2.setTargetNodeId("C");
+
+        WorkflowEdge edge3 = new WorkflowEdge();
+        edge3.setId("3");
+        edge3.setSourceNodeId("C");
+        edge3.setTargetNodeId("B");
+
+        WorkflowEdge edge4 = new WorkflowEdge();
+        edge4.setId("4");
+        edge4.setSourceNodeId("B");
+        edge4.setTargetNodeId("D");
+
+        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(createNode("node_A", List.of(), List.of())));
+        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(createNode("node_B", List.of(), List.of())));
+        when(nodeMetamodelService.getNodeById("node_C")).thenReturn(Optional.of(createNode("node_C", List.of(), List.of())));
+        when(nodeMetamodelService.getNodeById("node_D")).thenReturn(Optional.of(createNode("node_D", List.of(), List.of())));
+
+        WorkflowMetamodel workflow = createWorkflow("cyclic",
+                List.of(wNodeA, wNodeB, wNodeC, wNodeD),
+                List.of(edge1, edge2, edge3, edge4));
+
+        var res = validator.validate(workflow);
+
+        assertTrue(res.getErrorCount() > 0, "Expected cycle detection error but got: " + res.getErrors());
+        assertTrue(res.getErrors().stream()
+                        .anyMatch(e -> e.message().contains("Cycle detected") || e.message().contains("Nodes involved in cycles")),
+                "Expected cycle detection message but got: " + res.getErrors());
+    }
+
+
+    @Test
+    void validate_shouldFail_whenNoEntryPoints() {
+        // A -> B -> A
+        WorkflowNode wNodeA = new WorkflowNode();
+        wNodeA.setId("A");
+        wNodeA.setNodeMetamodelId("node_A");
+
+        WorkflowNode wNodeB = new WorkflowNode();
+        wNodeB.setId("B");
+        wNodeB.setNodeMetamodelId("node_B");
+
+        WorkflowEdge edge1 = new WorkflowEdge();
+        edge1.setId("1");
+        edge1.setSourceNodeId("A");
+        edge1.setTargetNodeId("B");
+
+        WorkflowEdge edge2 = new WorkflowEdge();
+        edge2.setId("2");
+        edge2.setSourceNodeId("B");
+        edge2.setTargetNodeId("A");
+
+
+        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(createNode("node_A", List.of(), List.of())));
+        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(createNode("node_B", List.of(), List.of())));
+
+        WorkflowMetamodel workflow = createWorkflow("cyclic",
+                List.of(wNodeA, wNodeB),
+                List.of(edge1, edge2));
+
+        var res = validator.validate(workflow);
+
+        assertTrue(res.getErrorCount() > 0);
+        assertTrue(res.getErrors().stream()
+                        .anyMatch(e -> e.message().contains("entry")));
+    }
+
+    @Test
+    void validate_shouldFail_whenEdgeReferencesInvalidNodes() {
+        WorkflowNode wNode = new WorkflowNode();
+        wNode.setId("A");
+        wNode.setNodeMetamodelId("node_A");
+
+        WorkflowEdge edge = new WorkflowEdge();
+        edge.setId("1");
+        edge.setSourceNodeId("A");
+        edge.setTargetNodeId("nonexistent_node");
+
+        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(createNode("node_A", List.of(), List.of())));
+
+        WorkflowMetamodel workflow = createWorkflow("invalid_edge", List.of(wNode), List.of(edge));
+        var res = validator.validate(workflow);
+        assertTrue(res.getErrorCount() > 0);
+        assertTrue(res.getErrors().stream().anyMatch(e -> e.message().contains("references non-existent target node")));
+    }
+
+    @Test
+    void validate_shouldFail_whenWorkflowIsNull() {
+        var res = validator.validate(null);
+        assertTrue(res.getErrorCount() > 0);
+        assertTrue(res.getErrors().stream().anyMatch(e -> e.message().contains("Workflow metamodel cannot be null")));
+    }
+
+    @Test
+    void validate_shouldFail_whenWorkflowHasNoNodes() {
+        WorkflowMetamodel workflow = createWorkflow("empty", Collections.emptyList(), Collections.emptyList());
+        var res = validator.validate(workflow);
+        assertTrue(res.getErrorCount() > 0);
+        assertTrue(res.getErrors().stream().anyMatch(e -> e.message().contains("Workflow must contain at least one node")));
+    }
+
+    @Test
+    void validate_shouldFail_whenNodeReferencesAreInvalid() {
+        WorkflowNode wNode = new WorkflowNode();
+        wNode.setId("A");
+        wNode.setNodeMetamodelId("nonexistent_node");
+
+        when(nodeMetamodelService.getNodeById("nonexistent_node")).thenReturn(Optional.empty());
+
+        WorkflowMetamodel workflow = createWorkflow("invalid_ref", List.of(wNode), Collections.emptyList());
+        var res = validator.validate(workflow);
+        assertTrue(res.getErrorCount() > 0);
+        assertTrue(res.getErrors().stream().anyMatch(e -> e.message().contains("Referenced node does not exist in repository")));
+    }
+
 }

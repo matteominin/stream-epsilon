@@ -184,65 +184,58 @@ public class WorkflowMetamodelValidator {
     private void validateDAG(WorkflowMetamodel workflow, ValidationResult result) {
         if (workflow.getNodes() == null || workflow.getEdges() == null) return;
 
-        // Adjacency list
+        // Adjacency list using WORKFLOW NODE IDs (important!)
         Map<String, List<String>> adjacencyList = new HashMap<>();
         Map<String, Integer> inDegree = new HashMap<>();
 
+        // Initialize with workflow node IDs
         for (WorkflowNode node : workflow.getNodes()) {
-            String nodeId = node.getNodeMetamodelId();
+            String nodeId = node.getId(); // Critical fix: use workflow node ID
             adjacencyList.put(nodeId, new ArrayList<>());
             inDegree.put(nodeId, 0);
         }
 
-        // Build the adjacency list and in-degree map
+        // Build adjacency list and in-degree map using edge refs
         for (WorkflowEdge edge : workflow.getEdges()) {
             String sourceId = edge.getSourceNodeId();
             String targetId = edge.getTargetNodeId();
 
-            if (
-                    sourceId != null &&
-                            targetId != null &&
-                            adjacencyList.containsKey(sourceId) &&
-                            adjacencyList.containsKey(targetId)
-            ) {
+            if (sourceId != null && targetId != null
+                    && adjacencyList.containsKey(sourceId)
+                    && adjacencyList.containsKey(targetId)) {
                 adjacencyList.get(sourceId).add(targetId);
                 inDegree.put(targetId, inDegree.get(targetId) + 1);
             }
         }
 
-        // Topological sort
+        // Topological sort (Kahn's algorithm)
         Queue<String> queue = new LinkedList<>();
         for (Map.Entry<String, Integer> entry : inDegree.entrySet())
-            if (entry.getValue() == 0)
-                queue.add(entry.getKey());
-
+            if (entry.getValue() == 0) queue.add(entry.getKey());
 
         int visitedCount = 0;
-
         while (!queue.isEmpty()) {
             String current = queue.poll();
             visitedCount++;
 
             for (String neighbor : adjacencyList.get(current)) {
                 inDegree.put(neighbor, inDegree.get(neighbor) - 1);
-                // Add the neighbor to the queue if its in-degree is 0
-                if (inDegree.get(neighbor) == 0) queue.add(neighbor);
-
+                if (inDegree.get(neighbor) == 0)
+                    queue.add(neighbor);
             }
         }
 
-        // Check for a cycle (If not all nodes were visited, there is a cycle)
+        // Cycle detection logic
         if (visitedCount != workflow.getNodes().size()) {
             result.addError("Cycle detected in workflow graph", "workflow.structure");
 
-            // Nodes in cycles:
-            Set<String> nodesInCycles = new HashSet<>();
-            for (Map.Entry<String, Integer> entry : inDegree.entrySet()) {
-                if (entry.getValue() > 0)
-                    nodesInCycles.add(entry.getKey());
-            }
+            // Identify nodes involved in cycles
+            Set<String> cyclicNodes = inDegree.entrySet().stream()
+                    .filter(entry -> entry.getValue() > 0)
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toSet());
 
-            result.addError("Nodes involved in cycles: " + String.join(", ", nodesInCycles), "workflow.structure");
+            result.addError("Nodes involved in cycles: " + String.join(", ", cyclicNodes), "workflow.structure");
         }
     }
 
