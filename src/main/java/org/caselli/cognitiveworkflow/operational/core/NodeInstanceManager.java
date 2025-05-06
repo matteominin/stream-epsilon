@@ -2,7 +2,6 @@ package org.caselli.cognitiveworkflow.operational.core;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.operational.core.NodeFactory;
 import org.caselli.cognitiveworkflow.operational.node.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.registry.NodesRegistry;
 import org.springframework.stereotype.Service;

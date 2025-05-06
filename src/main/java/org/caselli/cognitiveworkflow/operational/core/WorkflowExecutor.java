@@ -22,14 +22,20 @@ import java.util.*;
 @Scope("prototype")
 public class WorkflowExecutor {
     private static final Logger logger = LoggerFactory.getLogger(WorkflowExecutor.class);
-    /** Workflow to execute */
+    /**
+     * Workflow to execute
+     */
     private final WorkflowInstance workflow;
-    /** Map meta-node IDs to instances */
+    /**
+     * Map meta-node IDs to instances
+     */
     private final Map<String, NodeInstance> nodeInstancesMap = new HashMap<>();
-    /** Map workflow nodes by their workflow-specific id */
-    private final  Map<String, WorkflowNode> workflowNodesMap = new HashMap<>();
+    /**
+     * Map workflow nodes by their workflow-specific id
+     */
+    private final Map<String, WorkflowNode> workflowNodesMap = new HashMap<>();
 
-    public WorkflowExecutor(WorkflowInstance workflow){
+    public WorkflowExecutor(WorkflowInstance workflow) {
         this.workflow = workflow;
 
         for (NodeInstance node : workflow.getNodeInstances()) nodeInstancesMap.put(node.getId(), node);
@@ -41,7 +47,7 @@ public class WorkflowExecutor {
         logger.info("-------------------------------------------");
 
         // Check if the workflow is enabled
-        if(!this.workflow.getMetamodel().getEnabled())
+        if (!this.workflow.getMetamodel().getEnabled())
             throw new RuntimeException("Cannot execute Workflow " + workflow.getId() + ". It is not enabled.");
 
 
@@ -80,13 +86,16 @@ public class WorkflowExecutor {
 
             logger.info("Processing node: {}", currentId);
 
-            if(current == null) {
+            if (current == null) {
                 logger.error("Node instance not found for ID: {}", currentId);
                 continue;
             }
 
             // Apply default values for any missing inputs
             prepareNodeInputs(current, context);
+
+            // Check if all required input ports are present
+            checkRequiredInputPorts(current, context);
 
             try {
                 // Process the node
@@ -148,13 +157,16 @@ public class WorkflowExecutor {
             String sourceId = edge.getSourceNodeId();
             String targetId = edge.getTargetNodeId();
 
-            if (getInstanceByWorkflowNodeId(sourceId) == null) logger.warn("Edge references non-existent source node ID: {}", sourceId);
-            if (getInstanceByWorkflowNodeId(targetId) == null) logger.warn("Edge references non-existent target node ID: {}", targetId);
+            if (getInstanceByWorkflowNodeId(sourceId) == null)
+                logger.warn("Edge references non-existent source node ID: {}", sourceId);
+            if (getInstanceByWorkflowNodeId(targetId) == null)
+                logger.warn("Edge references non-existent target node ID: {}", targetId);
         }
     }
 
     /**
      * Evaluates the condition on an edge to determine if execution should proceed.
+     *
      * @return true if the condition passes or there is no condition, false otherwise
      */
     private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context) {
@@ -174,7 +186,8 @@ public class WorkflowExecutor {
         String actualValue = val.toString();
         boolean pass = expectedValue.equals(actualValue);
 
-        if (!pass) logger.debug("Edge condition not met: expected '{}' but got '{}' for port '{}'", expectedValue, actualValue, portKey);
+        if (!pass)
+            logger.debug("Edge condition not met: expected '{}' but got '{}' for port '{}'", expectedValue, actualValue, portKey);
 
         return pass;
     }
@@ -222,9 +235,9 @@ public class WorkflowExecutor {
      * Returns the instance of a node by the workflow-specific node ID
      * @param id the workflow-node ID
      */
-    private NodeInstance getInstanceByWorkflowNodeId(String id){
+    private NodeInstance getInstanceByWorkflowNodeId(String id) {
         var workflowNode = this.workflowNodesMap.get(id);
-        if(workflowNode == null) return null;
+        if (workflowNode == null) return null;
         return this.nodeInstancesMap.get(workflowNode.getNodeMetamodelId());
     }
 
@@ -232,7 +245,8 @@ public class WorkflowExecutor {
     /**
      * Prepares inputs for a node by applying default values where needed
      * (only for ports that don't already have values in the context)
-     * @param node the node instance
+     *
+     * @param node    the node instance
      * @param context the execution context
      */
     private void prepareNodeInputs(NodeInstance node, ExecutionContext context) {
@@ -248,7 +262,8 @@ public class WorkflowExecutor {
 
     /**
      * Helper method to find an input port on a node by key
-     * @param node the node instance
+     *
+     * @param node    the node instance
      * @param portKey the key of the port to find
      */
     private Port findInputPort(NodeInstance node, String portKey) {
@@ -261,7 +276,8 @@ public class WorkflowExecutor {
 
     /**
      * Applies default values for output ports that weren't set during node processing.
-     * @param node the node instance that was just processed
+     *
+     * @param node    the node instance that was just processed
      * @param context the execution context
      */
     private void applyDefaultOutputValues(NodeInstance node, ExecutionContext context) {
@@ -271,6 +287,18 @@ public class WorkflowExecutor {
             if (!context.containsKey(portKey) && port.getDefaultValue() != null) {
                 context.put(portKey, port.getDefaultValue());
                 logger.debug("Applied default value for output port '{}' on node '{}': {}", portKey, node.getId(), port.getDefaultValue());
+            }
+        }
+    }
+
+    /**
+     * Check if the required input ports are present in the context
+     */
+    private void checkRequiredInputPorts(NodeInstance node, ExecutionContext context) {
+        for (Port port : node.getMetamodel().getInputPorts()) {
+            if (port.getSchema() != null && port.getSchema().getRequired() != null && port.getSchema().getRequired() && !context.containsKey(port.getKey())) {
+                logger.error("Missing required input port '{}' for node '{}'", port.getKey(), node.getId());
+                throw new RuntimeException("Missing required input port '" + port.getKey() + "' for node '" + node.getId() + "'");
             }
         }
     }

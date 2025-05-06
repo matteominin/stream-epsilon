@@ -61,7 +61,6 @@ public class Port {
         private String key;
         private PortSchema schema;
         private Object defaultValue;
-        private Port.PortImplementationType portType;
 
         private PortBuilder() {
         }
@@ -81,20 +80,12 @@ public class Port {
             return this;
         }
 
-        public PortBuilder withPortType(Port.PortImplementationType portType) {
-            this.portType = portType;
-            return this;
-        }
-
         public Port build() {
             Port port = new Port();
             port.setKey(key);
             port.setSchema(schema);
             port.setDefaultValue(defaultValue);
-            port.setPortType(portType);
-
-            if (portType == null)
-                portType = Port.PortImplementationType.STANDARD;
+            port.setPortType(Port.PortImplementationType.STANDARD);
 
 
             if (key == null || key.isEmpty())
@@ -107,10 +98,6 @@ public class Port {
 
             if (defaultValue != null && !schema.isValidValue(defaultValue))
                 throw new IllegalStateException("Default value is not valid for the schema");
-
-            if (portType == Port.PortImplementationType.REST && !(port instanceof RestPort))
-                throw new IllegalStateException("Port type is REST but the instance is not of type RestPort");
-
 
             return port;
         }
