@@ -60,12 +60,19 @@ public class InputMapperServiceIT {
         nodeA.setOutputPorts(List.of());
 
         Map<String, Object> variables = Map.of(
-                "name", "ciao",
+                "name", "Niccolò",
                 "number", "+393527624",
                 "email", "caselli@gmail.com"
         );
 
         var res = inputMapperService.mapInput(variables,List.of(nodeA));
+
+        assertNotNull(res);
+        assertNotNull(res.getStartingNode());
+        assertEquals(res.getStartingNode().getId(), nodeA.getId());
+        assertEquals(res.getContext().get("user_name"),variables.get("name"));
+        assertEquals(res.getContext().get("user_phone"),variables.get("number"));
+        assertEquals(res.getContext().get("user_email"),variables.get("email"));
 
     }
 }
