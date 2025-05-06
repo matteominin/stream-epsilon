@@ -3,7 +3,6 @@ package org.caselli.cognitiveworkflow.operational;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,24 +21,24 @@ class ExecutionContextTest {
 
 
     @Test
-    void testGetByDotNotation_simpleKey() {
+    void testget_simpleKey() {
         context.put("name", "Test User");
-        assertEquals("Test User", context.getByDotNotation("name"));
+        assertEquals("Test User", context.get("name"));
     }
 
     @Test
-    void testGetByDotNotation_nestedKey() {
+    void testget_nestedKey() {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("name", "Test User");
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("user", userMap);
         context.put("data", dataMap);
 
-        assertEquals("Test User", context.getByDotNotation("data.user.name"));
+        assertEquals("Test User", context.get("data.user.name"));
     }
 
     @Test
-    void testGetByDotNotation_intermediateKeyNotFound() {
+    void testget_intermediateKeyNotFound() {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("name", "Test User");
         Map<String, Object> dataMap = new HashMap<>();
@@ -47,38 +46,38 @@ class ExecutionContextTest {
         context.put("data", dataMap);
 
         // Path: data -> nonExistent -> name
-        assertNull(context.getByDotNotation("data.nonExistent.name"));
+        assertNull(context.get("data.nonExistent.name"));
     }
 
     @Test
-    void testGetByDotNotation_rootKeyNotFound() {
+    void testget_rootKeyNotFound() {
         // Path: nonExistent -> user -> name
-        assertNull(context.getByDotNotation("nonExistent.user.name"));
+        assertNull(context.get("nonExistent.user.name"));
     }
 
     @Test
-    void testGetByDotNotation_intermediateKeyNotMap() {
+    void testget_intermediateKeyNotMap() {
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("user", "not a map"); // "user" is a String, not a Map
         context.put("data", dataMap);
 
         // Path: data -> user -> name
-        assertNull(context.getByDotNotation("data.user.name"));
+        assertNull(context.get("data.user.name"));
     }
 
     @Test
-    void testGetByDotNotation_intermediateKeyIsNull() {
+    void testget_intermediateKeyIsNull() {
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("user", null); // "user" is null
         context.put("data", dataMap);
 
         // Path: data -> user -> name
-        assertNull(context.getByDotNotation("data.user.name"));
+        assertNull(context.get("data.user.name"));
     }
 
 
     @Test
-    void testGetByDotNotation_lastKeyIsNull() {
+    void testget_lastKeyIsNull() {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("name", null); // "name" is null
         Map<String, Object> dataMap = new HashMap<>();
@@ -86,46 +85,43 @@ class ExecutionContextTest {
         context.put("data", dataMap);
 
         // Path: data -> user -> name
-        assertNull(context.getByDotNotation("data.user.name"));
+        assertNull(context.get("data.user.name"));
     }
 
     @Test
-    void testGetByDotNotation_emptyContext() {
-        assertNull(context.getByDotNotation("any.key"));
-        assertNull(context.getByDotNotation("simpleKey"));
+    void testget_emptyContext() {
+        assertNull(context.get("any.key"));
+        assertNull(context.get("simpleKey"));
     }
 
     @Test
-    void testGetByDotNotation_emptyKey() {
+    void testget_emptyKey() {
         context.put("", "emptyKeyVal");
-        assertEquals("emptyKeyVal", context.getByDotNotation(""));
-        assertNull(context.getByDotNotation("."));
-        assertNull(context.getByDotNotation(".."));
+        assertEquals("emptyKeyVal", context.get(""));
+        assertNull(context.get("."));
+        assertNull(context.get(".."));
     }
 
     @Test
-    void testGetByDotNotation_keyWithOnlyDots() {
-        assertNull(context.getByDotNotation("."));
-        assertNull(context.getByDotNotation(".."));
+    void testget_keyWithOnlyDots() {
+        assertNull(context.get("."));
+        assertNull(context.get(".."));
     }
 
-
-    // --- Tests for putByDotNotation ---
-
     @Test
-    void testPutByDotNotation_simpleKey() {
-        context.putByDotNotation("name", "New User");
+    void testput_simpleKey() {
+        context.put("name", "New User");
         assertEquals("New User", context.get("name"));
     }
 
     @Test
-    void testPutByDotNotation_nestedKey_pathExists() {
+    void testput_nestedKey_pathExists() {
         Map<String, Object> userMap = new HashMap<>();
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("user", userMap);
         context.put("data", dataMap);
 
-        context.putByDotNotation("data.user.name", "New User Nested");
+        context.put("data.user.name", "New User Nested");
 
         Object data = context.get("data");
         assertInstanceOf(Map.class, data);
@@ -135,8 +131,8 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testPutByDotNotation_nestedKey_pathCreatesMaps() {
-        context.putByDotNotation("new.nested.path.value", "Deep Value");
+    void testput_nestedKey_pathCreatesMaps() {
+        context.put("new.nested.path.value", "Deep Value");
 
         Object level1 = context.get("new");
         assertInstanceOf(Map.class, level1);
@@ -149,10 +145,10 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testPutByDotNotation_intermediateKeyNotMap_overwrites() {
+    void testput_intermediateKeyNotMap_overwrites() {
         context.put("data", "not a map"); // Initial non-Map value
 
-        context.putByDotNotation("data.user.name", "Value After Overwrite");
+        context.put("data.user.name", "Value After Overwrite");
 
         Object data = context.get("data");
         assertInstanceOf(Map.class, data); // Should now be a Map
@@ -162,10 +158,10 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testPutByDotNotation_rootKeyNotMap_overwrites() {
+    void testput_rootKeyNotMap_overwrites() {
         context.put("targetRoot", "initial_string"); // Initial non-Map value at the root
 
-        context.putByDotNotation("targetRoot.nestedKey", "Value After Overwrite");
+        context.put("targetRoot.nestedKey", "Value After Overwrite");
 
         Object targetRoot = context.get("targetRoot");
         assertInstanceOf(Map.class, targetRoot); // Should now be a Map
@@ -175,13 +171,13 @@ class ExecutionContextTest {
 
 
     @Test
-    void testPutByDotNotation_putNullValue() {
+    void testput_putNullValue() {
         Map<String, Object> userMap = new HashMap<>();
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("user", userMap);
         context.put("data", dataMap);
 
-        context.putByDotNotation("data.user.name", null);
+        context.put("data.user.name", null);
 
         Object data = context.get("data");
         assertInstanceOf(Map.class, data);
@@ -191,23 +187,23 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testPutByDotNotation_emptyContext() {
-        context.putByDotNotation("first.value", "Initial");
+    void testput_emptyContext() {
+        context.put("first.value", "Initial");
         Object first = context.get("first");
         assertInstanceOf(Map.class, first);
         assertEquals("Initial", ((Map<?, ?>) first).get("value"));
     }
 
     @Test
-    void testPutByDotNotation_emptyKey() {
-        context.putByDotNotation("", "EmptyKeyVal");
+    void testput_emptyKey() {
+        context.put("", "EmptyKeyVal");
         assertEquals("EmptyKeyVal", context.get(""));
     }
 
     @Test
-    void testPutByDotNotation_putComplexObject() {
+    void testput_putComplexObject() {
         Map<String, Object> complexValue = Map.of("list", List.of(1, 2, 3), "boolean", true);
-        context.putByDotNotation("data.complex", complexValue);
+        context.put("data.complex", complexValue);
 
         Object data = context.get("data");
         assertInstanceOf(Map.class, data);

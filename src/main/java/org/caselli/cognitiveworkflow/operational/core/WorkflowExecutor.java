@@ -202,11 +202,11 @@ public class WorkflowExecutor {
             String targetKey = bind.getValue();
 
             // Attempt to get the source value using dot notation
-            Object value = context.getByDotNotation(sourceKey);
+            Object value = context.get(sourceKey);
 
             if (value != null) {
                 // Source value found, set it at the target using dot notation
-                context.putByDotNotation(targetKey, value);
+                context.put(targetKey, value);
                 logger.debug("Applied binding: {} -> {} (value: {})", sourceKey, targetKey, value);
             } else {
                 // Source key (or path) not found in context, check if the target port has a default value
@@ -221,7 +221,7 @@ public class WorkflowExecutor {
                         // Apply default value to the target using dot notation
                         // Note: This applies the default value of the *root* target port to the *entire target path*.
                         // This might be an area for refinement depending on exact requirements for defaults and dot notation.
-                        context.putByDotNotation(targetKey, targetPort.getDefaultValue());
+                        context.put(targetKey, targetPort.getDefaultValue());
                         logger.debug("Used default value for target path '{}' (from root port '{}'): {}",
                                 targetKey, rootTargetKey, targetPort.getDefaultValue());
                     } else {
