@@ -91,7 +91,7 @@ public class PortAdapterServiceIT {
                         "userDetails", PortSchema.builder()
                                 .objectSchema(Map.of(
                                         "email", PortSchema.builder().stringSchema().withRequired(true).build(),
-                                        "phone", PortSchema.builder().stringSchema().withRequired(false).build()
+                                        "phone_number", PortSchema.builder().stringSchema().withRequired(false).build()
                                 ))
                                 .withRequired(true)
                                 .build(),
@@ -116,7 +116,7 @@ public class PortAdapterServiceIT {
                 .build();
 
         Port target2 = Port.builder()
-                .withKey("phone")
+                .withKey("phone_number")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
                         .withRequired(true)
@@ -144,7 +144,7 @@ public class PortAdapterServiceIT {
 
         // Check if the adapter ports are correct
         assertEquals(adapterPorts.get("source.userDetails.email"), "email");
-        assertEquals(adapterPorts.get("source.userDetails.phone"), "phone");
+        assertEquals(adapterPorts.get("source.userDetails.phone_number"), "phone_number");
         assertEquals(adapterPorts.get("source.orderId"), "orderId");
         assertEquals(adapterPorts.size(), 3);
 
@@ -152,7 +152,7 @@ public class PortAdapterServiceIT {
         // Check the inversion of the adapter ports
         PortAdaptation invertedAdapter = this.portAdapterService.adaptPorts(targets,sources);
         assertEquals(invertedAdapter.getBindings().get("email"), "source.userDetails.email");
-        assertEquals(invertedAdapter.getBindings().get("phone"), "source.userDetails.phone");
+        assertEquals(invertedAdapter.getBindings().get("phone_number"), "source.userDetails.phone_number");
         assertEquals(invertedAdapter.getBindings().get("orderId"), "source.orderId");
         assertEquals(invertedAdapter.getBindings().size(), 3);
     }
