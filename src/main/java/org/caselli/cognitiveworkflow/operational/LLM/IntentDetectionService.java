@@ -13,7 +13,6 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.stereotype.Service;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,41 +44,7 @@ public class IntentDetectionService {
 
     private final IntentMetamodelService intentMetamodelService;
 
-    private static final String SYSTEM_INSTRUCTIONS_TEMPLATE =
-            """
-            You are a highly accurate Intent Detection System.
 
-            Your primary goal is to identify a user's intent and provide a structured JSON output. You should only return null for truly unintelligible input.
-
-            Available Intents:
-            {availableIntents}
-
-            ## Instructions:
-            1.  **CRITICAL: Evaluate if the user input is absolutely nonsensical or unintelligible.** Consider if it's just random characters, empty, or completely lacks any form of coherent language. If it is, and you cannot extract any meaning or intent whatsoever, then and *only then* return `null`. This is an exceptional case.
-            2.  **IF THE INPUT IS NOT NONSENSICAL (most cases):** Identify the core intention, goal, or request expressed in the user input.
-            3.  **Compare the identified intention against the descriptions of the AVAILABLE INTENTS.** Aim for a clear and confident match to an existing intent whenever the user's request aligns well with one.
-            4.  **Determine the best fit:**
-                * If the user's clear intention is a strong match for one of the AVAILABLE INTENTS, select that existing intent.
-                * If the user's clear intention does not have a strong match in the AVAILABLE INTENTS, but the intention is clearly discernible, PROPOSE a NEW intent name that accurately captures this distinct intention.
-            5.  **Extract all relevant variables** from the user input that are necessary to understand or fulfill the identified intent (either existing or new). Format variable names as UPPERCASE_WITH_UNDERSCORES.
-            6.  **Assign a FLOAT confidence score** (0.0 to 1.0). This score should reflect your certainty in the identified intent (whether existing or new) and extracted variables. Use higher scores (0.7-1.0) for strong matches to existing intents, moderate scores (0.4-0.7) for clear but new intents, and lower scores (below 0.4) might indicate a weaker or less clear intention, though ideally Step 1 handles truly unclear cases.
-
-            ## Output Guidelines:
-            - Your output MUST be valid JSON or literally the word "null".
-            - **Return JSON** in the vast majority of cases where input is not nonsensical. The JSON must include:
-                - "intentName": The exact Intent Name from the Available Intents list for matches, or a proposed name in UPPERCASE_WITH_UNDERSCORES for new intents.
-                - "confidence": Your calculated confidence score (0.0 to 1.0).
-                - "userVariables": A JSON object containing extracted variables ({{}} if none). Variable names must be UPPERCASE_WITH_UNDERSCORES.
-                - "intentId": Include the exact Intent ID from the Available Intents list ONLY when matching an existing intent. OMIT this field entirely when proposing a new intent.
-            - **Return `null`** only if the input is absolutely nonsensical or unintelligible as determined in Step 1.
-
-            ## Remember:
-            - If you don't find a strong match in the Available Intents, you MUST propose a new intent with a descriptive name.
-            - Always prioritize matching to existing intents when appropriate.
-            - Never return null for coherent, intelligible input like all common requests.
-            
-            **Think step by step before giving the final answer.**
-            """;
 
     public IntentDetectionService(LlmModelFactory llmModelFactory, IntentMetamodelService intentMetamodelService) {
         this.llmModelFactory = llmModelFactory;
@@ -96,7 +61,7 @@ public class IntentDetectionService {
      *             <li>Return null if intent is not clear.</li>
      *         </ul>
      */
-    public IntentDetectorResult detect(String userInput) {
+    public IntentDetectionResponse.IntentDetectorResult detect(String userInput) {
         logger.info("Detecting intent for user input: {}...", userInput);
 
         // Search top-matching intents
@@ -118,20 +83,21 @@ public class IntentDetectionService {
         // Construct prompt
         Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
 
-        // TODO remove
-        System.out.println("Prompt: " + prompt.getContents());
+        logger.debug("Prompt: {}", prompt.getContents());
 
         // Call the LLM
-        IntentDetectorResult result = getChatClient().prompt(prompt).call().entity(IntentDetectorResult.class);
+        IntentDetectionResponse modelAnswer = getChatClient().prompt(prompt).call().entity(IntentDetectionResponse.class);
 
+        logger.debug("Model answer: {}", modelAnswer);
 
-        // Determine if the intent is non-existent
-        if (result == null) {
-            logger.info("LLM explicitly returned NO_CLEAR_INTENT for input: {}", userInput);
+        // Determine if the intent is non-existent or there has been an error
+        if (modelAnswer == null || modelAnswer.getData() == null || (modelAnswer.getError() != null && !modelAnswer.getError().isEmpty()) ) {
+            logger.error("Error in intent detection: {}", modelAnswer != null ? modelAnswer.getError() : "Unknown error");
             return null;
         }
 
 
+        var result = modelAnswer.getData();
 
         // Post-process: determine isNew flag based on intentId presence
         boolean isNew = intents.stream()
@@ -196,13 +162,79 @@ public class IntentDetectionService {
     }
 
 
+
     @Data
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    static public class IntentDetectorResult {
-        @JsonProperty(value = "intentId") private String intentId;
-        @JsonProperty(required = true, value = "intentName") private String intentName;
-        @JsonProperty(required = true, value = "confidence") private double confidence;
-        @JsonProperty(required = true, value = "isNew") private boolean isNew;
-        @JsonProperty(required = true, value = "userVariables") private Map<String,Object> userVariables;
+    public static class IntentDetectionResponse {
+        @JsonProperty("data")
+        private IntentDetectorResult data;
+
+        @JsonProperty("error")
+        private String error;
+
+        @Data
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        public static class IntentDetectorResult {
+            @JsonProperty(required = true)
+            private String intentName;
+
+            @JsonProperty
+            private String intentId;
+
+            @JsonProperty(required = true)
+            private double confidence;
+
+            @JsonProperty(required = true)
+            private boolean isNew;
+
+            @JsonProperty(required = true)
+            private Map<String, Object> userVariables;
+        }
     }
+
+    private static final String SYSTEM_INSTRUCTIONS_TEMPLATE =
+            """
+                    You are a highly accurate Intent Detection System.
+                    Your job is to determine a user's intent from their input and return it in structured JSON format.
+    
+                    ---
+    
+                    ## AVAILABLE INTENTS:
+                    {availableIntents}
+    
+                    ---
+    
+                    ## STEP-BY-STEP INSTRUCTIONS:
+    
+                    1. **Understand the User Input** \s
+                       Carefully read and comprehend the user's input. Break it down into any requests, questions, or tasks.
+    
+                    2. **Check if the Input is Truly Nonsensical or Not a Request** \s
+                        Determine if the input is entirely meaningless, gibberish, or clearly not a request or command directed at you. \s
+                           -  If YES (it is nonsensical/not a request), return the JSON error format.
+                           -  If NO (it is a meaningful request), continue to the next step.
+    
+                    3. **Identify the Core Intent** \s
+                        What is the user trying to do? Be specific. \s
+                        Example: "I want to translate this text to Spanish" → The user wants to *translate text*.
+    
+                    4. **Match or Propose an Intent**\s
+                        Compare the identified core intention against the descriptions of the “AVAILABLE INTENTS. Aim for a clear and confident match to an existing intent whenever the user's request aligns well with one.
+                       - If there’s a clear, confident match to an AVAILABLE INTENT, use that intent's ID and Name.
+                       - If there is NO good match among the AVAILABLE INTENTS, but the input is a valid request, you MUST propose a NEW intent. The proposed intent name must be descriptive and in UPPERCASE_WITH_UNDERSCORES format (e.g., TRANSLATE_TEXT, SEND_EMAIL, GET_WEATHER).
+    
+                    5. **Extract Variables** \s
+                       Identify important variables needed to fulfill the request. Use descriptive UPPERCASE_WITH_UNDERSCORES names for variables. \s
+                       Example for "translate this text to Spanish": `TARGET_LANGUAGE: "Spanish"`, `SOURCE_TEXT: "this text"` (if the text was provided directly).
+    
+                    6. **Assign a Confidence Score** \s
+                       Reflect how confident you are in the determined intent (0.0 for very unsure, 1.0 for very sure).
+    
+                    ---
+                    
+                    ## Remember:
+                    - If you don't find a strong match in the Available Intents, you MUST propose a new intent with a descriptive name.
+                    - Always prioritize matching to existing intents when appropriate.
+                    - Think step by step before giving the final answer. Only output the final JSON.
+            """;
 }

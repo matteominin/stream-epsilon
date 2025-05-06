@@ -1,7 +1,6 @@
 package org.caselli.cognitiveworkflow.operational.LLM;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
+
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentSearchService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.test.context.ActiveProfiles;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +49,7 @@ class IntentDetectionServiceIT {
 
     @BeforeAll()
     static void setUp() {
+
         mockIntentMetamodels = new ArrayList<>();
         bookFightMockIntent = new IntentMetamodel();
         bookFightMockIntent.setId("1");
@@ -89,19 +88,18 @@ class IntentDetectionServiceIT {
     }
 
     @Test
-    void shouldCreateANewIntentIfNotExists(){
-        String userRequest = "Buy me a ticket for this concert";
+    void shouldCreateANewIntentIfNotExists_1(){
+        String userRequest = "Buy me a ticket for the concert of the band The Beatles in London next week";
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
         var result = intentDetectionService.detect(userRequest);
-
         System.out.println(result);
 
         assertNotNull(result);
         assertTrue(result.isNew());
         assertNull(result.getIntentId());
-        // The intent name should include "UBER" in it
+
         assertTrue(
                 result.getIntentName().contains("PURCHASE") ||
                         result.getIntentName().contains("BUY") ||
@@ -113,10 +111,25 @@ class IntentDetectionServiceIT {
 
     }
 
+    @Test
+    void shouldCreateANewIntentIfNotExists_2(){
+        String userRequest = "I want to translate this text to spanish";
+
+        when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
+
+        var result = intentDetectionService.detect(userRequest);
+        System.out.println(result);
+
+        assertNotNull(result);
+        assertTrue(result.isNew());
+        assertNull(result.getIntentId());
+        assertTrue(result.getIntentName().contains("TRANSLATE"));
+        assertEquals(result.getIntentName(), result.getIntentName().toUpperCase());
+    }
 
     @Test
-    void shouldCreateANewIntentIfNotExists2(){
-        String userRequest = "I want to translate this text to spanish";
+    void shouldCreateANewIntentIfNotExists_3(){
+        String userRequest = "Find me the best route using dijkstra algorithm to connect the following points: A, B, C, D. Edges: (A, B, 1), (A, C, 2), (B, C, 3), (C, D, 4)";
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
@@ -127,12 +140,11 @@ class IntentDetectionServiceIT {
         assertNotNull(result);
         assertTrue(result.isNew());
         assertNull(result.getIntentId());
-        // The intent name should include "UBER" in it
-        assertTrue(result.getIntentName().contains("TRANSLATE"));
-        // The intent name should be uppercase
+        assertTrue(result.getIntentName().contains("FIND") ||
+                result.getIntentName().contains("ROUTE") ||
+                result.getIntentName().contains("DIJKSTRA")
+        );
         assertEquals(result.getIntentName(), result.getIntentName().toUpperCase());
-
-
     }
 
 
@@ -148,8 +160,19 @@ class IntentDetectionServiceIT {
     }
 
     @Test
-    void shouldReturnNullIfInputIsNotAnIntent(){
+    void shouldReturnNullIfInputIsNotAnIntent_1(){
         String userRequest = "Sometimes I like to eat a book";
+
+        when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
+
+        var result = intentDetectionService.detect(userRequest);
+
+        assertNull(result);
+    }
+
+    @Test
+    void shouldReturnNullIfInputIsNotAnIntent_2(){
+        String userRequest = "Cars are better than bikes";
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
