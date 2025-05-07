@@ -87,8 +87,8 @@ public class InputMapperService {
                     .entity(InputMapperLLMResult.class);
 
             // TODO: remove
-            // System.out.println(prompt.getContents());
-            // System.out.println(result);
+            System.out.println(prompt.getContents());
+            System.out.println(result);
 
             return processLLMResult(result, nodes);
         } catch (Exception e) {
@@ -149,7 +149,7 @@ public class InputMapperService {
         if (llmResult.getBindings() != null) context.putAll(llmResult.getBindings());
 
         // Final check to see if the LLM response is valid
-        if (isResponseValid(startingNode, context)) {
+        if (!isGeneratedContextValid(startingNode, context)) {
             logger.error("The LLM provided an input that do not satisfy the required ports of the  selected node ID: {}", llmResult.getSelectedStartingNodeId());
             return null;
         }
@@ -179,12 +179,16 @@ public class InputMapperService {
     /**
      * Validates that all required ports for a node are satisfied by the provided bindings of the LLM
      */
-    private boolean isResponseValid(NodeMetamodel node, ExecutionContext context) {
+    private boolean isGeneratedContextValid(NodeMetamodel node, ExecutionContext context) {
         if (context == null) return false;
 
         for (var port : node.getInputPorts())
-            if(!port.getSchema().isValidValue(context)) return false;
-
+            if(
+                port.getSchema().getRequired() != null &&
+                port.getSchema().getRequired() &&
+                !port.getSchema().isValidValue(context.get(port.getKey()))
+            )
+                return false;
         return true;
     }
 

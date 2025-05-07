@@ -196,7 +196,8 @@ public class InputMapperServiceIT {
      */
     @Test
     public void shouldFailWithMultipleWrongNodes() {
-        // NODE 1
+
+        // NODE A
         RestPort source1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
@@ -217,7 +218,6 @@ public class InputMapperServiceIT {
         );
 
         // NODE B
-
         RestPort source_B_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_B_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_B_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
@@ -232,7 +232,6 @@ public class InputMapperServiceIT {
         nodeB.setOutputPorts(List.of());
 
         // NODE C
-
         RestPort source_C_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_C_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_C_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
@@ -248,6 +247,12 @@ public class InputMapperServiceIT {
         nodeC.setOutputPorts(List.of());
 
         var res = inputMapperService.mapInput(variables,List.of(nodeA, nodeB, nodeC));
+
+        if(res != null){
+            // Debug why test is failing
+            System.out.println("LLM returned a not-null context:");
+            res.context.printContext();
+        }
 
         assertNull(res);
     }
