@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -23,21 +21,18 @@ import org.slf4j.LoggerFactory;
  * Maps source ports to target ports using LLM.
  */
 @Service
-public class PortAdapterService {
-
-    private static final Logger logger = LoggerFactory.getLogger(PortAdapterService.class);
+public class PortAdapterService extends LLMServiceBase {
 
     private final LlmModelFactory llmModelFactory;
-    private ChatClient chatClient;
 
     @Value("${port-adapter.llm.provider:}")
-    private String intentProvider;
+    private String provider;
 
     @Value("${port-adapter.llm.api-key:}")
-    private String intentApiKey;
+    private String apiKey;
 
     @Value("${port-adapter.llm.model:}")
-    private String intentModel;
+    private String model;
 
     @Value("${port-adapter.llm.temperature}")
     private double temperature;
@@ -111,7 +106,7 @@ public class PortAdapterService {
             Objects.requireNonNull(p.getSchema(), "Target port schema cannot be null for port with key " + p.getKey());
         });
 
-        if (!StringUtils.hasText(intentProvider) || !StringUtils.hasText(intentApiKey) || !StringUtils.hasText(intentModel))
+        if (!StringUtils.hasText(provider) || !StringUtils.hasText(apiKey) || !StringUtils.hasText(model))
             throw new IllegalArgumentException("LLM configuration (adapter.llm.provider, adapter.llm.api-key, adapter.llm.model) is missing or incomplete for port adaptation.");
 
         try {
@@ -167,17 +162,11 @@ public class PortAdapterService {
     }
 
 
-    /**
-     * Returns the ChatClient instance.
-     * @return ChatClient instance
-     */
-    private ChatClient getChatClient() {
-        if (chatClient == null) {
-            var options = new LlmModelFactory.BaseLlmModelOptions();
-            options.setTemperature(temperature);
-            chatClient = llmModelFactory.createChatClient(intentProvider, intentApiKey, intentModel, options);
-        }
-        return chatClient;
+    @Override
+    protected ChatClient buildChatClient() {
+        var options = new LlmModelFactory.BaseLlmModelOptions();
+        options.setTemperature(temperature);
+        return llmModelFactory.createChatClient(provider, apiKey, model, options);
     }
 
     /**

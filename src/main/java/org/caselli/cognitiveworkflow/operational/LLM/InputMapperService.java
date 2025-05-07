@@ -6,8 +6,6 @@ import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -26,20 +24,17 @@ import java.util.stream.Collectors;
  * in a workflow, mapping the variables to the node input structure.
  */
 @Service
-public class InputMapperService {
-    private static final Logger logger = LoggerFactory.getLogger(InputMapperService.class);
-
+public class InputMapperService extends LLMServiceBase {
     private final LlmModelFactory llmModelFactory;
-    private ChatClient chatClient;
 
     @Value("${input-mapper.llm.provider:}")
-    private String intentProvider;
+    private String provider;
 
     @Value("${input-mapper.llm.api-key:}")
-    private String intentApiKey;
+    private String apiKey;
 
     @Value("${input-mapper.llm.model:}")
-    private String intentModel;
+    private String model;
 
     @Value("${port-adapter.llm.temperature}")
     private double temperature;
@@ -156,25 +151,25 @@ public class InputMapperService {
 
         return new InputMapperResult(startingNode, context);
     }
-
-    private ChatClient getChatClient() {
-        if (chatClient == null) {
-            validateLlmConfiguration();
-            var options = new LlmModelFactory.BaseLlmModelOptions();
-            options.setTemperature(temperature);
-            chatClient = llmModelFactory.createChatClient(intentProvider, intentApiKey, intentModel, options);
-        }
-        return chatClient;
-    }
-
     private void validateLlmConfiguration() {
-        if (!StringUtils.hasText(intentProvider) ||
-                !StringUtils.hasText(intentApiKey) ||
-                !StringUtils.hasText(intentModel)) {
+        if (!StringUtils.hasText(provider) ||
+                !StringUtils.hasText(apiKey) ||
+                !StringUtils.hasText(model)) {
             throw new IllegalArgumentException("LLM configuration (provider, api-key, model) is missing or incomplete"
             );
         }
     }
+
+    @Override
+    protected ChatClient buildChatClient() {
+        validateLlmConfiguration();
+
+        var options = new LlmModelFactory.BaseLlmModelOptions();
+        options.setTemperature(temperature);
+        return llmModelFactory.createChatClient(provider, apiKey, model, options);
+    }
+
+
 
     /**
      * Validates that all required ports for a node are satisfied by the provided bindings of the LLM

@@ -6,7 +6,6 @@ import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.operational.utils.StringUtils;
-import org.slf4j.Logger;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -23,12 +22,9 @@ import java.util.stream.Collectors;
  * Intent Detector Service
  */
 @Service
-public class IntentDetectionService {
-    private final Logger logger = org.slf4j.LoggerFactory.getLogger(IntentDetectionService.class);
+public class IntentDetectionService extends LLMServiceBase {
 
     private final LlmModelFactory llmModelFactory;
-
-    private ChatClient chatClient;
 
     @Value("${intent-detector.llm.provider}")
     private String intentProvider;
@@ -148,17 +144,11 @@ public class IntentDetectionService {
         return result;
     }
 
-    /**
-     * Returns the ChatClient instance.
-     * @return ChatClient instance
-     */
-    private ChatClient getChatClient() {
-        if (chatClient == null) {
-            var options = new LlmModelFactory.BaseLlmModelOptions();
-            options.setTemperature(temperature);
-            chatClient = llmModelFactory.createChatClient(intentProvider, intentApiKey, intentModel, options);
-        }
-        return chatClient;
+    @Override
+    protected ChatClient buildChatClient() {
+        var options = new LlmModelFactory.BaseLlmModelOptions();
+        options.setTemperature(temperature);
+        return llmModelFactory.createChatClient(intentProvider, intentApiKey, intentModel, options);
     }
 
 
