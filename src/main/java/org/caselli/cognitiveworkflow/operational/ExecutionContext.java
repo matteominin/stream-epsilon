@@ -57,8 +57,6 @@ public class ExecutionContext extends HashMap<String, Object> {
         }
     }
 
-
-
     /**
      * Overrides the standard containsKey method to support dot notation keys.
      * @param key The key to check, potentially using dot notation (e.g., "data.user.name").
@@ -100,32 +98,6 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Helper: navigates to the parent map for the given key path.
-     * @param keys Array of keys representing the path
-     * @return The parent map containing the last key, or null if path doesn't exist
-     */
-    private Map<String, Object> navigateToParentMap(String[] keys) {
-        Map<String, Object> currentMap = this;
-
-        for (int i = 0; i < keys.length - 1; i++) {
-            Object nextLevel;
-
-            if (currentMap == this) {
-                nextLevel = super.get(keys[i]);
-            } else {
-                nextLevel = currentMap.get(keys[i]);
-            }
-
-            if (!(nextLevel instanceof Map)) return null;
-
-            //noinspection unchecked
-            currentMap = (Map<String, Object>) nextLevel;
-        }
-
-        return currentMap;
-    }
-
-    /**
      * Overrides the standard getOrDefault method to support dot notation keys.
      * @param key The key to retrieve, potentially using dot notation (e.g., "data.user.name").
      * @param defaultValue The default value to return if the key is not found.
@@ -147,6 +119,37 @@ public class ExecutionContext extends HashMap<String, Object> {
         printContext(this, 0);
     }
 
+
+    /**
+     * Helper: navigates to the parent map for the given key path.
+     * Example: with a path like "user.profile.name" the method navigates to the "profile" map.
+     * @param keys Array of keys representing the path. Example [user, profile, name]
+     * @return The parent map containing the last key, or null if path doesn't exist
+     */
+    private Map<String, Object> navigateToParentMap(String[] keys) {
+        Map<String, Object> currentMap = this;
+
+        for (int i = 0; i < keys.length - 1; i++) {
+            Object nextLevel;
+
+            if (currentMap == this) nextLevel = super.get(keys[i]); // user super to avoid infinite recursions
+            else nextLevel = currentMap.get(keys[i]);
+
+            if (!(nextLevel instanceof Map)) return null;
+
+            //noinspection unchecked
+            currentMap = (Map<String, Object>) nextLevel;
+        }
+
+        return currentMap;
+    }
+
+
+    /**
+     * Helper method to get a value from the context using a key which may use dot notation.
+     * @param key The key in dot notation
+     * @return The retrieved value
+     */
     private Object getByDotNotation(String key) {
         String[] keys = key.split("\\.");
         Map<String, Object> currentMap = this; // Start traversal from the current instance
@@ -183,6 +186,12 @@ public class ExecutionContext extends HashMap<String, Object> {
         return null;
     }
 
+
+    /**
+     * Helper method to put a value in the context using a key which may use dot notation.
+     * @param key The key in dot notation
+     * @param value The value to insert
+     */
     private void putByDotNotation(String key, Object value) {
         String[] keys = key.split("\\.");
         Map<String, Object> currentMap = this; // Start traversal from the current instance
@@ -223,6 +232,11 @@ public class ExecutionContext extends HashMap<String, Object> {
         }
     }
 
+    /**
+     * An helper method to print a map with indentation (for debug purposes)
+     * @param map The map to print
+     * @param indentLevel The level of indentation
+     */
     private void printContext(Map<String, Object> map, int indentLevel) {
         if (map == null || map.isEmpty()) {
             indent(indentLevel);

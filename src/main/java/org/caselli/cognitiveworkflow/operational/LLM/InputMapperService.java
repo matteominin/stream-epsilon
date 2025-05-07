@@ -20,7 +20,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 
-// TODO: comment the class
+/**
+ * LLM-based service for mapping input variables to workflow nodes.
+ * This service analyzes unstructured variables and determines the most suitable starting node
+ * in a workflow, mapping the variables to the node input structure.
+ */
 @Service
 public class InputMapperService {
     private static final Logger logger = LoggerFactory.getLogger(InputMapperService.class);
@@ -44,6 +48,14 @@ public class InputMapperService {
         this.llmModelFactory = llmModelFactory;
     }
 
+    /**
+     * Maps input variables to the most suitable workflow starting node using LLM.
+     *
+     * @param variables Map of unstructured variables
+     * @param nodes List of available workflow nodes to consider for mapping
+     * @return InputMapperResult containing the selected node and variable bindings,
+     *         or null if no suitable mapping could be determined
+     */
     public InputMapperResult mapInput(Map<String, Object> variables, List<NodeMetamodel> nodes) {
         logger.info("Starting input mapping with LLM for {} variables and {} nodes", variables.size(), nodes.size());
 
@@ -61,20 +73,22 @@ public class InputMapperService {
             String nodesDescription = buildNodesDescription(nodes);
             String variablesDescription = buildVariablesDescription(variables);
 
+            // Build the prompt
             Prompt prompt = new Prompt(List.of(
                     new SystemMessage(SYSTEM_INSTRUCTIONS),
                     new UserMessage(variablesDescription + "\n\n" + nodesDescription)
             ));
 
+
+            // Call the LLM
             InputMapperLLMResult result = getChatClient()
                     .prompt(prompt)
                     .call()
                     .entity(InputMapperLLMResult.class);
 
-
             // TODO: remove
-            System.out.println(prompt.getContents());
-            System.out.println(result);
+            // System.out.println(prompt.getContents());
+            // System.out.println(result);
 
             return processLLMResult(result, nodes);
         } catch (Exception e) {
@@ -118,21 +132,21 @@ public class InputMapperService {
             return null;
         }
 
+        // Find the node by the ID provided by the LLM
         NodeMetamodel startingNode = nodes.stream()
                 .filter(node -> node.getId().equals(llmResult.getSelectedStartingNodeId()))
                 .findFirst()
                 .orElse(null);
 
+        // Fallback if the LLM has returned a non-existing ID
         if (startingNode == null) {
             logger.error("LLM selected invalid node ID: {}", llmResult.getSelectedStartingNodeId());
             return null;
         }
 
+        // Create the context
         ExecutionContext context = new ExecutionContext();
-        if (llmResult.getBindings() != null) {
-            context.putAll(llmResult.getBindings());
-        }
-
+        if (llmResult.getBindings() != null) context.putAll(llmResult.getBindings());
 
         // Final check to see if the LLM response is valid
         if (isResponseValid(startingNode, context)) {
@@ -174,6 +188,9 @@ public class InputMapperService {
         return true;
     }
 
+    /**
+     * Helper class for structured LLM calls for Input Mapping
+     */
     @Data
     private static class InputMapperLLMResult {
         @JsonProperty(required = true)
@@ -183,6 +200,9 @@ public class InputMapperService {
         Map<String, String> bindings;
     }
 
+    /**
+     * InputMapperService response
+     */
     @Data
     @AllArgsConstructor
     public static class InputMapperResult {
