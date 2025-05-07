@@ -15,8 +15,6 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -114,25 +112,32 @@ public class InputMapperService {
         return builder.append("</user_variables>").toString();
     }
 
-    private InputMapperResult processLLMResult(InputMapperLLMResult result, List<NodeMetamodel> nodes) {
-        if (result == null || !StringUtils.hasText(result.getSelectedStartingNodeId())) {
+    private InputMapperResult processLLMResult(InputMapperLLMResult llmResult, List<NodeMetamodel> nodes) {
+        if (llmResult == null || !StringUtils.hasText(llmResult.getSelectedStartingNodeId())) {
             logger.warn("No suitable node identified by LLM");
             return null;
         }
 
         NodeMetamodel startingNode = nodes.stream()
-                .filter(node -> node.getId().equals(result.getSelectedStartingNodeId()))
+                .filter(node -> node.getId().equals(llmResult.getSelectedStartingNodeId()))
                 .findFirst()
                 .orElse(null);
 
         if (startingNode == null) {
-            logger.error("LLM selected invalid node ID: {}", result.getSelectedStartingNodeId());
+            logger.error("LLM selected invalid node ID: {}", llmResult.getSelectedStartingNodeId());
             return null;
         }
 
         ExecutionContext context = new ExecutionContext();
-        if (result.getBindings() != null) {
-            result.getBindings().forEach(context::put);
+        if (llmResult.getBindings() != null) {
+            context.putAll(llmResult.getBindings());
+        }
+
+
+        // Final check to see if the LLM response is valid
+        if (isResponseValid(startingNode, context)) {
+            logger.error("The LLM provided an input that do not satisfy the required ports of the  selected node ID: {}", llmResult.getSelectedStartingNodeId());
+            return null;
         }
 
         return new InputMapperResult(startingNode, context);
@@ -152,10 +157,21 @@ public class InputMapperService {
         if (!StringUtils.hasText(intentProvider) ||
                 !StringUtils.hasText(intentApiKey) ||
                 !StringUtils.hasText(intentModel)) {
-            throw new IllegalArgumentException(
-                    "LLM configuration (provider, api-key, model) is missing or incomplete"
+            throw new IllegalArgumentException("LLM configuration (provider, api-key, model) is missing or incomplete"
             );
         }
+    }
+
+    /**
+     * Validates that all required ports for a node are satisfied by the provided bindings of the LLM
+     */
+    private boolean isResponseValid(NodeMetamodel node, ExecutionContext context) {
+        if (context == null) return false;
+
+        for (var port : node.getInputPorts())
+            if(!port.getSchema().isValidValue(context)) return false;
+
+        return true;
     }
 
     @Data

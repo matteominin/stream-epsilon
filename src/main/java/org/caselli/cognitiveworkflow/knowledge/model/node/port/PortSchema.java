@@ -124,7 +124,7 @@ public class PortSchema {
      */
     public static boolean isValidValue(Object value, PortSchema schema) {
         if (schema == null || schema.getType() == null) return value == null;
-        if(value == null) return !schema.getRequired();
+        if(value == null || value.toString().isEmpty()) return !schema.getRequired();
 
         PortType schemaType = schema.getType();
 
