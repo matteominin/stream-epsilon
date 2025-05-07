@@ -21,13 +21,13 @@ class ExecutionContextTest {
 
 
     @Test
-    void testget_simpleKey() {
+    void testSimpleKey() {
         context.put("name", "Test User");
         assertEquals("Test User", context.get("name"));
     }
 
     @Test
-    void testget_nestedKey() {
+    void testNestedKey() {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("name", "Test User");
         Map<String, Object> dataMap = new HashMap<>();
@@ -38,7 +38,7 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testget_intermediateKeyNotFound() {
+    void testIntermediateKeyNotFound() {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("name", "Test User");
         Map<String, Object> dataMap = new HashMap<>();
@@ -50,13 +50,13 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testget_rootKeyNotFound() {
+    void testRootKeyNotFound() {
         // Path: nonExistent -> user -> name
         assertNull(context.get("nonExistent.user.name"));
     }
 
     @Test
-    void testget_intermediateKeyNotMap() {
+    void testIntermediateKeyNotMap() {
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("user", "not a map"); // "user" is a String, not a Map
         context.put("data", dataMap);
@@ -66,7 +66,7 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testget_intermediateKeyIsNull() {
+    void testIntermediateKeyIsNull() {
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("user", null); // "user" is null
         context.put("data", dataMap);
@@ -77,7 +77,7 @@ class ExecutionContextTest {
 
 
     @Test
-    void testget_lastKeyIsNull() {
+    void testLastKeyIsNull() {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("name", null); // "name" is null
         Map<String, Object> dataMap = new HashMap<>();
@@ -89,13 +89,7 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testget_emptyContext() {
-        assertNull(context.get("any.key"));
-        assertNull(context.get("simpleKey"));
-    }
-
-    @Test
-    void testget_emptyKey() {
+    void testGetEmptyKey() {
         context.put("", "emptyKeyVal");
         assertEquals("emptyKeyVal", context.get(""));
         assertNull(context.get("."));
@@ -103,19 +97,13 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testget_keyWithOnlyDots() {
+    void testKeyWithOnlyDots() {
         assertNull(context.get("."));
         assertNull(context.get(".."));
     }
 
     @Test
-    void testput_simpleKey() {
-        context.put("name", "New User");
-        assertEquals("New User", context.get("name"));
-    }
-
-    @Test
-    void testput_nestedKey_pathExists() {
+    void testNestedKey_pathExists() {
         Map<String, Object> userMap = new HashMap<>();
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("user", userMap);
@@ -131,7 +119,7 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testput_nestedKey_pathCreatesMaps() {
+    void testNestedKey_pathCreatesMaps() {
         context.put("new.nested.path.value", "Deep Value");
 
         Object level1 = context.get("new");
@@ -145,7 +133,7 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testput_intermediateKeyNotMap_overwrites() {
+    void testIntermediateKeyNotMap_overwrites() {
         context.put("data", "not a map"); // Initial non-Map value
 
         context.put("data.user.name", "Value After Overwrite");
@@ -158,7 +146,7 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testput_rootKeyNotMap_overwrites() {
+    void testRootKeyNotMap_overwrites() {
         context.put("targetRoot", "initial_string"); // Initial non-Map value at the root
 
         context.put("targetRoot.nestedKey", "Value After Overwrite");
@@ -171,7 +159,7 @@ class ExecutionContextTest {
 
 
     @Test
-    void testput_putNullValue() {
+    void testPutNullValue() {
         Map<String, Object> userMap = new HashMap<>();
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("user", userMap);
@@ -187,7 +175,7 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testput_emptyContext() {
+    void testEmptyContext() {
         context.put("first.value", "Initial");
         Object first = context.get("first");
         assertInstanceOf(Map.class, first);
@@ -195,13 +183,13 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testput_emptyKey() {
+    void testEmptyKey() {
         context.put("", "EmptyKeyVal");
         assertEquals("EmptyKeyVal", context.get(""));
     }
 
     @Test
-    void testput_putComplexObject() {
+    void testPutComplexObject() {
         Map<String, Object> complexValue = Map.of("list", List.of(1, 2, 3), "boolean", true);
         context.put("data.complex", complexValue);
 
@@ -210,5 +198,102 @@ class ExecutionContextTest {
         Object complex = ((Map<?, ?>) data).get("complex");
         assertInstanceOf(Map.class, complex);
         assertEquals(complexValue, complex);
+
+        context.printContext();
+    }
+
+    @Test
+    void testPutComplexNestedObject() {
+        context.put("user.userDetails.email", "email");
+        context.put("user.userDetails.phone", "+39");
+        context.put("user.id", "Niccolò");
+        context.put("order.id", "123");
+
+        assertEquals(context.get("user.userDetails.email"), "email");
+        assertEquals(context.get("user.userDetails.phone"), "+39");
+        assertEquals(context.get("user.id"), "Niccolò");
+        assertEquals(context.get("order.id"), "123");
+
+        context.printContext();
+    }
+
+    @Test
+    void testPutAll() {
+        Map<String, Object> sourceMap = new HashMap<>();
+        sourceMap.put("user.profile.name", "Marco Rossi");
+        sourceMap.put("user.profile.email", "marco@example.com");
+        sourceMap.put("settings.notifications", true);
+        sourceMap.put("simple", "value");
+        context.putAll(sourceMap);
+
+        // Verify
+        assertEquals("Marco Rossi", context.get("user.profile.name"));
+        assertEquals("marco@example.com", context.get("user.profile.email"));
+        assertEquals(true, context.get("settings.notifications"));
+        assertEquals("value", context.get("simple"));
+
+        Object settings = context.get("settings");
+        assertInstanceOf(Map.class, settings);
+        assertEquals(true, ((Map<?, ?>) settings).get("notifications"));
+    }
+
+    @Test
+    void testRemove() {
+        context.put("user.profile.name", "Marco Rossi");
+        context.put("user.profile.email", "marco@example.com");
+        context.put("user.id", "12345");
+
+        // Test removing leaf node
+        Object removedEmail = context.remove("user.profile.email");
+        assertEquals("marco@example.com", removedEmail);
+        assertNull(context.get("user.profile.email"));
+
+        // Verify other paths still exist
+        assertEquals("Marco Rossi", context.get("user.profile.name"));
+        assertEquals("12345", context.get("user.id"));
+
+        // Test removing non-existent path
+        assertNull(context.remove("user.profile.nonexistent"));
+
+        // Test removing intermediate node
+        Object removedProfile = context.remove("user.profile");
+        assertInstanceOf(Map.class, removedProfile);
+        assertNull(context.get("user.profile"));
+        assertNull(context.get("user.profile.name"));
+
+        // Verify root path still exists
+        assertInstanceOf(Map.class, context.get("user"));
+        assertEquals("12345", context.get("user.id"));
+
+        // Test removing root node
+        Object removedUser = context.remove("user");
+        assertInstanceOf(Map.class, removedUser);
+        assertNull(context.get("user"));
+        assertNull(context.get("user.id"));
+    }
+
+    @Test
+    void testGetOrDefault() {
+        context.put("user.profile.name", "Marco Rossi");
+        context.put("user.profile.email", "marco@example.com");
+        context.put("user.settings.notifications", false);
+
+        // Test existing paths
+        assertEquals("Marco Rossi", context.getOrDefault("user.profile.name", "Default Name"));
+        assertEquals("marco@example.com", context.getOrDefault("user.profile.email", "default@example.com"));
+        assertEquals(false, context.getOrDefault("user.settings.notifications", true));
+
+        // Test non-existent paths
+        assertEquals("Default Address", context.getOrDefault("user.profile.address", "Default Address"));
+        assertEquals(25, context.getOrDefault("user.age", 25));
+        assertEquals("Unknown", context.getOrDefault("nonexistent.path", "Unknown"));
+
+        // Test with null values and defaults
+        context.put("user.profile.phone", null);
+        assertNotNull(context.getOrDefault("user.profile.phone", "Default Phone"));
+
+        // Test with edge cases
+        assertEquals("Root Default", context.getOrDefault("", "Root Default"));
+        assertEquals("Dot Default", context.getOrDefault(".", "Dot Default"));
     }
 }

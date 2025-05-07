@@ -434,4 +434,59 @@ public class InputMapperServiceIT {
         assertTrue(mappedInputs.containsKey("user_email"));
         assertTrue(mappedInputs.containsKey("user_phone"));
     }
+
+    /**
+     * Test the Input Mapper with a nested mapping and only 1 available node
+     * Should select the only available node
+     */
+    @Test
+    public void shouldWorkWithOnlyOneNestedNode() {
+        // NODE 1
+        RestPort source1 = RestPort.resBuilder()
+                    .withKey("user")
+                    .withSchema(PortSchema.builder()
+                    .objectSchema(Map.of(
+                        "userDetails", PortSchema.builder()
+                                .objectSchema(Map.of(
+                                        "email", PortSchema.builder().stringSchema().withRequired(true).build(),
+                                        "phone_number", PortSchema.builder().stringSchema().withRequired(false).build()
+                                ))
+                                .withRequired(true)
+                                .build(),
+                        "id", PortSchema.builder().stringSchema().withRequired(true).build()
+                ))
+                .build()).build();
+
+        RestPort source2 = RestPort.resBuilder().withKey("orderId").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+
+
+        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        nodeA.setId(String.valueOf(UUID.randomUUID()));
+        nodeA.setName("SEE_SHIPPING_INFO");
+        nodeA.setDescription("Get user shipping order");
+        nodeA.setInputPorts(List.of(source1, source2));
+        nodeA.setOutputPorts(List.of());
+
+        Map<String, Object> variables = Map.of(
+                "id_of_the_user", "123",
+                "number", "+393527624",
+                "email", "caselli@gmail.com",
+                "order_id", "ORDER_ID"
+        );
+
+        var res = inputMapperService.mapInput(variables, List.of(nodeA));
+
+        assertNotNull(res);
+
+        System.out.println("Context result: ");
+        res.context.printContext();
+
+        assertNotNull(res.getStartingNode());
+        assertEquals(res.getStartingNode().getId(), nodeA.getId());
+        assertEquals(res.getContext().get("user.id"), variables.get("id_of_the_user"));
+        assertEquals(res.getContext().get("user.userDetails.email"), variables.get("email"));
+        assertEquals(res.getContext().get("user.userDetails.phone_number"),variables.get("number"));
+        assertEquals(res.getContext().get("orderId"), variables.get("order_id"));
+    }
+
 }
