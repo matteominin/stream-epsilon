@@ -207,8 +207,6 @@ class WorkflowExecutorTest {
         // EXECUTE
         WorkflowExecutor executor = new WorkflowExecutor(workflowInstance);
 
-        assertThrows(Exception.class, () -> {
-            executor.execute(context);
-        });
+        assertThrows(Exception.class, () -> executor.execute(context));
     }
 }

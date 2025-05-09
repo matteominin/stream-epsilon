@@ -30,6 +30,10 @@ public class WorkflowExecutor {
         this.workflow = workflow;
     }
 
+    public void execute(ExecutionContext context) {
+        execute(context, null);
+    }
+
     public void execute(ExecutionContext context, String startingNodeId) {
 
         logger.info("-------------------------------------------");

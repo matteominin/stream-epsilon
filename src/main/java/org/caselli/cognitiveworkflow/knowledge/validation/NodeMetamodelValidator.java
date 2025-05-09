@@ -208,9 +208,7 @@ public class NodeMetamodelValidator {
         List<String> templateVars = extractTemplateVariables(serviceUri);
         List<String> pathVariablesPortKeys = node.getInputPorts().stream()
                 .filter(Objects::nonNull)
-                .filter(port -> {
-                    return (port.getRole() != null) && port.getRole().equals(RestPort.RestPortRole.REQ_PATH_VARIABLE);
-                })
+                .filter(port -> (port.getRole() != null) && port.getRole().equals(RestPort.RestPortRole.REQ_PATH_VARIABLE))
                 .map(Port::getKey)
                 .toList();
 
@@ -255,7 +253,7 @@ public class NodeMetamodelValidator {
         if (defaultValue == null) return;
 
         // Check if the default value is valid according to the schema
-        if (PortSchema.isValidValue(defaultValue, schema))
+        if (!PortSchema.isValidValue(defaultValue, schema))
             result.addError("Default value is not valid for the schema", componentPath + ".defaultValue");
     }
 }
