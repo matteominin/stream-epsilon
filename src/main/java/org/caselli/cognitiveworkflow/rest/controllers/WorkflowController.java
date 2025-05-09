@@ -38,7 +38,7 @@ public class WorkflowController {
         return ResponseEntity.ok(workflowMetamodelService.createWorkflow(workflow));
     }
 
-    @PostMapping("/execute/{workflowId}")
+    @PostMapping("/execute/{workflowId}/{star}")
     public ResponseEntity<String> executeWorkflow(@PathVariable String workflowId) {
         // TODO: this implementation body is for test only
 
@@ -56,7 +56,7 @@ public class WorkflowController {
 
             WorkflowExecutor workflowExecutor = new WorkflowExecutor(workflow);
 
-            workflowExecutor.execute(context);
+            workflowExecutor.execute(context, "");
         }
 
         return ResponseEntity.ok("ciao");
