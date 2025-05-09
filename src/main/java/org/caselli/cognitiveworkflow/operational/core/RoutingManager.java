@@ -4,6 +4,8 @@ import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.workflow.WorkflowInstance;
 import org.caselli.cognitiveworkflow.operational.utils.TemperatureSampler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.List;
  */
 @Service
 public class RoutingManager {
+    private final Logger logger = LoggerFactory.getLogger(RoutingManager.class);
     private final WorkflowInstanceManager workflowInstanceManager;
     private final WorkflowMetamodelService metamodelService;
 
@@ -48,8 +51,13 @@ public class RoutingManager {
         if (existingInstances != null && !existingInstances.isEmpty()){
             // Select best workflow based on score
             WorkflowInstance bestDefinition = TemperatureSampler.sapleSortedList(existingInstances, temperature);
-            if(bestDefinition != null) return bestDefinition;
+            if(bestDefinition != null) {
+                logger.info("Running instance for workflow handling the intent with ID {} was found", intentId);
+                return bestDefinition;
+            }
         }
+
+        logger.info("No running instance for workflow handling the intent with ID {} was found", intentId);
 
         // If no Workflow in memory can handle the intent:
         // Load workflow definition from catalog
@@ -59,6 +67,8 @@ public class RoutingManager {
             // Select best workflow based on score
             WorkflowMetamodel bestDefinition = TemperatureSampler.sapleSortedList(definitions, temperature);
 
+            logger.info("Found a Workflow Metamodel handling the intent with ID {}. Creating a new instance", intentId);
+
             // Instantiate the new workflow
             return workflowInstanceManager.getOrCreate(bestDefinition);
         }
@@ -67,6 +77,8 @@ public class RoutingManager {
         else {
             // Try to combine Nodes
             // TODO [...]
+
+            logger.info("No pre-existing workflow metamodels can handle the intent with ID {}", intentId);
 
             // If all attempts fail, returns null
             return null;

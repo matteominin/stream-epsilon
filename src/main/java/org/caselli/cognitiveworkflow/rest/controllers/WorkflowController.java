@@ -1,12 +1,15 @@
 package org.caselli.cognitiveworkflow.rest.controllers;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
+import lombok.Data;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.core.WorkflowInstanceManager;
 import org.caselli.cognitiveworkflow.operational.core.WorkflowExecutor;
+import org.caselli.cognitiveworkflow.operational.core.WorkflowOrchestrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -21,11 +24,13 @@ public class WorkflowController {
 
     private final WorkflowMetamodelService workflowMetamodelService;
     private final WorkflowInstanceManager workflowInstanceManager;
+    private final WorkflowOrchestrator workflowOrchestrator;
 
     @Autowired
-    public WorkflowController(WorkflowMetamodelService workflowService,WorkflowInstanceManager workflowInstanceManager) {
+    public WorkflowController(WorkflowMetamodelService workflowService, WorkflowInstanceManager workflowInstanceManager, WorkflowOrchestrator workflowOrchestrator) {
         this.workflowMetamodelService = workflowService;
         this.workflowInstanceManager = workflowInstanceManager;
+        this.workflowOrchestrator = workflowOrchestrator;
     }
 
     @GetMapping
@@ -40,7 +45,7 @@ public class WorkflowController {
 
     @PostMapping("/execute/{workflowId}/{star}")
     public ResponseEntity<String> executeWorkflow(@PathVariable String workflowId) {
-        // TODO: this implementation body is for test only
+        // TODO: this endpoint is for test only, remove
 
         Optional<WorkflowMetamodel> modelRes = this.workflowMetamodelService.getWorkflowById(workflowId);
 
@@ -60,5 +65,21 @@ public class WorkflowController {
         }
 
         return ResponseEntity.ok("ciao");
+    }
+
+
+    @PostMapping("/execute")
+    public ResponseEntity<String> execute(@RequestBody ExecuteDTO request) {
+        workflowOrchestrator.orchestrateWorkflowExecution(request.request);
+
+        // TODO
+        return ResponseEntity.ok("ciao");
+    }
+
+
+    @Data
+    public static class ExecuteDTO {
+        @JsonProperty("request")
+        String request;
     }
 }

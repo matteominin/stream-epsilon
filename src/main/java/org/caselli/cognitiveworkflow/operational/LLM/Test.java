@@ -28,7 +28,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
     public void onApplicationEvent(ApplicationReadyEvent e) {
         //testIntentDetector();
       // testAdapter2();
-       testAdapter1();
+      // testAdapter1();
     }
 
     public void testIntentDetector() {

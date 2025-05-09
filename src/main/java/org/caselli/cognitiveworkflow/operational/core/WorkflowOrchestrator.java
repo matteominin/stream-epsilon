@@ -13,6 +13,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -80,7 +81,7 @@ public class WorkflowOrchestrator {
         }
 
         // ROUTING
-        logger.debug("Routing workflow for intent ID: {}", intentId);
+        logger.info("Routing workflow for intent ID: {}", intentId);
         WorkflowInstance workflowInstance = routingManager.routeWorkflowRequest(intentId);
         if (workflowInstance == null) {
             logger.error("No workflow available to handle intent: {}", intentId);
@@ -105,11 +106,11 @@ public class WorkflowOrchestrator {
         Set<String> entryPointIDs = workflowInstance.getMetamodel().getEntryNodes();
         logger.debug("Found {} entry points for workflow", entryPointIDs.size());
 
-        List<NodeMetamodel> entryPoints = entryPointIDs.stream()
+        List<NodeMetamodel> entryPointMetamodels = entryPointIDs.stream()
                 .map(id -> workflowInstance.getInstanceByWorkflowNodeId(id).getMetamodel())
                 .collect(Collectors.toList());
 
-        var inputMapping = inputMapperService.mapInput(variables, entryPoints);
+        var inputMapping = inputMapperService.mapInput(variables, entryPointMetamodels);
         logger.debug("Input mapping result: {}", inputMapping);
 
         if(inputMapping == null) {
@@ -118,7 +119,12 @@ public class WorkflowOrchestrator {
         }
 
         ExecutionContext context = inputMapping.getContext();
-        String startingNodeId = inputMapping.getStartingNode().getId();
+
+        String startingNodeId = entryPointIDs.stream()
+                .filter(x -> Objects.equals(workflowInstance.getInstanceByWorkflowNodeId(x).getMetamodel().getId(), inputMapping.getStartingNode().getId()))
+                .findFirst()
+                .orElse(null);
+
         logger.info("Starting workflow execution at node ID: {}", startingNodeId);
 
         WorkflowExecutor executor = executorProvider.getObject(workflowInstance);
