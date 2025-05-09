@@ -42,13 +42,13 @@ public class RoutingManager {
      * @param intentId The id of the intent to route
      * @return The ID of the workflow instance that will handle the request
      */
-    public String routeWorkflowRequest(String intentId) {
+    public WorkflowInstance routeWorkflowRequest(String intentId) {
         // Check if a running instance already exists
         List<WorkflowInstance> existingInstances = workflowInstanceManager.findTopNHandlingIntent(intentId, candidatesCount);
         if (existingInstances != null && !existingInstances.isEmpty()){
             // Select best workflow based on score
             WorkflowInstance bestDefinition = TemperatureSampler.sapleSortedList(existingInstances, temperature);
-            if(bestDefinition != null) return bestDefinition.getId();
+            if(bestDefinition != null) return bestDefinition;
         }
 
         // If no Workflow in memory can handle the intent:
@@ -60,9 +60,7 @@ public class RoutingManager {
             WorkflowMetamodel bestDefinition = TemperatureSampler.sapleSortedList(definitions, temperature);
 
             // Instantiate the new workflow
-            WorkflowInstance instance = workflowInstanceManager.getOrCreate(bestDefinition);
-
-            return instance.getId();
+            return workflowInstanceManager.getOrCreate(bestDefinition);
         }
 
         // No pre-defined workflows are found in the SBOM.
@@ -70,14 +68,8 @@ public class RoutingManager {
             // Try to combine Nodes
             // TODO [...]
 
-            // If all attempts fail, throw an exception
-            throw new NoWorkflowAvailableException("No workflow available to handle intent: " + intentId);
-        }
-    }
-
-    public static class NoWorkflowAvailableException extends RuntimeException {
-        public NoWorkflowAvailableException(String message) {
-            super(message);
+            // If all attempts fail, returns null
+            return null;
         }
     }
 }
