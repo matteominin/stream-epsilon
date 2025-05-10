@@ -2,7 +2,7 @@ package org.caselli.cognitiveworkflow.knowledge.MOP;
 import jakarta.annotation.Nonnull;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.NodeMetamodelUpdateEvent;
-import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
@@ -94,7 +94,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @return Returns the new Metamodel
      */
     @CacheEvict(value = "nodeMetamodels", allEntries = true)
-    public LlmNodeMetamodel createLlmNode(LlmNodeMetamodel nodeMetamodel) throws BadRequestException {
+    public LLMNodeMetamodel createLlmNode(LLMNodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         nodeMetamodel.setType(NodeMetamodel.NodeType.LLM);
         // validate

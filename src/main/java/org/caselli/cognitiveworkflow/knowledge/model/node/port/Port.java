@@ -23,6 +23,7 @@ import lombok.Data;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = StandardPort.class, name = "STANDARD"),
         @JsonSubTypes.Type(value = RestPort.class, name = "REST"),
+        @JsonSubTypes.Type(value = LLMPort.class, name = "LLM"),
 })
 public class Port {
     Port() {}
@@ -52,7 +53,8 @@ public class Port {
 
     public enum PortImplementationType {
         STANDARD,
-        REST
+        REST,
+        LLM
     }
 
 
@@ -70,7 +72,11 @@ public class Port {
         try {
             JsonNode portNode = mapper.valueToTree(port);
             // Remove "portType"
-            if (portNode instanceof ObjectNode) ((ObjectNode) portNode).remove("portType");
+            if (portNode instanceof ObjectNode)
+            {
+                ((ObjectNode) portNode).remove("portType");
+                ((ObjectNode) portNode).remove("role");
+            }
             return mapper.writeValueAsString(portNode);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize Port to JSON", e);

@@ -1,6 +1,10 @@
 package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 
 import java.util.*;
@@ -40,6 +44,25 @@ public class PortSchema {
     private Boolean required;
 
 
+
+
+
+    /**
+     * Converts a PortSchema to JSON string representation.
+     * @return JSON string representation of the PortSchema object
+     */
+    public String toJson(){
+        ObjectMapper mapper = new ObjectMapper();
+        // Exclude null fields
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        try {
+            JsonNode portNode = mapper.valueToTree(this);
+            return mapper.writeValueAsString(portNode);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize PortSchema to JSON", e);
+        }
+    }
 
 
     /**
@@ -343,6 +366,4 @@ public class PortSchema {
             return withType(PortType.OBJECT).withProperties(properties);
         }
     }
-
-
 }
