@@ -15,8 +15,12 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.ai.converter.BeanOutputConverter;
+import org.springframework.ai.converter.ListOutputConverter;
 import org.springframework.ai.converter.MapOutputConverter;
+import org.springframework.ai.converter.StructuredOutputConverter;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -79,15 +83,20 @@ public class LLMNodeInstance extends NodeInstance {
             String format = converter.getFormat();
 
 
+            messages.add(new SystemMessage(format));
 
-            messages.add(new SystemMessage(
+            messages.add(new SystemMessage("""
+                            The JSON field types must follow the schema below:\n
+                            """ + responsePort.getSchema().toJson() + """
 
-                    format +
-                    """
-                    The JSON fields should follow this schema """ +responsePort.getSchema().toJson() + """
-
-                   
-                    """
+                            For each key, provide only its value (e.g., a number, string, nested object, or array).
+                        
+                            **Important Guidelines:**
+                            - Do **not** include 'properties', 'items', or 'type' in the output; they are only present in the schema to help you understand the structure.
+                            - `type` specifies the expected type of the value (e.g., INT, FLOAT, ARRAY, OBJECT).
+                            - `items` defines the schema of elements inside an array.
+                            - `properties` defines the nested structure of keys inside an object.
+                            """
             ));
 
 
@@ -108,10 +117,26 @@ public class LLMNodeInstance extends NodeInstance {
             context.put(responsePort.getKey(), result);
 
         }
-        else if(responsePort.getSchema().getType() == PortType.ARRAY ) {
-            messages.add(new SystemMessage(
-                    "Output should be of a LIST where items are of the following type" + responsePort.getSchema().toJson()
+        else if(responsePort.getSchema().getType() == PortType.ARRAY) {
+
+            //StructuredOutputConverter<List<Map<String, Object>>> outputConverter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {});
+
+            messages.add(new SystemMessage("""
+                            The elements of the Array must follow the schema below:\n
+                            """ + responsePort.getSchema().toJson() + """
+
+                            For each key, provide only its value (e.g., a number, string, nested object, or array).
+                        
+                            **Important Guidelines:**
+                            - Do **not** include 'properties', 'items', or 'type' in the output; they are only present in the schema to help you understand the structure.
+                            - `type` specifies the expected type of the value (e.g., INT, FLOAT, ARRAY, OBJECT).
+                            - `items` defines the schema of elements inside an array.
+                            - `properties` defines the nested structure of keys inside an object.
+                            """
             ));
+
+
+
 
             Prompt prompt = new Prompt(messages);
 
@@ -120,6 +145,9 @@ public class LLMNodeInstance extends NodeInstance {
             System.out.println(prompt.getContents());
 
             List<?> result = getChatClient().prompt(prompt).call().entity(List.class);
+
+
+
             // TODO: remove
             System.out.println("answer "+ result);
 
@@ -229,4 +257,17 @@ public class LLMNodeInstance extends NodeInstance {
         return chatClient;
     }
 
+
+
+    private static Class<?> getClassByPortType(PortType portType) {
+        return switch (portType) {
+            case STRING -> String.class;
+            case INT -> Integer.class;
+            case FLOAT -> Double.class;
+            case BOOLEAN -> Boolean.class;
+            case DATE -> java.util.Date.class;
+            case OBJECT -> Map.class;
+            case ARRAY -> java.util.List.class;
+        };
+    }
 }

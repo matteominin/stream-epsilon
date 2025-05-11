@@ -290,4 +290,48 @@ public class LLMNodeInstanceIT {
         films.forEach(System.out::println);
         System.out.println("=========================");
     }
+
+
+    @Test
+    void testActorFilmographyRetrieval_SS2() {
+        metamodel.setInputPorts(List.of(
+                LLMPort.LLMBuilder()
+                        .withKey("actor")
+                        .withRole(LLMPort.LLMPortRole.USER_PROMPT)
+                        .withSchema(PortSchema.builder().stringSchema().build())
+                        .build()
+        ));
+
+        metamodel.setOutputPorts(List.of(
+                LLMPort.LLMBuilder()
+                        .withKey("filmography")
+                        .withRole(LLMPort.LLMPortRole.RESPONSE)
+                        .withSchema(PortSchema.builder().arraySchema(
+                                PortSchema.builder().objectSchema(Map.of(
+                                        "film_name", PortSchema.builder().stringSchema().build(),
+                                        "film_year", PortSchema.builder().stringSchema().build(), // TODO: test date type
+                                        "film_budget", PortSchema.builder().stringSchema().build()// TODO: test number type
+                                        )).build()
+                        ).build())
+                        .build()
+        ));
+
+        // Clear system prompt with specific instructions
+        metamodel.setSystemPromptTemplate("""
+    You are a film expert. When given an actor's name, respond with exactly 3 
+    well-known films they starred in. Format the response as a JSON array of strings.
+    """);
+
+
+        context.put("actor", "Tom Hanks");
+        llmNodeInstance.process(context);
+
+        // Then - Verify the structured response
+        Object response = context.get("filmography");
+        assertNotNull(response, "Response should not be null");
+        assertTrue(response instanceof List, "Response should be a list");
+
+
+
+    }
 }
