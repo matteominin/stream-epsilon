@@ -9,6 +9,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.LlmModelFactory;
+import org.caselli.cognitiveworkflow.operational.LLM.PortStructuredOutput;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -56,121 +57,35 @@ public class LLMNodeInstance extends NodeInstance {
         super.setMetamodel(metamodel);
     }
 
+
     @Override
     public void process(ExecutionContext context) {
         System.out.println("Processing LLM Node Instance: " + getId());
 
         List<Message> messages = buildPromptMesages(context);
-
-
-
-
-
         Port responsePort = getResponsePort();
 
         if(responsePort == null){
             return;
         }
 
-        System.out.println("responsePortKey= "+ responsePort.getKey());
+
+        try {
+            // Use the helper method that handles everything
+            Object result = PortStructuredOutput.processWithChatClient(
+                    getChatClient(), messages, responsePort);
 
 
-        if(responsePort.getSchema().getType() == PortType.OBJECT ){
 
 
 
-            MapOutputConverter converter = new MapOutputConverter();
-            String format = converter.getFormat();
-
-
-            messages.add(new SystemMessage(format));
-
-            messages.add(new SystemMessage("""
-                            The JSON field types must follow the schema below:\n
-                            """ + responsePort.getSchema().toJson() + """
-
-                            For each key, provide only its value (e.g., a number, string, nested object, or array).
-                        
-                            **Important Guidelines:**
-                            - Do **not** include 'properties', 'items', or 'type' in the output; they are only present in the schema to help you understand the structure.
-                            - `type` specifies the expected type of the value (e.g., INT, FLOAT, ARRAY, OBJECT).
-                            - `items` defines the schema of elements inside an array.
-                            - `properties` defines the nested structure of keys inside an object.
-                            """
-            ));
-
-
-            Prompt prompt = new Prompt(messages);
-
-
-            // TODO: remove
-            System.out.println(prompt.getContents());
-
-            String response = getChatClient().prompt(prompt).call().content();
-
-            Map<String, Object> result = converter.convert(response);
-
-            // TODO: remove
-            System.out.println("answer "+ result);
-
-
+            // Store the result in the context
             context.put(responsePort.getKey(), result);
-
+        } catch (Exception e) {
+            // Error handling
+            System.err.println("Error processing LLM response: " + e.getMessage());
+            e.printStackTrace();
         }
-        else if(responsePort.getSchema().getType() == PortType.ARRAY) {
-
-            //StructuredOutputConverter<List<Map<String, Object>>> outputConverter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {});
-
-            messages.add(new SystemMessage("""
-                            The elements of the Array must follow the schema below:\n
-                            """ + responsePort.getSchema().toJson() + """
-
-                            For each key, provide only its value (e.g., a number, string, nested object, or array).
-                        
-                            **Important Guidelines:**
-                            - Do **not** include 'properties', 'items', or 'type' in the output; they are only present in the schema to help you understand the structure.
-                            - `type` specifies the expected type of the value (e.g., INT, FLOAT, ARRAY, OBJECT).
-                            - `items` defines the schema of elements inside an array.
-                            - `properties` defines the nested structure of keys inside an object.
-                            """
-            ));
-
-
-
-
-            Prompt prompt = new Prompt(messages);
-
-
-            // TODO: remove
-            System.out.println(prompt.getContents());
-
-            List<?> result = getChatClient().prompt(prompt).call().entity(List.class);
-
-
-
-            // TODO: remove
-            System.out.println("answer "+ result);
-
-            context.put(responsePort.getKey(), result);
-        }
-        else{
-
-
-            Prompt prompt = new Prompt(messages);
-
-
-            String modelAnswer = getChatClient().prompt(prompt).call().content();
-            // TODO: remove
-            System.out.println("answer "+ modelAnswer);
-
-            context.put(responsePort.getKey(), modelAnswer);
-
-        }
-
-
-
-
-
     }
 
 

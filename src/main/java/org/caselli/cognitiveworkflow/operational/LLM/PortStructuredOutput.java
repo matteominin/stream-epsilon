@@ -36,21 +36,30 @@ public class PortStructuredOutput {
         PortSchema schema = port.getSchema();
         StringBuilder instructions = new StringBuilder();
 
-        instructions.append("The output must follow the schema below:\n")
-                .append(schema.toJson())
-                .append("\n\n");
-
         if (schema.getType() == PortType.OBJECT) {
+
+            instructions.append("The output must follow the schema below:\n")
+                    .append(schema.toJson())
+                    .append("\n\n");
+
+
             instructions.append("""
                 For each key, provide only its value (e.g., a number, string, nested object, or array).
                 
                 **Important Guidelines:**
                 - Do **not** include 'properties', 'items', or 'type' in the output; they are only present in the schema to help you understand the structure.
-                - `type` specifies the expected type of the value (e.g., INT, FLOAT, ARRAY, OBJECT).
+                - `type` specifies the expected type of the value (e.g., INT, FLOAT, DATE, ARRAY, OBJECT).
                 - `items` defines the schema of elements inside an array.
                 - `properties` defines the nested structure of keys inside an object.
                 """);
         } else if (schema.getType() == PortType.ARRAY && schema.getItems().getType() == PortType.OBJECT) {
+
+
+            instructions.append("The output must follow the schema below:\n")
+                    .append(schema.toJson())
+                    .append("\n\n");
+
+
             instructions.append("""
                 Each element of the outer list should be a nested object for whose fields provide only its value (e.g., a number, string, nested object, or array).
                 
@@ -87,6 +96,9 @@ public class PortStructuredOutput {
         PortSchema schema = port.getSchema();
         PortType portType = schema.getType();
 
+        messages.add(createSchemaInstructionMessage(port));
+
+
         if (portType == PortType.OBJECT) {
             MapOutputConverter converter = new MapOutputConverter();
             messages.add(new SystemMessage(converter.getFormat()));
@@ -98,13 +110,12 @@ public class PortStructuredOutput {
                 StructuredOutputConverter<List<List<?>>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {});
                 messages.add(new SystemMessage(converter.getFormat()));
             } else {
-                @SuppressWarnings("rawtypes")
-                ListOutputConverter converter = new ListOutputConverter(new DefaultConversionService());
+                StructuredOutputConverter<List<String>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {});
                 messages.add(new SystemMessage(converter.getFormat()));
             }
         }
 
-        messages.add(createSchemaInstructionMessage(port));
+
     }
 
     /**
@@ -134,11 +145,14 @@ public class PortStructuredOutput {
                             new BeanOutputConverter<>(new ParameterizedTypeReference<List<List<?>>>() {});
                     return converter.convert(responseText);
                 } else {
-                    // For arrays of primitives
-                    ObjectMapper mapper = new ObjectMapper();
-                    return mapper.readValue(responseText, List.class);
+                    // For arrays of primitives TODO
+                    StructuredOutputConverter<List<String>> converter =
+                            new BeanOutputConverter<>(new ParameterizedTypeReference<List<String>>() {});
+                    return converter.convert(responseText);
                 }
             } catch (Exception e) {
+                // Consider adding specific logging here to see the responseText that failed parsing
+                System.err.println("Failed to parse LLM response: " + responseText); // Added for debugging
                 throw new RuntimeException("Failed to parse LLM response", e);
             }
         } else {
@@ -167,19 +181,25 @@ public class PortStructuredOutput {
      * @return The processed response
      */
     public static Object processWithChatClient(ChatClient chatClient, List<Message> messages, Port port) {
-        PortSchema schema = port.getSchema();
-        PortType portType = schema.getType();
-
         // Add format instructions
         addFormatInstructions(messages, port);
 
         // Create prompt
         Prompt prompt = new Prompt(messages);
 
+
+        System.out.println("prompt: "+ prompt.getContents());
+
         // Process with chat client and get response content
         String responseText = chatClient.prompt(prompt).call().content();
 
+        System.out.println("responseText: "+ responseText);
+
         // Process the response based on port type
-        return processResponse(responseText, port);
+        var res = processResponse(responseText, port);
+
+        System.out.println("Converted response: "+ res);
+
+        return res;
     }
 }
