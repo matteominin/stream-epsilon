@@ -20,6 +20,15 @@ spring:
 server:
   port: 3001
 
+# LLM: default API keys
+llm:
+  openai:
+    api-key: ${OPENAI_API_KEY}
+
+  anthropic:
+    api-key: ${ANTHROPIC_API_KEY}
+
+
 # EMBEDDINGS SERVICE
 embedding:
   provider: openai

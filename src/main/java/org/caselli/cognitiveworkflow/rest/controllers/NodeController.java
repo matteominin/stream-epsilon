@@ -2,11 +2,10 @@ package org.caselli.cognitiveworkflow.rest.controllers;
 
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.validation.WorkflowMetamodelValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,8 +41,8 @@ public class NodeController {
      * Create a new LLM node metamodel
      */
     @PostMapping("/llm")
-    public ResponseEntity<LlmNodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody LlmNodeMetamodel llmNodeMetamodel) throws  BadRequestException{
-        LlmNodeMetamodel result = nodeMetamodelService.createLlmNode(llmNodeMetamodel);
+    public ResponseEntity<LLMNodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody LLMNodeMetamodel llmNodeMetamodel) throws  BadRequestException{
+        LLMNodeMetamodel result = nodeMetamodelService.createLlmNode(llmNodeMetamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
@@ -51,9 +50,9 @@ public class NodeController {
      * Update an existing LLM node metamodel
      */
     @PutMapping("/llm/{id}")
-    public ResponseEntity<LlmNodeMetamodel> updateLlmNodeMetamodel(
+    public ResponseEntity<LLMNodeMetamodel> updateLlmNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody LlmNodeMetamodel llmNodeMetamodel) {
+            @Valid @RequestBody LLMNodeMetamodel llmNodeMetamodel) {
 
         // Check it is a correct node type
         var existing = nodeMetamodelService.getNodeById(id);
@@ -63,7 +62,7 @@ public class NodeController {
 
 
         llmNodeMetamodel.setId(id);
-        LlmNodeMetamodel result = (LlmNodeMetamodel) nodeMetamodelService.updateNode(id, llmNodeMetamodel);
+        LLMNodeMetamodel result = (LLMNodeMetamodel) nodeMetamodelService.updateNode(id, llmNodeMetamodel);
         return ResponseEntity.ok(result);
     }
 

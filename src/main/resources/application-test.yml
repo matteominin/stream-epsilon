@@ -10,3 +10,11 @@ spring:
   data:
     mongodb:
       uri: ${MONGO_TEST_URI}
+
+
+
+
+# LLM
+default-api-keys:
+  openai: ${OPENAI_API_KEY}
+  anthropic: ${ANTHROPIC_API_KEY}

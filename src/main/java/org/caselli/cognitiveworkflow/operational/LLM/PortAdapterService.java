@@ -166,7 +166,7 @@ public class PortAdapterService extends LLMServiceBase {
     protected ChatClient buildChatClient() {
         var options = new LlmModelFactory.BaseLlmModelOptions();
         options.setTemperature(temperature);
-        return llmModelFactory.createChatClient(provider, apiKey, model, options);
+        return llmModelFactory.createChatClient(provider, model, apiKey, options);
     }
 
     /**
