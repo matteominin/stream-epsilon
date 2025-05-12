@@ -163,9 +163,6 @@ public class PortSchema {
             case BOOLEAN:
                 return (value instanceof Boolean);
 
-            case DATE:
-                return (value instanceof Date);
-
             case ARRAY:
                 if (!(value instanceof List<?> || value instanceof Object[]))
                     return false;
@@ -236,7 +233,7 @@ public class PortSchema {
      */
     public boolean isPrimitiveType() {
         return switch (this.type) {
-            case STRING, INT, FLOAT, BOOLEAN, DATE -> true;
+            case STRING, INT, FLOAT, BOOLEAN -> true;
             default -> false;
         };
     }
@@ -364,10 +361,6 @@ public class PortSchema {
 
         public PortSchemaBuilder booleanSchema() {
             return withType(PortType.BOOLEAN);
-        }
-
-        public PortSchemaBuilder dateSchema() {
-            return withType(PortType.DATE);
         }
 
         public PortSchemaBuilder arraySchema(PortSchema itemsSchema) {

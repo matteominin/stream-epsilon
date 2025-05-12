@@ -172,17 +172,4 @@ public class LLMNodeInstance extends NodeInstance {
         return chatClient;
     }
 
-
-
-    private static Class<?> getClassByPortType(PortType portType) {
-        return switch (portType) {
-            case STRING -> String.class;
-            case INT -> Integer.class;
-            case FLOAT -> Double.class;
-            case BOOLEAN -> Boolean.class;
-            case DATE -> java.util.Date.class;
-            case OBJECT -> Map.class;
-            case ARRAY -> java.util.List.class;
-        };
-    }
 }

@@ -3,9 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.bson.Document;
@@ -127,7 +125,6 @@ class PortSchemaTest {
         PortSchema intSchema = PortSchema.builder().intSchema().build();
         PortSchema floatSchema = PortSchema.builder().floatSchema().build();
         PortSchema booleanSchema = PortSchema.builder().booleanSchema().build();
-        PortSchema dateSchema = PortSchema.builder().dateSchema().build();
 
         // Valid values
         String testString = "test";
@@ -135,14 +132,12 @@ class PortSchemaTest {
         assertTrue(intSchema.isValidValue(42));
         assertTrue(floatSchema.isValidValue(3.14f));
         assertTrue(booleanSchema.isValidValue(true));
-        assertTrue(dateSchema.isValidValue(new Date()));
 
         // Invalid values
         assertFalse(stringSchema.isValidValue(42));
         assertFalse(intSchema.isValidValue("42"));
         assertFalse(floatSchema.isValidValue(true));
         assertFalse(booleanSchema.isValidValue(1));
-        assertFalse(dateSchema.isValidValue("2023-01-01"));
     }
 
     @Test
