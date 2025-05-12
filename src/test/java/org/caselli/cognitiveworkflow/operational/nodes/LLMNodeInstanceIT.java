@@ -526,6 +526,48 @@ public class LLMNodeInstanceIT {
         }
     }
 
+
+    @Test
+    @DisplayName("List of int output")
+    void test_arrayOutput_returnsListOfInt() {
+        metamodel.setInputPorts(List.of(
+                LLMPort.LLMBuilder()
+                        .withKey("MIN")
+                        .withRole(LLMPort.LLMPortRole.SYSTEM_PROMPT_VARIABLE)
+                        .withSchema(PortSchema.builder().intSchema().build())
+                        .build()
+        ));
+
+        metamodel.setOutputPorts(List.of(
+                LLMPort.LLMBuilder()
+                        .withKey("res")
+                        .withRole(LLMPort.LLMPortRole.RESPONSE)
+                        .withSchema(PortSchema.builder().arraySchema(
+                                PortSchema.builder().intSchema().build()
+                        ).build())
+                        .build()
+        ));
+
+        metamodel.setSystemPromptTemplate(
+                """
+                You are a fortune-teller. Give me 3 numbers greater then {MIN}
+                """);
+
+        context.put("MIN", 10);
+
+        llmNodeInstance.process(context);
+
+        Object response = context.get("res");
+        assertNotNull(response);
+        assertInstanceOf(List.class, response);
+        List<?> list =  (List<?>) response;
+
+        for (var el : list) validateInt(el);
+    }
+
+
+
+
     private void validateString(Object obj){
         assertNotNull(obj);
         assertInstanceOf(String.class, obj);

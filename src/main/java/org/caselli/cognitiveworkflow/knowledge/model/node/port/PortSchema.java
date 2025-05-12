@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 
 import java.util.*;
@@ -229,6 +228,19 @@ public class PortSchema {
                 return false;
         }
     }
+
+    /**
+     * Checks if the current type is a primitive type.
+     * Primitive types include: STRING, INT, FLOAT, BOOLEAN.
+     * @return {@code true} if the type is primitive, {@code false} otherwise.
+     */
+    public boolean isPrimitiveType() {
+        return switch (this.type) {
+            case STRING, INT, FLOAT, BOOLEAN, DATE -> true;
+            default -> false;
+        };
+    }
+
 
     /**
      * Resolves a dot-notated path to a nested PortSchema, starting from this schema.
