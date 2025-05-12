@@ -7,14 +7,10 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.ai.converter.MapOutputConverter;
-import org.springframework.ai.converter.ListOutputConverter;
 import org.springframework.ai.converter.StructuredOutputConverter;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.core.convert.support.DefaultConversionService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -54,7 +50,6 @@ public class PortStructuredOutput {
                 """);
         } else if (schema.getType() == PortType.ARRAY && schema.getItems().getType() == PortType.OBJECT) {
 
-
             instructions.append("The output must follow the schema below:\n")
                     .append(schema.toJson())
                     .append("\n\n");
@@ -82,6 +77,11 @@ public class PortStructuredOutput {
                 - `properties` defines the nested structure of keys inside an object.
                 """);
         }
+
+        instructions.append("""
+            Numbers (Float, Int, Double etc.) must be numeric, without any other characters. All numeric values must not contain underscores, and scientific notation is not allowed.
+        """);
+
 
         return new SystemMessage(instructions.toString());
     }
