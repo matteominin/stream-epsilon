@@ -3,6 +3,8 @@ package org.caselli.cognitiveworkflow.operational.LLM;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.converter.BeanOutputConverter;
@@ -19,62 +21,8 @@ import java.util.Map;
  * This class simplifies working with Spring AI's output converters for different port types.
  */
 public class PortStructuredOutput {
-    /**
-     * Creates a system message that provides formatting instructions based on the port's schema.
-     * @param port The port that defines the expected schema for structured output
-     * @return A system message containing formatting guidelines for the output
-     */
-    public static Message createSchemaInstructionMessage(Port port) {
-        PortSchema schema = port.getSchema();
-        StringBuilder instructions = new StringBuilder();
 
-        // Append custom system instructions only for non-primitive types or arrays of non-primitive types,
-        // since Spring AI does not handle nested dynamic typed schemas reliably.
-        // Standard Spring AI structured output instructions will be used afterward as a common base.
-        if (!schema.isPrimitiveType() && (schema.getItems() == null || !schema.getItems().isPrimitiveType())) {
-
-            // Add the full schema as a reference for formatting
-            instructions.append("The output must follow the following schema:\n").append(schema.toJson()).append("\n\n");
-
-            // Instructions for OBJECT type schemas
-            if (schema.getType() == PortType.OBJECT) {
-                instructions.append("""
-            For each key, provide only its value (e.g., a float, int, string, nested object, or array).
-            """);
-            }
-
-            // Instructions for ARRAY of OBJECTS
-            else if (schema.getType() == PortType.ARRAY && schema.getItems().getType() == PortType.OBJECT) {
-                instructions.append("""
-            You should return a list of objects: each element of the outer list should be an object whose fields contain only values (e.g., a float, int, string, nested object, or array).
-            """);
-            }
-
-            // Instructions for ARRAY of ARRAYS
-            else if (schema.getType() == PortType.ARRAY && schema.getItems().getType() == PortType.ARRAY) {
-                instructions.append("""
-            You should return a list of lists: each element of the outer list should be another nested list.
-            If the nested list contains objects, their fields should contain only values (e.g., a float, int, string, nested object, or array).
-            """);
-            }
-
-            // General guidelines for complex structures
-            instructions.append("""
-            **Important Guidelines:**
-            - Do **not** include 'properties', 'items', or 'type' in the output; these are metadata for understanding the structure.
-            - `type` indicates the expected data type (e.g., INT, FLOAT, ARRAY, OBJECT).
-            - `items` describes the structure of elements within an array.
-            - `properties` defines the internal structure of objects.
-            """);
-        }
-
-        // Formatting rule for numeric values
-        instructions.append("""
-        Numbers (Float, Int, Double etc.) must be numeric, without any other characters. All numeric values must not contain underscores, and scientific notation is not allowed.
-    """);
-
-        return new SystemMessage(instructions.toString());
-    }
+    private static final Logger logger = LoggerFactory.getLogger(PortStructuredOutput.class);
 
 
     /**
@@ -131,6 +79,64 @@ public class PortStructuredOutput {
             messages.add(new SystemMessage(converter.getFormat()));
         }
     }
+
+    /**
+     * Creates a system message that provides formatting instructions based on the port's schema.
+     * @param port The port that defines the expected schema for structured output
+     * @return A system message containing formatting guidelines for the output
+     */
+    private static Message createSchemaInstructionMessage(Port port) {
+        PortSchema schema = port.getSchema();
+        StringBuilder instructions = new StringBuilder();
+
+        // Append custom system instructions only for non-primitive types or arrays of non-primitive types,
+        // since Spring AI does not handle nested dynamic typed schemas reliably.
+        // Standard Spring AI structured output instructions will be used afterward as a common base.
+        if (!schema.isPrimitiveType() && (schema.getItems() == null || !schema.getItems().isPrimitiveType())) {
+
+            // Add the full schema as a reference for formatting
+            instructions.append("The output must follow the following schema:\n").append(schema.toJson()).append("\n\n");
+
+            // Instructions for OBJECT type schemas
+            if (schema.getType() == PortType.OBJECT) {
+                instructions.append("""
+            For each key, provide only its value (e.g., a float, int, string, nested object, or array).
+            """);
+            }
+
+            // Instructions for ARRAY of OBJECTS
+            else if (schema.getType() == PortType.ARRAY && schema.getItems().getType() == PortType.OBJECT) {
+                instructions.append("""
+            You should return a list of objects: each element of the outer list should be an object whose fields contain only values (e.g., a float, int, string, nested object, or array).
+            """);
+            }
+
+            // Instructions for ARRAY of ARRAYS
+            else if (schema.getType() == PortType.ARRAY && schema.getItems().getType() == PortType.ARRAY) {
+                instructions.append("""
+            You should return a list of lists: each element of the outer list should be another nested list.
+            If the nested list contains objects, their fields should contain only values (e.g., a float, int, string, nested object, or array).
+            """);
+            }
+
+            // General guidelines for complex structures
+            instructions.append("""
+            **Important Guidelines:**
+            - Do **not** include 'properties', 'items', or 'type' in the output; these are metadata for understanding the structure.
+            - `type` indicates the expected data type (e.g., INT, FLOAT, ARRAY, OBJECT).
+            - `items` describes the structure of elements within an array.
+            - `properties` defines the internal structure of objects.
+            """);
+        }
+
+        // Formatting rule for numeric values
+        instructions.append("""
+        Numbers (Float, Int, Double etc.) must be numeric, without any other characters. All numeric values must not contain underscores, and scientific notation is not allowed.
+    """);
+
+        return new SystemMessage(instructions.toString());
+    }
+
 
     /**
      * Processes the LLM response according to the port's schema type.
@@ -206,25 +212,20 @@ public class PortStructuredOutput {
      * @return The processed response
      */
     public static Object processWithChatClient(ChatClient chatClient, List<Message> messages, Port port) {
-        // Add format instructions
         addFormatInstructions(messages, port);
-
-        // Create prompt
         Prompt prompt = new Prompt(messages);
 
+        logger.info("Prompt contents: {}", prompt.getContents());
 
-        System.out.println("prompt: "+ prompt.getContents());
-
-        // Process with chat client and get response content
         String responseText = chatClient.prompt(prompt).call().content();
 
-        System.out.println("responseText: "+ responseText);
+        logger.info("Raw LLM response: {}", responseText);
 
-        // Process the response based on port type
         var res = processResponse(responseText, port);
 
-        System.out.println("Converted response: "+ res);
+        logger.info("Converted response: {}", res);
 
         return res;
     }
+
 }
