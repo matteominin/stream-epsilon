@@ -22,8 +22,9 @@ public class IntentMetamodel {
     @NotNull
     private String name;
 
-    @NotNull
     private String description;
+
+    private Boolean AIGenerated;
 
     @CreatedDate
     private LocalDateTime createdAt;

@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Tag("it")
-@Tag("focus")
 @ActiveProfiles("test")
 public class InputMapperServiceIT {
 
@@ -32,9 +31,9 @@ public class InputMapperServiceIT {
     @Test
     public void shouldWorkWithOnlyOneNode() {
         // NODE 1
-        RestPort source1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
@@ -67,9 +66,9 @@ public class InputMapperServiceIT {
     @Test
     public void shouldDiscardExcessVariables() {
         // NODE A
-        RestPort source_A_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_A_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_A_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_A_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_A_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_A_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
@@ -115,12 +114,12 @@ public class InputMapperServiceIT {
     @Test
     public void shouldWorkWithOnlyOnNodeEvenWithoutAllOptionalFieldsSatisfied() {
         // NODE 1
-        RestPort source1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // OPTIONAL FIELDS:
-        RestPort source4 = RestPort.resBuilder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
-        RestPort source5 = RestPort.resBuilder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
+        RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
+        RestPort source5 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
 
         RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
@@ -159,10 +158,10 @@ public class InputMapperServiceIT {
     @Test
     public void shouldFailWithOnlyOneWrongNode() {
         // NODE 1
-        RestPort source1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source4 = RestPort.resBuilder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
@@ -198,11 +197,11 @@ public class InputMapperServiceIT {
     public void shouldFailWithMultipleWrongNodes() {
 
         // NODE A
-        RestPort source1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // Unsatisfied port:
-        RestPort source4 = RestPort.resBuilder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
@@ -218,11 +217,11 @@ public class InputMapperServiceIT {
         );
 
         // NODE B
-        RestPort source_B_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // Unsatisfied port:
-        RestPort source_B_4 = RestPort.resBuilder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeB = new RestToolNodeMetamodel();
         nodeB.setId(String.valueOf(UUID.randomUUID()));
@@ -232,11 +231,11 @@ public class InputMapperServiceIT {
         nodeB.setOutputPorts(List.of());
 
         // NODE C
-        RestPort source_C_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_C_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_C_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // Unsatisfied port:
-        RestPort source_C_4 = RestPort.resBuilder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
 
         RestToolNodeMetamodel nodeC = new RestToolNodeMetamodel();
@@ -274,11 +273,11 @@ public class InputMapperServiceIT {
     @Test
     public void shouldWorkWithMultipleWrongNodesAndOneWithoutAllTheOptionalFields() {
         // NODE 1
-        RestPort source1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // Unsatisfied port:
-        RestPort source4 = RestPort.resBuilder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
@@ -289,11 +288,11 @@ public class InputMapperServiceIT {
 
 
         // NODE B
-        RestPort source_B_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // Unsatisfied port:
-        RestPort source_B_4 = RestPort.resBuilder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeB = new RestToolNodeMetamodel();
         nodeB.setId(String.valueOf(UUID.randomUUID()));
@@ -304,11 +303,11 @@ public class InputMapperServiceIT {
 
         // NODE C
 
-        RestPort source_C_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_C_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_C_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // Unsatisfied port:
-        RestPort source_C_4 = RestPort.resBuilder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeC = new RestToolNodeMetamodel();
         nodeC.setId(String.valueOf(UUID.randomUUID()));
@@ -320,11 +319,11 @@ public class InputMapperServiceIT {
 
         // NODE D
 
-        RestPort source_D_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_D_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_D_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_D_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_D_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_D_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // OPTIONAL Unsatisfied port:
-        RestPort source_D_4 = RestPort.resBuilder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
+        RestPort source_D_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
 
         RestToolNodeMetamodel nodeD = new RestToolNodeMetamodel();
         nodeD.setId(String.valueOf(UUID.randomUUID()));
@@ -376,9 +375,9 @@ public class InputMapperServiceIT {
     public void shouldWorkWithMultipleNodeAndOnlyOneValid() {
         // NODE A
 
-        RestPort source_A_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_A_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_A_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_A_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_A_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_A_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
@@ -389,10 +388,10 @@ public class InputMapperServiceIT {
 
         // NODE B
 
-        RestPort source_B_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_3 = RestPort.resBuilder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_4 = RestPort.resBuilder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeB = new RestToolNodeMetamodel();
         nodeB.setId(String.valueOf(UUID.randomUUID()));
@@ -403,8 +402,8 @@ public class InputMapperServiceIT {
 
         // NODE C
 
-        RestPort source_C_1 = RestPort.resBuilder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_C_2 = RestPort.resBuilder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
         RestToolNodeMetamodel nodeC = new RestToolNodeMetamodel();
         nodeC.setId(String.valueOf(UUID.randomUUID()));
@@ -447,7 +446,7 @@ public class InputMapperServiceIT {
     @Test
     public void shouldWorkWithOnlyOneNestedNode() {
         // NODE 1
-        RestPort source1 = RestPort.resBuilder()
+        RestPort source1 = RestPort.builder()
                     .withKey("user")
                     .withSchema(PortSchema.builder()
                     .objectSchema(Map.of(
@@ -462,7 +461,7 @@ public class InputMapperServiceIT {
                 ))
                 .build()).build();
 
-        RestPort source2 = RestPort.resBuilder().withKey("orderId").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source2 = RestPort.builder().withKey("orderId").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
 
         RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();

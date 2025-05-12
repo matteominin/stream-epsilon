@@ -2,6 +2,7 @@ package org.caselli.cognitiveworkflow.operational.LLM;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.StandardPort;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
     public void onApplicationEvent(ApplicationReadyEvent e) {
         //testIntentDetector();
       // testAdapter2();
-       testAdapter1();
+      // testAdapter1();
     }
 
     public void testIntentDetector() {
@@ -63,7 +64,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         List<Port> sources = new ArrayList<>();
 
         // Using builder for source ports
-        Port source1 = Port.builder()
+        Port source1 = StandardPort.builder()
                 .withKey("source1")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
@@ -71,7 +72,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
                         .build())
                 .build();
 
-        Port source2 = Port.builder()
+        Port source2 = StandardPort.builder()
                 .withKey("source2")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
@@ -85,7 +86,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         // Using builder for target ports
         List<Port> targets = new ArrayList<>();
 
-        Port target1 = Port.builder()
+        Port target1 = StandardPort.builder()
                 .withKey("target1")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
@@ -93,7 +94,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
                         .build())
                 .build();
 
-        Port target2 = Port.builder()
+        Port target2 = StandardPort.builder()
                 .withKey("target2")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
@@ -145,7 +146,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
                 ))
                 .build();
 
-        Port source1 = Port.builder()
+        Port source1 = StandardPort.builder()
                 .withKey("source")
                 .withSchema(source1Schema)
                 .build();
@@ -153,7 +154,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
         List<Port> sources = List.of(source1);
 
         // TARGET
-        Port target1 = Port.builder()
+        Port target1 = StandardPort.builder()
                 .withKey("email")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
@@ -161,7 +162,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
                         .build())
                 .build();
 
-        Port target2 = Port.builder()
+        Port target2 = StandardPort.builder()
                 .withKey("phone")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
@@ -169,7 +170,7 @@ public class Test implements ApplicationListener<ApplicationReadyEvent> {
                         .build())
                 .build();
 
-        Port target3 = Port.builder()
+        Port target3 = StandardPort.builder()
                 .withKey("orderId")
                 .withSchema(PortSchema.builder()
                         .stringSchema()

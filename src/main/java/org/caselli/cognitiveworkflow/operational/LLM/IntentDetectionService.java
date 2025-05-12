@@ -148,7 +148,7 @@ public class IntentDetectionService extends LLMServiceBase {
     protected ChatClient buildChatClient() {
         var options = new LlmModelFactory.BaseLlmModelOptions();
         options.setTemperature(temperature);
-        return llmModelFactory.createChatClient(intentProvider, intentApiKey, intentModel, options);
+        return llmModelFactory.createChatClient(intentProvider, intentModel, intentApiKey, options);
     }
 
 

@@ -23,13 +23,10 @@ import lombok.Data;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = StandardPort.class, name = "STANDARD"),
         @JsonSubTypes.Type(value = RestPort.class, name = "REST"),
+        @JsonSubTypes.Type(value = LLMPort.class, name = "LLM"),
 })
 public class Port {
     Port() {}
-
-    public static PortBuilder builder() {
-        return new PortBuilder();
-    }
 
     /** The key of the port */
     @NotNull private String key;
@@ -52,7 +49,8 @@ public class Port {
 
     public enum PortImplementationType {
         STANDARD,
-        REST
+        REST,
+        LLM
     }
 
 
@@ -70,62 +68,14 @@ public class Port {
         try {
             JsonNode portNode = mapper.valueToTree(port);
             // Remove "portType"
-            if (portNode instanceof ObjectNode) ((ObjectNode) portNode).remove("portType");
+            if (portNode instanceof ObjectNode)
+            {
+                ((ObjectNode) portNode).remove("portType");
+                ((ObjectNode) portNode).remove("role");
+            }
             return mapper.writeValueAsString(portNode);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize Port to JSON", e);
-        }
-    }
-
-
-
-    /**
-     * Port builder
-     */
-    public static class PortBuilder {
-
-        private String key;
-        private PortSchema schema;
-        private Object defaultValue;
-
-        private PortBuilder() {
-        }
-
-        public PortBuilder withKey(String key) {
-            this.key = key;
-            return this;
-        }
-
-        public PortBuilder withSchema(PortSchema schema) {
-            this.schema = schema;
-            return this;
-        }
-
-        public PortBuilder withDefaultValue(Object defaultValue) {
-            this.defaultValue = defaultValue;
-            return this;
-        }
-
-        public Port build() {
-            Port port = new Port();
-            port.setKey(key);
-            port.setSchema(schema);
-            port.setDefaultValue(defaultValue);
-            port.setPortType(Port.PortImplementationType.STANDARD);
-
-
-            if (key == null || key.isEmpty())
-                throw new IllegalStateException("Key must be specified");
-
-
-            if (schema == null)
-                throw new IllegalStateException("Schema must be specified");
-
-
-            if (defaultValue != null && schema.isValidValue(defaultValue))
-                throw new IllegalStateException("Default value is not valid for the schema");
-
-            return port;
         }
     }
 }

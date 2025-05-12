@@ -2,7 +2,6 @@ package org.caselli.cognitiveworkflow.operational.core;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
-import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.node.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.workflow.WorkflowInstance;
@@ -26,23 +25,16 @@ public class WorkflowExecutor {
      * Workflow to execute
      */
     private final WorkflowInstance workflow;
-    /**
-     * Map meta-node IDs to instances
-     */
-    private final Map<String, NodeInstance> nodeInstancesMap = new HashMap<>();
-    /**
-     * Map workflow nodes by their workflow-specific id
-     */
-    private final Map<String, WorkflowNode> workflowNodesMap = new HashMap<>();
 
     public WorkflowExecutor(WorkflowInstance workflow) {
         this.workflow = workflow;
-
-        for (NodeInstance node : workflow.getNodeInstances()) nodeInstancesMap.put(node.getId(), node);
-        for (WorkflowNode node : workflow.getMetamodel().getNodes()) workflowNodesMap.put(node.getId(), node);
     }
 
     public void execute(ExecutionContext context) {
+        execute(context, null);
+    }
+
+    public void execute(ExecutionContext context, String startingNodeId) {
 
         logger.info("-------------------------------------------");
 
@@ -61,7 +53,7 @@ public class WorkflowExecutor {
 
         // outgoings = For each node, store the edges that go out from it
         // inDegree = For each node, store the number of incoming edges
-        for (String nodeId : workflowNodesMap.keySet())
+        for (String nodeId : workflow.getWorkflowNodesMap().keySet())
             inDegree.put(nodeId, 0);
 
         for (WorkflowEdge edge : edges) {
@@ -70,11 +62,23 @@ public class WorkflowExecutor {
         }
 
         // Starting Queue
-        // All the nodes with in-degree 0 (the nodes that can be processed first are those with no incoming edges)
+
         Queue<String> queue = new LinkedList<>();
-        for (Map.Entry<String, Integer> entry : inDegree.entrySet())
-            if (entry.getValue() == 0)
-                queue.add(workflowNodesMap.get(entry.getKey()).getId());
+
+        if (startingNodeId != null) {
+            // If startingNodeId is specified, begin from that node
+            if (!workflow.getWorkflowNodesMap().containsKey(startingNodeId)) throw new RuntimeException("Starting node with ID " + startingNodeId + " does not exist.");
+
+            queue.add(startingNodeId);
+
+            logger.info("Starting workflow execution from specified node: {}", startingNodeId);
+        } else {
+            // Otherwise, start from all nodes with in-degree 0
+            for (Map.Entry<String, Integer> entry : inDegree.entrySet()) {
+                if (entry.getValue() == 0) queue.add(workflow.getWorkflowNodesMap().get(entry.getKey()).getId());
+            }
+            logger.info("Starting workflow execution from all entry nodes");
+        }
 
 
         Set<String> processedNodeIds = new HashSet<>();
@@ -82,7 +86,7 @@ public class WorkflowExecutor {
         // Process nodes in topological order
         while (!queue.isEmpty()) {
             String currentId = queue.poll();
-            NodeInstance current = getInstanceByWorkflowNodeId(currentId);
+            NodeInstance current = workflow.getInstanceByWorkflowNodeId(currentId);
 
             logger.info("Processing node: {}", currentId);
 
@@ -117,7 +121,7 @@ public class WorkflowExecutor {
                 String targetId = edge.getTargetNodeId();
 
                 // Get target node
-                NodeInstance targetNode = getInstanceByWorkflowNodeId(targetId);
+                NodeInstance targetNode = workflow.getInstanceByWorkflowNodeId(targetId);
 
                 if (targetNode == null) {
                     logger.warn("Edge references non-existent target node ID: {}", targetId);
@@ -157,9 +161,9 @@ public class WorkflowExecutor {
             String sourceId = edge.getSourceNodeId();
             String targetId = edge.getTargetNodeId();
 
-            if (getInstanceByWorkflowNodeId(sourceId) == null)
+            if (workflow.getInstanceByWorkflowNodeId(sourceId) == null)
                 logger.warn("Edge references non-existent source node ID: {}", sourceId);
-            if (getInstanceByWorkflowNodeId(targetId) == null)
+            if (workflow.getInstanceByWorkflowNodeId(targetId) == null)
                 logger.warn("Edge references non-existent target node ID: {}", targetId);
         }
     }
@@ -212,7 +216,7 @@ public class WorkflowExecutor {
                 // Source key (or path) not found in context, check if the target port has a default value
                 // This requires finding the *root* port key for the target path.
                 String rootTargetKey = targetKey.split("\\.")[0];
-                NodeInstance targetNode = getInstanceByWorkflowNodeId(edge.getTargetNodeId()); // Get target node instance
+                NodeInstance targetNode = workflow.getInstanceByWorkflowNodeId(edge.getTargetNodeId()); // Get target node instance
 
                 if (targetNode != null) {
                     Port targetPort = findInputPort(targetNode, rootTargetKey); // Find the root input port
@@ -233,20 +237,6 @@ public class WorkflowExecutor {
                 }
             }
         }
-    }
-
-
-
-
-
-    /***
-     * Returns the instance of a node by the workflow-specific node ID
-     * @param id the workflow-node ID
-     */
-    private NodeInstance getInstanceByWorkflowNodeId(String id) {
-        var workflowNode = this.workflowNodesMap.get(id);
-        if (workflowNode == null) return null;
-        return this.nodeInstancesMap.get(workflowNode.getNodeMetamodelId());
     }
 
 

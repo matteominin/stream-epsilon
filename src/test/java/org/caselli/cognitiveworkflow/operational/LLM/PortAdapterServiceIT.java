@@ -2,6 +2,7 @@ package org.caselli.cognitiveworkflow.operational.LLM;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.StandardPort;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +30,12 @@ public class PortAdapterServiceIT {
     public void PortAdapterShouldWorkWithSimplePorts() {
         List<Port> sources = new ArrayList<>();
         // SOURCE
-        Port source1 = Port.builder()
+        Port source1 = StandardPort.builder()
                 .withKey("source1")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
 
-        Port source2 = Port.builder()
+        Port source2 = StandardPort.builder()
                 .withKey("source2")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
@@ -45,12 +46,12 @@ public class PortAdapterServiceIT {
         // TARGET
         List<Port> targets = new ArrayList<>();
 
-        Port target1 = Port.builder()
+        Port target1 = StandardPort.builder()
                 .withKey("target1")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
 
-        Port target2 = Port.builder().withKey("target2")
+        Port target2 = StandardPort.builder().withKey("target2")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
 
@@ -101,7 +102,7 @@ public class PortAdapterServiceIT {
                 ))
                 .build();
 
-        Port source1 = Port.builder()
+        Port source1 = StandardPort.builder()
                 .withKey("source")
                 .withSchema(source1Schema)
                 .build();
@@ -109,7 +110,7 @@ public class PortAdapterServiceIT {
         List<Port> sources = List.of(source1);
 
         // TARGET
-        Port target1 = Port.builder()
+        Port target1 = StandardPort.builder()
                 .withKey("email")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
@@ -117,7 +118,7 @@ public class PortAdapterServiceIT {
                         .build())
                 .build();
 
-        Port target2 = Port.builder()
+        Port target2 = StandardPort.builder()
                 .withKey("phone_number")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
@@ -125,7 +126,7 @@ public class PortAdapterServiceIT {
                         .build())
                 .build();
 
-        Port target3 = Port.builder()
+        Port target3 = StandardPort.builder()
                 .withKey("orderId")
                 .withSchema(PortSchema.builder()
                         .stringSchema()
@@ -167,7 +168,7 @@ public class PortAdapterServiceIT {
     public void testEmptySourcePorts() {
         List<Port> sources = Collections.emptyList();
 
-        Port target = Port.builder()
+        Port target = StandardPort.builder()
                 .withKey("target")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
@@ -185,7 +186,7 @@ public class PortAdapterServiceIT {
      */
     @Test
     public void testEmptyTargetPorts() {
-        Port source = Port.builder()
+        Port source = StandardPort.builder()
                 .withKey("source")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
@@ -204,12 +205,12 @@ public class PortAdapterServiceIT {
      */
     @Test
     public void testTypeMismatchShouldNotBind() {
-        Port source = Port.builder()
+        Port source = StandardPort.builder()
                 .withKey("stringValue")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
 
-        Port target = Port.builder()
+        Port target = StandardPort.builder()
                 .withKey("numericValue")
                 .withSchema(PortSchema.builder().intSchema().withRequired(true).build())
                 .build();
@@ -229,7 +230,7 @@ public class PortAdapterServiceIT {
      */
     @Test
     public void testArrayTypeHandling() {
-        Port source = Port.builder()
+        Port source = StandardPort.builder()
                 .withKey("items")
                 .withSchema(PortSchema.builder()
                         .arraySchema(PortSchema.builder().stringSchema().build())
@@ -237,7 +238,7 @@ public class PortAdapterServiceIT {
                         .build())
                 .build();
 
-        Port target = Port.builder()
+        Port target = StandardPort.builder()
                 .withKey("elements")
                 .withSchema(PortSchema.builder()
                         .arraySchema(PortSchema.builder().stringSchema().build())
@@ -259,12 +260,12 @@ public class PortAdapterServiceIT {
      */
     @Test
     public void testTypeCompatibilityMatching() {
-        Port source = Port.builder()
+        Port source = StandardPort.builder()
                 .withKey("userId")
                 .withSchema(PortSchema.builder().intSchema().withRequired(true).build())
                 .build();
 
-        Port target = Port.builder()
+        Port target = StandardPort.builder()
                 .withKey("userIdString")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
@@ -283,17 +284,17 @@ public class PortAdapterServiceIT {
      */
     @Test
     public void testMultiplePotentialMatches() {
-        Port source = Port.builder()
+        Port source = StandardPort.builder()
                 .withKey("email")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
 
-        Port target1 = Port.builder()
+        Port target1 = StandardPort.builder()
                 .withKey("userEmail")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
 
-        Port target2 = Port.builder()
+        Port target2 = StandardPort.builder()
                 .withKey("contactEmail")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
@@ -316,18 +317,18 @@ public class PortAdapterServiceIT {
      */
     @Test
     public void testMissingRequiredFields() {
-        Port source1 = Port.builder()
+        Port source1 = StandardPort.builder()
                 .withKey("requiredEmail")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
 
-        Port source2 = Port.builder()
+        Port source2 = StandardPort.builder()
                 .withKey("optionalPhone")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(false).build())
                 .build();
 
         // Target only has one required field
-        Port target = Port.builder()
+        Port target = StandardPort.builder()
                 .withKey("email")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
@@ -365,23 +366,23 @@ public class PortAdapterServiceIT {
                 ))
                 .build();
 
-        Port source = Port.builder()
+        Port source = StandardPort.builder()
                 .withKey("userData")
                 .withSchema(sourceSchema)
                 .build();
 
         // Flat target structure
-        Port targetStreet = Port.builder()
+        Port targetStreet = StandardPort.builder()
                 .withKey("street")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
 
-        Port targetCity = Port.builder()
+        Port targetCity = StandardPort.builder()
                 .withKey("city")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
 
-        Port targetZip = Port.builder()
+        Port targetZip = StandardPort.builder()
                 .withKey("postalCode")
                 .withSchema(PortSchema.builder().stringSchema().withRequired(true).build())
                 .build();
@@ -403,12 +404,12 @@ public class PortAdapterServiceIT {
     @Test
     public void testBooleanTypeHandling() {
         // Test with boolean types
-        Port source = Port.builder()
+        Port source = StandardPort.builder()
                 .withKey("isActive")
                 .withSchema(PortSchema.builder().booleanSchema().withRequired(true).build())
                 .build();
 
-        Port target = Port.builder()
+        Port target = StandardPort.builder()
                 .withKey("active")
                 .withSchema(PortSchema.builder().booleanSchema().withRequired(true).build())
                 .build();
@@ -440,7 +441,7 @@ public class PortAdapterServiceIT {
                 ))
                 .build();
 
-        Port source = Port.builder()
+        Port source = StandardPort.builder()
                 .withKey("sourceData")
                 .withSchema(sourceSchema)
                 .build();
@@ -458,7 +459,7 @@ public class PortAdapterServiceIT {
                 ))
                 .build();
 
-        Port target = Port.builder()
+        Port target = StandardPort.builder()
                 .withKey("targetData")
                 .withSchema(targetSchema)
                 .build();

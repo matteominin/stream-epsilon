@@ -8,7 +8,6 @@ public enum PortType {
     INT,
     FLOAT,
     BOOLEAN,
-    DATE,
     OBJECT,
     ARRAY
 }

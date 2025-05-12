@@ -10,6 +10,7 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import java.util.logging.Logger;
@@ -17,6 +18,13 @@ import java.util.logging.Logger;
 
 @Service
 public class LlmModelFactory {
+
+
+    @Value("${llm.openai.api-key:}")
+    private String defaultOpenAiApiKey;
+
+    @Value("${llm.anthropic.api-key:}")
+    private String defaultAnthropicApiKey;
 
     Logger logger = Logger.getLogger(LlmModelFactory.class.getName());
 
@@ -136,19 +144,30 @@ public class LlmModelFactory {
 
 
     /**
-     * Creates a ChatClient based on provider, key, model, and options.
-     * @param provider The LLM provider.
-     * @param apiKey The API key.
+     * Creates a ChatClient based on provider, model, Api Key and options.
+     *
+     * @param provider  The LLM provider.
      * @param modelName The specific model name.
-     * @param options Provider-specific options object.
+     * @param apiKey    The API key (Optional). If null a default API Key will be used if existing
+     * @param options   Provider-specific options object (Optional).
      * @return A ChatClient instance.
      * @throws IllegalArgumentException if inputs are invalid.
      */
-    public ChatClient createChatClient(String provider, String apiKey, String modelName, BaseLlmModelOptions options) {
-        ChatModel chatModel = buildChatModel(provider, apiKey, modelName, convertOptions(provider, options));
+    public ChatClient createChatClient(String provider, String modelName, String apiKey, BaseLlmModelOptions options) {
+        ChatModel chatModel = buildChatModel(provider, getApiKeyOrDefault(provider, apiKey), modelName, convertOptions(provider, options));
         return ChatClient.create(chatModel);
     }
 
+    /**
+     * Creates a ChatClient based on provider and model (Using default API key if it exists)
+     *
+     * @param provider  The LLM provider.
+     * @param modelName The specific model name.
+     * @throws IllegalArgumentException if inputs are invalid. (E.g., default api key not configure)
+     */
+    public ChatClient createChatClient(String provider, String modelName) {
+        return createChatClient(provider, modelName, null, null);
+    }
 
     /**
      * Creates a ChatClient from an already built ChatModel instance.
@@ -162,6 +181,37 @@ public class LlmModelFactory {
         }
         return ChatClient.create(chatModel);
     }
+
+    /**
+     * Returns the provided API key if it is not null or blank; otherwise, returns the default API key
+     * configured for the specified provider.
+     *
+     * <p>If no API key is provided and no default is configured for the given provider,
+     * this method throws an {@link IllegalArgumentException}.
+     *
+     * @param provider the LLM provider name (e.g. "openai", "anthropic")
+     * @param apiKey the API key to use, or null/empty to fallback to the default
+     * @return a non-null API key to use for the given provider
+     * @throws IllegalArgumentException if the provider is unsupported or no API key is available
+     */
+    private String getApiKeyOrDefault(String provider, String apiKey) {
+        if (StringUtils.hasText(apiKey)) return apiKey;
+
+        return switch (provider.toLowerCase()) {
+            case "openai" -> {
+                if (!StringUtils.hasText(defaultOpenAiApiKey))
+                    throw new IllegalArgumentException("OpenAI API key not provided and no default set.");
+                yield defaultOpenAiApiKey;
+            }
+            case "anthropic" -> {
+                if (!StringUtils.hasText(defaultAnthropicApiKey))
+                    throw new IllegalArgumentException("Anthropic API key not provided and no default set.");
+                yield defaultAnthropicApiKey;
+            }
+            default -> throw new IllegalArgumentException("Unsupported provider for default API key: " + provider);
+        };
+    }
+
 
 
 
@@ -215,6 +265,7 @@ public class LlmModelFactory {
         return builder;
     }
 
+
     /**
      * A generic (non-provider specific) options class for LLM models.
      */
@@ -224,4 +275,7 @@ public class LlmModelFactory {
         private Double topP;
         private Integer maxTokens;
     }
+
+
+
 }

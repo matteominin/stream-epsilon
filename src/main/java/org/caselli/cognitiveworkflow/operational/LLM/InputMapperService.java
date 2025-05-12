@@ -166,7 +166,7 @@ public class InputMapperService extends LLMServiceBase {
 
         var options = new LlmModelFactory.BaseLlmModelOptions();
         options.setTemperature(temperature);
-        return llmModelFactory.createChatClient(provider, apiKey, model, options);
+        return llmModelFactory.createChatClient(provider, model, apiKey, options);
     }
 
 

@@ -1,23 +1,27 @@
 package org.caselli.cognitiveworkflow.operational.workflow;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.WorkflowMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.node.NodeInstance;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-@Setter
+
 @Getter
 @Component
 @Scope("prototype")
 public class WorkflowInstance {
     @NotNull
+    @Setter
     public String id;
 
     // Metamodel
@@ -25,6 +29,37 @@ public class WorkflowInstance {
 
     // Nodes
     private List<NodeInstance> nodeInstances;
+
+    private final Map<String, NodeInstance> nodeInstancesMap = new HashMap<>();
+    private final Map<String, WorkflowNode> workflowNodesMap = new HashMap<>();
+
+
+    /**
+     * Initializes the node maps after properties are set by Spring.
+     * This ensures maps are populated regardless of how the bean is created.
+     */
+    @PostConstruct
+    public void initializeMaps() {
+        refreshNodeMaps();
+    }
+
+    /**
+     * Setter for nodeInstances that also refreshes the node maps
+     * @param nodeInstances The list of node instances
+     */
+    public void setNodeInstances(List<NodeInstance> nodeInstances) {
+        this.nodeInstances = nodeInstances;
+        refreshNodeMaps();
+    }
+
+    /**
+     * Setter for metamodel that also refreshes the node maps
+     * @param metamodel The workflow metamodel
+     */
+    public void setMetamodel(WorkflowMetamodel metamodel) {
+        this.metamodel = metamodel;
+        refreshNodeMaps();
+    }
 
 
     /**
@@ -59,9 +94,69 @@ public class WorkflowInstance {
     public void onMetaNodeUpdated(WorkflowMetamodelUpdateEvent event) {
         if (event.getMetamodelId().equals(this.metamodel.getId())) {
             this.metamodel = event.getUpdatedMetamodel();
+            refreshNodeMaps();
             // TODO
             // updating the metadata is not sufficient: we have to check what have changed.
             // The DAG structure may have changed
+        }
+    }
+
+
+    /**
+     * Gets a node instance by its ID
+     * @param nodeId The ID of the node instance to retrieve
+     * @return The NodeInstance or null if not found
+     */
+    public NodeInstance getNodeInstanceById(String nodeId) {
+        return nodeInstancesMap.get(nodeId);
+    }
+
+    /**
+     * Gets a workflow node by its ID
+     * @param workflowNodeId The ID of the workflow node to retrieve
+     * @return The WorkflowNode or null if not found
+     */
+    public WorkflowNode getWorkflowNodeById(String workflowNodeId) {
+        return workflowNodesMap.get(workflowNodeId);
+    }
+
+    /**
+     * Returns the instance of a node by the workflow-specific node ID
+     * @param workflowNodeId The workflow node ID
+     * @return The corresponding NodeInstance or null if not found
+     */
+    public NodeInstance getInstanceByWorkflowNodeId(String workflowNodeId) {
+        WorkflowNode workflowNode = this.workflowNodesMap.get(workflowNodeId);
+        if (workflowNode == null) return null;
+        return this.nodeInstancesMap.get(workflowNode.getNodeMetamodelId());
+    }
+
+
+    /**
+     * Refreshes the internal lookup maps for quick access to node instances and workflow nodes by their IDs.
+     * This method is called automatically whenever the workflow structure changes or when the instance is initialized.
+     */
+    private void refreshNodeMaps() {
+        // Clear existing maps to prevent stale data
+        nodeInstancesMap.clear();
+        workflowNodesMap.clear();
+
+        // Populate the node instances map
+        if (nodeInstances != null) {
+            for (NodeInstance node : nodeInstances) {
+                if (node != null && node.getId() != null) {
+                    nodeInstancesMap.put(node.getId(), node);
+                }
+            }
+        }
+
+        // Populate the workflow nodes map
+        if (metamodel != null && metamodel.getNodes() != null) {
+            for (WorkflowNode node : metamodel.getNodes()) {
+                if (node != null && node.getId() != null) {
+                    workflowNodesMap.put(node.getId(), node);
+                }
+            }
         }
     }
 }

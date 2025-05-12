@@ -1,6 +1,9 @@
 package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
 import java.util.*;
@@ -40,6 +43,25 @@ public class PortSchema {
     private Boolean required;
 
 
+
+
+
+    /**
+     * Converts a PortSchema to JSON string representation.
+     * @return JSON string representation of the PortSchema object
+     */
+    public String toJson(){
+        ObjectMapper mapper = new ObjectMapper();
+        // Exclude null fields
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        try {
+            JsonNode portNode = mapper.valueToTree(this);
+            return mapper.writeValueAsString(portNode);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize PortSchema to JSON", e);
+        }
+    }
 
 
     /**
@@ -141,9 +163,6 @@ public class PortSchema {
             case BOOLEAN:
                 return (value instanceof Boolean);
 
-            case DATE:
-                return (value instanceof Date);
-
             case ARRAY:
                 if (!(value instanceof List<?> || value instanceof Object[]))
                     return false;
@@ -206,6 +225,19 @@ public class PortSchema {
                 return false;
         }
     }
+
+    /**
+     * Checks if the current type is a primitive type.
+     * Primitive types include: STRING, INT, FLOAT, BOOLEAN.
+     * @return {@code true} if the type is primitive, {@code false} otherwise.
+     */
+    public boolean isPrimitiveType() {
+        return switch (this.type) {
+            case STRING, INT, FLOAT, BOOLEAN -> true;
+            default -> false;
+        };
+    }
+
 
     /**
      * Resolves a dot-notated path to a nested PortSchema, starting from this schema.
@@ -331,10 +363,6 @@ public class PortSchema {
             return withType(PortType.BOOLEAN);
         }
 
-        public PortSchemaBuilder dateSchema() {
-            return withType(PortType.DATE);
-        }
-
         public PortSchemaBuilder arraySchema(PortSchema itemsSchema) {
             return withType(PortType.ARRAY).withItems(itemsSchema);
         }
@@ -343,6 +371,4 @@ public class PortSchema {
             return withType(PortType.OBJECT).withProperties(properties);
         }
     }
-
-
 }

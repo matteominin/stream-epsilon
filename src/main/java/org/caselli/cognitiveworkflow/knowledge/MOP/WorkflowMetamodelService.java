@@ -117,7 +117,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
      */
     @Cacheable(value = "workflowMetamodels", key = "#intentId + '_' + #n")
     public List<WorkflowMetamodel> findTopNHandlingIntent(String intentId, int n) {
-        return repository.findByHandledIntents_IntentId(intentId, PageRequest.of(0, n));
+        return repository.findByHandledIntents_IntentId(intentId, n);
     }
 
     @Override

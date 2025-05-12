@@ -28,7 +28,6 @@ public class WorkflowFactory {
     public WorkflowInstance createInstance(WorkflowMetamodel metamodel) {
         WorkflowInstance bean = context.getBean(WorkflowInstance.class);
 
-
         bean.setId(metamodel.getId());
 
         // TODO: inject config
