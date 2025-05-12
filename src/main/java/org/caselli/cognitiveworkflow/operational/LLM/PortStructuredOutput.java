@@ -65,6 +65,12 @@ public class PortStructuredOutput {
                 - `properties` defines the nested structure of keys inside an object.
                 """);
         } else if (schema.getType() == PortType.ARRAY && schema.getItems().getType() == PortType.ARRAY) {
+
+            instructions.append("The output must follow the schema below:\n")
+                    .append(schema.toJson())
+                    .append("\n\n");
+
+
             instructions.append("""
                 Each element of the outer list should be another nested list
                 
@@ -77,6 +83,25 @@ public class PortStructuredOutput {
                 - `properties` defines the nested structure of keys inside an object.
                 """);
         }
+
+
+
+/*
+        else if (schema.getType() == PortType.INT) {
+            instructions.append("""
+                You have to return to return only an INTEGER
+
+                If there is a nested object  whose fields provide only its value (e.g., a number, string, nested object, or array).
+
+                **Important Guidelines:**
+                - Do **not** include 'properties', 'items', or 'type' in the output; they are only present in the schema to help you understand the structure.
+                - `type` specifies the expected type of the value (e.g., INT, FLOAT, ARRAY, OBJECT).
+                - `items` defines the schema of elements inside an array.
+                - `properties` defines the nested structure of keys inside an object.
+                """);
+        } */
+
+
 
         instructions.append("""
             Numbers (Float, Int, Double etc.) must be numeric, without any other characters. All numeric values must not contain underscores, and scientific notation is not allowed.
@@ -114,6 +139,15 @@ public class PortStructuredOutput {
                 messages.add(new SystemMessage(converter.getFormat()));
             }
         }
+        else if (portType == PortType.INT) {
+            StructuredOutputConverter<Integer> converter = new BeanOutputConverter<>(Integer.class);
+            messages.add(new SystemMessage(converter.getFormat()));
+        }
+        else if (portType == PortType.FLOAT) {
+            StructuredOutputConverter<Float> converter = new BeanOutputConverter<>(Float.class);
+            messages.add(new SystemMessage(converter.getFormat()));
+        }
+
 
 
     }
@@ -126,6 +160,7 @@ public class PortStructuredOutput {
      * @return The processed response as the appropriate Java type
      */
     public static Object processResponse(String responseText, Port port) {
+
         PortSchema schema = port.getSchema();
         PortType portType = schema.getType();
 
@@ -155,8 +190,18 @@ public class PortStructuredOutput {
                 System.err.println("Failed to parse LLM response: " + responseText); // Added for debugging
                 throw new RuntimeException("Failed to parse LLM response", e);
             }
-        } else {
-            // For primitive types, just return the text response
+        }
+        else if (portType == PortType.INT) {
+            StructuredOutputConverter<Integer> converter = new BeanOutputConverter<>(Integer.class);
+            return converter.convert(responseText);
+        }
+        else if (portType == PortType.FLOAT) {
+            StructuredOutputConverter<Float> converter = new BeanOutputConverter<>(Float.class);
+            return converter.convert(responseText);
+        }
+
+        else {
+
             return responseText;
         }
     }

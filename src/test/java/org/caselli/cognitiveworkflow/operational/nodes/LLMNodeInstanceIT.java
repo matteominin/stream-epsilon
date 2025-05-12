@@ -17,8 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -40,7 +38,7 @@ public class LLMNodeInstanceIT {
         llmNodeInstance = new LLMNodeInstance(llmModelFactory);
         metamodel = new LLMNodeMetamodel();
         metamodel.setLlmProvider("openai");
-        metamodel.setModelName("gpt-3.5-turbo");
+        metamodel.setModelName("gpt-4o");
         llmNodeInstance.setMetamodel(metamodel);
         llmNodeInstance.setId("test-llm-node");
         context = new ExecutionContext();
@@ -48,17 +46,90 @@ public class LLMNodeInstanceIT {
 
     @Test
     @DisplayName("Empty input throws exception")
-    void process_withEmptyPromptAndSystemTemplate_throwsRuntimeException() {
+    void test_withEmptyPromptAndSystemTemplate_throwsRuntimeException() {
         metamodel.setInputPorts(new ArrayList<>());
         metamodel.setSystemPromptTemplate(null);
-        assertThrows(RuntimeException.class, () -> {
-            llmNodeInstance.process(context);
-        });
+        assertThrows(RuntimeException.class, () -> llmNodeInstance.process(context));
     }
 
     @Test
-    @DisplayName("String output")
-    void process_patientClassificationWorkflowWithTextOutput_returnsStructuredString() {
+    @DisplayName("Simple String output")
+    void test_WithTextOutput_returnsString() {
+        metamodel.setInputPorts(List.of(
+                LLMPort.LLMBuilder()
+                        .withKey("object")
+                        .withRole(LLMPort.LLMPortRole.SYSTEM_PROMPT_VARIABLE)
+                        .withSchema(PortSchema.builder().stringSchema().build())
+                        .build()
+        ));
+
+        metamodel.setOutputPorts(List.of(
+                LLMPort.LLMBuilder()
+                        .withKey("color")
+                        .withRole(LLMPort.LLMPortRole.RESPONSE)
+                        .withSchema(PortSchema.builder().stringSchema().build())
+                        .build()
+        ));
+
+        metamodel.setSystemPromptTemplate("""
+        You are an experienced object-detector. What is the color of this object: {object} Give the color in uppercase.>
+        """);
+
+        context.put("object", "the sky");
+
+        llmNodeInstance.process(context);
+
+        String response = (String) context.get("color");
+        assertNotNull(response);
+        assertFalse(response.trim().isEmpty());
+        assertEquals("BLUE", response);
+    }
+
+
+    @Test
+    @DisplayName("Simple Int output")
+    void test_WithNumberOutput_returnsInt() {
+
+        metamodel.setOutputPorts(List.of(
+                LLMPort.LLMBuilder()
+                        .withKey("res")
+                        .withRole(LLMPort.LLMPortRole.RESPONSE)
+                        .withSchema(PortSchema.builder().intSchema().build())
+                        .build()
+        ));
+
+        metamodel.setSystemPromptTemplate("You are an wizard. Give me a random prediction of the temperature of my room");
+
+        llmNodeInstance.process(context);
+
+        Integer response = (Integer) context.get("res");
+        validateInt(response);
+    }
+
+
+    @Test
+    @DisplayName("Simple Int output")
+    void test_WithNumberOutput_returnsFloat() {
+        metamodel.setOutputPorts(List.of(
+                LLMPort.LLMBuilder()
+                        .withKey("res")
+                        .withRole(LLMPort.LLMPortRole.RESPONSE)
+                        .withSchema(PortSchema.builder().floatSchema().build())
+                        .build()
+        ));
+
+        metamodel.setSystemPromptTemplate("You are an wizard. Give me a random prediction of the temperature of my room");
+
+        llmNodeInstance.process(context);
+
+        Object response = context.get("res");
+        validateFloat(response);
+    }
+
+
+    @Test
+    @DisplayName("Complex string output")
+    void test_patientClassificationWorkflowWithTextOutput_returnsStructuredString() {
         metamodel.setInputPorts(List.of(
                 LLMPort.LLMBuilder()
                         .withKey("medicalCategories")
@@ -124,7 +195,7 @@ public class LLMNodeInstanceIT {
 
     @Test
     @DisplayName("Nested map output")
-    void process_patientClassificationWorkflowWithStructuredOutput_returnsMappedData() {
+    void test_patientClassificationWorkflowWithStructuredOutput_returnsMappedData() {
         metamodel.setInputPorts(List.of(
                 LLMPort.LLMBuilder()
                         .withKey("medicalCategories")
@@ -206,7 +277,7 @@ public class LLMNodeInstanceIT {
 
     @Test
     @DisplayName("List of strings output")
-    void process_actorFilmographyRetrievalWithStructuredArrayOutput_returnsListOfStrings() {
+    void test_actorFilmographyRetrievalWithStructuredArrayOutput_returnsListOfStrings() {
         metamodel.setInputPorts(List.of(
                 LLMPort.LLMBuilder()
                         .withKey("actor")
@@ -225,7 +296,8 @@ public class LLMNodeInstanceIT {
                         .build()
         ));
 
-        metamodel.setSystemPromptTemplate("""
+        metamodel.setSystemPromptTemplate(
+        """
         You are a film expert. When given an actor's name, respond with exactly 3
         well-known films they starred in. Format the response as a JSON array of strings.
         """);
@@ -236,7 +308,7 @@ public class LLMNodeInstanceIT {
 
         Object response = context.get("filmography");
         assertNotNull(response);
-        assertTrue(response instanceof List);
+        assertInstanceOf(List.class, response);
 
         @SuppressWarnings("unchecked")
         List<String> films = (List<String>) response;
@@ -261,7 +333,7 @@ public class LLMNodeInstanceIT {
 
         List<String> trimmedFilms = films.stream()
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .toList();
 
         assertTrue(trimmedFilms.stream().anyMatch(expectedHanksFilms::contains));
 
@@ -269,7 +341,7 @@ public class LLMNodeInstanceIT {
         llmNodeInstance.process(context);
         response = context.get("filmography");
         assertNotNull(response);
-        assertTrue(response instanceof List);
+        assertInstanceOf(List.class, response);
 
         @SuppressWarnings("unchecked")
         List<String> streepFilms = (List<String>) response;
@@ -289,7 +361,7 @@ public class LLMNodeInstanceIT {
 
     @Test
     @DisplayName("List of maps output")
-    void process_actorFilmographyRetrievalWithStructuredObjectArrayOutput_returnsListOfMaps() {
+    void test_actorFilmographyRetrievalWithStructuredObjectArrayOutput_returnsListOfMaps() {
         metamodel.setInputPorts(List.of(
                 LLMPort.LLMBuilder()
                         .withKey("actor")
@@ -323,7 +395,7 @@ public class LLMNodeInstanceIT {
 
         Object response = context.get("filmography");
         assertNotNull(response);
-        assertTrue(response instanceof List);
+        assertInstanceOf(List.class, response);
 
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> films = (List<Map<String, Object>>) response;
@@ -376,7 +448,7 @@ public class LLMNodeInstanceIT {
 
     @Test
     @DisplayName("Map with list output")
-    void process_actorFilmographyRetrievalWithStructuredObjectWithArray() {
+    void test_actorFilmographyRetrievalWithStructuredObjectWithArray() {
         metamodel.setInputPorts(List.of(
                 LLMPort.LLMBuilder()
                         .withKey("actor")
@@ -460,6 +532,12 @@ public class LLMNodeInstanceIT {
         String str = (String) obj;
         assertFalse(str.contains("\""));
         assertFalse(((String)obj).isEmpty());
+    }
+
+    private void validateFloat(Object obj) {
+        assertNotNull(obj);
+        assertTrue(obj instanceof Float || obj instanceof Double,
+                "Object must be a Float or Double");
     }
 
     private void validateNumber(Object obj) {
