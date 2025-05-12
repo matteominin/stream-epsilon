@@ -104,7 +104,17 @@ public class PortStructuredOutput {
                 StructuredOutputConverter<List<List<?>>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {});
                 messages.add(new SystemMessage(converter.getFormat()));
             }
-            // SIMPLE ARRAYS
+            // ARRAYS OF FLOATS
+            else if (schema.getItems().getType() == PortType.FLOAT) {
+                StructuredOutputConverter<List<Float>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {});
+                messages.add(new SystemMessage(converter.getFormat()));
+            }
+            // ARRAYS OF ARRAYS
+            else if (schema.getItems().getType() == PortType.INT) {
+                StructuredOutputConverter<List<Integer>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {});
+                messages.add(new SystemMessage(converter.getFormat()));
+            }
+            // ARRAYS of STRINGS
             else {
                 StructuredOutputConverter<List<String>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {});
                 messages.add(new SystemMessage(converter.getFormat()));
@@ -150,10 +160,21 @@ public class PortStructuredOutput {
                     });
                     return converter.convert(responseText);
                 }
-                // SIMPLE ARRAYS ?? TODO
-                else {
-                    StructuredOutputConverter<List<String>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {
+                // ARRAYS of FLOATS
+                else if (schema.getItems().getType() == PortType.FLOAT) {
+                    StructuredOutputConverter<List<Float>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {
                     });
+                    return converter.convert(responseText);
+                }
+                // ARRAYS of INTs
+                else if (schema.getItems().getType() == PortType.INT) {
+                    StructuredOutputConverter<List<Integer>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {
+                    });
+                    return converter.convert(responseText);
+                }
+                // ARRAYS of STRINGS
+                else {
+                    StructuredOutputConverter<List<String>> converter = new BeanOutputConverter<>(new ParameterizedTypeReference<>() {});
                     return converter.convert(responseText);
                 }
             } catch (Exception e) {

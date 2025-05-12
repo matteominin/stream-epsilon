@@ -526,7 +526,6 @@ public class LLMNodeInstanceIT {
         }
     }
 
-
     @Test
     @DisplayName("List of int output")
     void test_arrayOutput_returnsListOfInt() {
@@ -566,7 +565,35 @@ public class LLMNodeInstanceIT {
     }
 
 
+    @Test
+    @DisplayName("List of floats output")
+    void test_arrayOutput_returnsListOfFloat() {
+        metamodel.setInputPorts(List.of());
 
+        metamodel.setOutputPorts(List.of(
+                LLMPort.LLMBuilder()
+                        .withKey("res")
+                        .withRole(LLMPort.LLMPortRole.RESPONSE)
+                        .withSchema(PortSchema.builder().arraySchema(
+                                PortSchema.builder().floatSchema().build()
+                        ).build())
+                        .build()
+        ));
+
+        metamodel.setSystemPromptTemplate(
+                """
+                You are a fortune-teller. Give me 3 numbers between 0 and 1
+                """);
+
+        llmNodeInstance.process(context);
+
+        Object response = context.get("res");
+        assertNotNull(response);
+        assertInstanceOf(List.class, response);
+        List<?> list =  (List<?>) response;
+
+        for (var el : list) validateFloat(el);
+    }
 
     private void validateString(Object obj){
         assertNotNull(obj);
