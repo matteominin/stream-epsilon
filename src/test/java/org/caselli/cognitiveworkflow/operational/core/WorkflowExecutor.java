@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 class WorkflowExecutorTest {
 
     private RestPort createStringPort(String id) {
-        return RestPort.resBuilder()
+        return RestPort.builder()
                 .withKey(id)
                 .withSchema(PortSchema.builder().withRequired(true).stringSchema().build())
                 .build();

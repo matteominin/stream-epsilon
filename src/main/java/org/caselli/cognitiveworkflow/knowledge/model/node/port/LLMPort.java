@@ -6,9 +6,6 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class LLMPort extends Port {
-    public LLMPort() {
-        this.setPortType(PortImplementationType.REST);
-    }
 
     public static LLMPort.LLMPortBuilder LLMBuilder() {
         return new LLMPort.LLMPortBuilder();
