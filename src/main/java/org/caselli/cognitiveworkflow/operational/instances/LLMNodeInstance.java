@@ -9,6 +9,8 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
 import org.caselli.cognitiveworkflow.operational.LLM.PortStructuredOutputConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -21,13 +23,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
-// TODO CLEAN UP AND COMMENTS
 @Setter
 @Getter
 @Component
 @Scope("prototype")
 public class LLMNodeInstance extends NodeInstance {
+
+    Logger logger = LoggerFactory.getLogger(LLMNodeInstance.class);
 
 
     private ChatClient chatClient;
@@ -44,46 +46,41 @@ public class LLMNodeInstance extends NodeInstance {
 
     @Override
     public void setMetamodel(NodeMetamodel metamodel) {
-        if (!(metamodel instanceof LLMNodeMetamodel)) {
+        if (!(metamodel instanceof LLMNodeMetamodel))
             throw new IllegalArgumentException("LLMNodeInstance requires LLMNodeMetamodel");
-        }
+
         super.setMetamodel(metamodel);
     }
 
 
     @Override
     public void process(ExecutionContext context) {
-        System.out.println("Processing LLM Node Instance: " + getId());
+        logger.info("[Node {}]: Processing LLM Node Instance", getId());
 
-        List<Message> messages = buildPromptMesages(context);
+        List<Message> messages = buildPromptMessages(context);
         Port responsePort = getResponsePort();
 
-        if(responsePort == null){
+        if(responsePort == null) {
+            logger.warn("[Node {}]: No response port found", getId());
             return;
         }
 
-
         try {
             // Use the helper method that handles everything
-            Object result = PortStructuredOutputConverter.processWithChatClient(
-                    getChatClient(), messages, responsePort);
-
-
-
-
+            Object result = PortStructuredOutputConverter.processWithChatClient(getChatClient(), messages, responsePort);
 
             // Store the result in the context
             context.put(responsePort.getKey(), result);
+            logger.debug("[Node {}]: Stored result for port {} in context", getId(), responsePort.getKey());
         } catch (Exception e) {
             // Error handling
-            System.err.println("Error processing LLM response: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("[Node {}]: Error processing LLM response: {}", getId(), e.getMessage(), e);
         }
     }
 
 
 
-    private List<Message> buildPromptMesages(ExecutionContext context){
+    private List<Message> buildPromptMessages(ExecutionContext context){
         List<Message> promptContents = new LinkedList<>();
 
         // SYSTEM PROMPT
@@ -93,6 +90,7 @@ public class LLMNodeInstance extends NodeInstance {
             var model = getSystemPromptVariables(context);
             SystemMessage systemMessage = new SystemMessage(systemPromptTemplate.create(model).getContents());
             promptContents.add(systemMessage);
+            logger.debug("[Node {}]: Added system prompt", getId());
         }
 
         // USER PROMPT
@@ -100,11 +98,15 @@ public class LLMNodeInstance extends NodeInstance {
         if(userInput != null && !userInput.isEmpty()){
             UserMessage userMessage = new UserMessage(userInput);
             promptContents.add(userMessage);
+            logger.debug("[Node {}]: Added user prompt", getId());
         }
 
         // Construct prompt
-        if(promptContents.isEmpty()) throw new RuntimeException("Prompt is empty");
-
+        if(promptContents.isEmpty()) {
+            logger.error("[Node {}]: Prompt is empty", getId());
+            throw new RuntimeException("Prompt is empty");
+        }
+        logger.debug("[Node {}]: Built prompt messages. Count: {}", getId(), promptContents.size());
         return promptContents;
     }
 
@@ -116,11 +118,16 @@ public class LLMNodeInstance extends NodeInstance {
             for (LLMPort inputPort : inputPorts) {
                 if (inputPort.getRole() == LLMPort.LLMPortRole.USER_PROMPT) {
                     Object value = context.get(inputPort.getKey());
-                    if(value == null) return null;
+                    if(value == null) {
+                        logger.debug("[Node {}]: User prompt input port {} has null value in context", getId(), inputPort.getKey());
+                        return null;
+                    }
+                    logger.debug("[Node {}]: Found user prompt input port {} with value", getId(), inputPort.getKey());
                     return value.toString();
                 }
             }
         }
+        logger.debug("[Node {}]: No user prompt input port found", getId());
         return null;
     }
 
@@ -129,8 +136,11 @@ public class LLMNodeInstance extends NodeInstance {
         List<LLMPort> outputPorts = getMetamodel().getOutputPorts();
         if (outputPorts != null)
             for (LLMPort inputPort : outputPorts)
-                if (inputPort.getRole() == LLMPort.LLMPortRole.RESPONSE)
-                   return inputPort;
+                if (inputPort.getRole() == LLMPort.LLMPortRole.RESPONSE) {
+                    logger.debug("[Node {}]: Found response output port {}", getId(), inputPort.getKey());
+                    return inputPort;
+                }
+        logger.warn("[Node {}]: No response output port found", getId());
         return null;
     }
 
@@ -144,10 +154,11 @@ public class LLMNodeInstance extends NodeInstance {
             for (LLMPort inputPort : inputPorts) {
                 if (inputPort.getRole() == LLMPort.LLMPortRole.SYSTEM_PROMPT_VARIABLE) {
                     variables.put(inputPort.getKey(), context.get(inputPort.getKey()));
+                    logger.debug("[Node {}]: Added system prompt variable {} from context", getId(), inputPort.getKey());
                 }
             }
         }
-
+        logger.debug("[Node {}]: Collected {} system prompt variables", getId(), variables.size());
         return variables;
     }
 
@@ -156,11 +167,20 @@ public class LLMNodeInstance extends NodeInstance {
     private ChatClient getChatClient(){
         if (chatClient == null) {
             LLMNodeMetamodel metamodel = getMetamodel();
-            if (metamodel == null) throw new IllegalArgumentException("LLMNodeInstance requires a metamodel");
-            if (metamodel.getLlmProvider() == null) throw new IllegalArgumentException("LLMNodeInstance " + getId() + " initialization failed: LLM provider is not specified in the metamodel.");
-            if (metamodel.getModelName() == null || metamodel.getModelName().isEmpty()) throw new IllegalArgumentException("LLMNodeInstance " + getId() + " initialization failed: model name is not specified in the metamodel.");
-
+            if (metamodel == null) {
+                logger.error("[Node {}]: LLMNodeInstance requires a metamodel during chat client initialization", getId());
+                throw new IllegalArgumentException("LLMNodeInstance requires a metamodel");
+            }
+            if (metamodel.getLlmProvider() == null) {
+                logger.error("[Node {}]: initialization failed: LLM provider is not specified in the metamodel.", getId());
+                throw new IllegalArgumentException("LLMNodeInstance " + getId() + " initialization failed: LLM provider is not specified in the metamodel.");
+            }
+            if (metamodel.getModelName() == null || metamodel.getModelName().isEmpty()) {
+                logger.error("[Node {}]: initialization failed: model name is not specified in the metamodel.", getId());
+                throw new IllegalArgumentException("LLMNodeInstance " + getId() + " initialization failed: model name is not specified in the metamodel.");
+            }
             this.chatClient = llmModelFactory.createChatClient(metamodel.getLlmProvider(), metamodel.getModelName());
+            logger.info("[Node {}]: Created ChatClient for provider {} and model {}", getId(), metamodel.getLlmProvider(), metamodel.getModelName());
         }
         return chatClient;
     }
