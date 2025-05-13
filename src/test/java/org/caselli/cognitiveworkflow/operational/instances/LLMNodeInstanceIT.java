@@ -38,6 +38,12 @@ public class LLMNodeInstanceIT {
         metamodel = new LLMNodeMetamodel();
         metamodel.setLlmProvider("openai");
         metamodel.setModelName("gpt-4o");
+
+        var options = new LLMNodeMetamodel.LlmModelOptions();
+        options.setTemperature(0.4);
+        options.setMaxTokens(400);
+        metamodel.setDefaultLlmParameters(options);
+
         llmNodeInstance.setMetamodel(metamodel);
         llmNodeInstance.setId("test-llm-node");
         context = new ExecutionContext();

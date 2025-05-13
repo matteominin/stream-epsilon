@@ -3,6 +3,7 @@ package org.caselli.cognitiveworkflow.operational.LLM.services;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
@@ -166,7 +167,7 @@ public class InputMapperService extends LLMAbstractService {
     protected ChatClient buildChatClient() {
         validateLlmConfiguration();
 
-        var options = new LLMModelFactory.BaseLlmModelOptions();
+        var options = new LLMNodeMetamodel.LlmModelOptions();
         options.setTemperature(temperature);
         return llmModelFactory.createChatClient(provider, model, apiKey, options);
     }

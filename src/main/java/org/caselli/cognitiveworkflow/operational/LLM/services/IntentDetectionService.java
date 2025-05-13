@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.LLM.LLMAbstractService;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
 import org.caselli.cognitiveworkflow.operational.utils.StringUtils;
@@ -148,7 +149,7 @@ public class IntentDetectionService extends LLMAbstractService {
 
     @Override
     protected ChatClient buildChatClient() {
-        var options = new LLMModelFactory.BaseLlmModelOptions();
+        var options = new LLMNodeMetamodel.LlmModelOptions();
         options.setTemperature(temperature);
         return llmModelFactory.createChatClient(intentProvider, intentModel, intentApiKey, options);
     }

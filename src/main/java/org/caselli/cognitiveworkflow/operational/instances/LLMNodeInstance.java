@@ -179,8 +179,12 @@ public class LLMNodeInstance extends NodeInstance {
                 logger.error("[Node {}]: initialization failed: model name is not specified in the metamodel.", getId());
                 throw new IllegalArgumentException("LLMNodeInstance " + getId() + " initialization failed: model name is not specified in the metamodel.");
             }
-            this.chatClient = llmModelFactory.createChatClient(metamodel.getLlmProvider(), metamodel.getModelName());
+
+            var config = metamodel.getDefaultLlmParameters();
+            this.chatClient = llmModelFactory.createChatClient(metamodel.getLlmProvider(), metamodel.getModelName(), null, config);
+
             logger.info("[Node {}]: Created ChatClient for provider {} and model {}", getId(), metamodel.getLlmProvider(), metamodel.getModelName());
+            if (config != null) logger.info("[Node {}]: LLM Parameters - Temperature: {}, TopP: {}, MaxTokens: {}", getId(), config.getTemperature(), config.getTopP(), config.getMaxTokens());
         }
         return chatClient;
     }

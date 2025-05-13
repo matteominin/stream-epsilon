@@ -1,7 +1,6 @@
 package org.caselli.cognitiveworkflow.operational.LLM.factories;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.anthropic.api.AnthropicApi;
@@ -153,7 +152,7 @@ public class LLMModelFactory {
      * @return A ChatClient instance.
      * @throws IllegalArgumentException if inputs are invalid.
      */
-    public ChatClient createChatClient(String provider, String modelName, String apiKey, BaseLlmModelOptions options) {
+    public ChatClient createChatClient(String provider, String modelName, String apiKey, LLMNodeMetamodel.LlmModelOptions options) {
         ChatModel chatModel = buildChatModel(provider, getApiKeyOrDefault(provider, apiKey), modelName, convertOptions(provider, options));
         return ChatClient.create(chatModel);
     }
@@ -223,7 +222,7 @@ public class LLMModelFactory {
      * @return The converted provider-specific options object, or null if the input options are null.
      * @throws IllegalArgumentException if the provider is unsupported or option values have incorrect formats.
      */
-    private Object convertOptions(String provider, BaseLlmModelOptions options) {
+    private Object convertOptions(String provider, LLMNodeMetamodel.LlmModelOptions options) {
         if (options == null) return null;
 
         return switch (provider.toLowerCase()) {
@@ -244,7 +243,7 @@ public class LLMModelFactory {
      * @param options The BaseLlmModelOptions object containing the options.
      * @return A builder for OpenAiChatOptions.
      */
-    private static AnthropicChatOptions.Builder getAnthropicOptionsBuilder(BaseLlmModelOptions options) {
+    private static AnthropicChatOptions.Builder getAnthropicOptionsBuilder(LLMNodeMetamodel.LlmModelOptions options) {
         AnthropicChatOptions.Builder builder = AnthropicChatOptions.builder();
         if (options.getTemperature() != null) builder.temperature(options.getTemperature());
         if (options.getTopP() != null) builder.topP(options.getTopP());
@@ -254,28 +253,15 @@ public class LLMModelFactory {
 
     /**
      * Creates a builder for OpenAiChatOptions based on the provided options.
-     * @param options The BaseLlmModelOptions object containing the options.
+     * @param options The LlmModelOptions object containing the options.
      * @return A builder for OpenAiChatOptions.
      */
-    private static OpenAiChatOptions.Builder getOpenAiOptionsBuilder(BaseLlmModelOptions options) {
+    private static OpenAiChatOptions.Builder getOpenAiOptionsBuilder(LLMNodeMetamodel.LlmModelOptions options) {
         OpenAiChatOptions.Builder builder = OpenAiChatOptions.builder();
         if (options.getTemperature() != null) builder.temperature(options.getTemperature());
         if (options.getTopP() != null) builder.topP(options.getTopP());
         if (options.getMaxTokens() != null) builder.maxTokens(options.getMaxTokens());
         return builder;
     }
-
-
-    /**
-     * A generic (non-provider specific) options class for LLM models.
-     */
-    @Getter @Setter
-    public static class BaseLlmModelOptions {
-        private Double temperature;
-        private Double topP;
-        private Integer maxTokens;
-    }
-
-
 
 }

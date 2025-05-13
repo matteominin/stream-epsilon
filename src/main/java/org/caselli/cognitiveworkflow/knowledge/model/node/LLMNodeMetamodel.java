@@ -2,13 +2,13 @@ package org.caselli.cognitiveworkflow.knowledge.model.node;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.LLMPort;
-import org.caselli.cognitiveworkflow.knowledge.model.node.port.StandardPort;
 import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 
 @Data
@@ -26,7 +26,7 @@ public class LLMNodeMetamodel extends NodeMetamodel {
     private String systemPromptTemplate;
 
     // Default parameters for the LLM call (can be overridden at instance level TODO)
-    private Map<String, Object> defaultLlmParameters; // e.g., {"temperature": 0.7, "max_tokens": 500}
+    private LlmModelOptions defaultLlmParameters;
 
 
     /** Input ports of the node */
@@ -62,5 +62,17 @@ public class LLMNodeMetamodel extends NodeMetamodel {
     public void setOutputPorts(List<LLMPort> outputPorts) {
         // Use defensive copying
         this.outputPorts = outputPorts != null ? List.copyOf(outputPorts) : Collections.emptyList();
+    }
+
+
+    /**
+     * A generic (non-provider specific) options class for LLM models.
+     */
+    @Getter
+    @Setter
+    public static class LlmModelOptions {
+        private Double temperature;
+        private Double topP;
+        private Integer maxTokens;
     }
 }
