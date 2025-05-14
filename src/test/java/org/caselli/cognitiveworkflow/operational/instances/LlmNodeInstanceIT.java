@@ -61,7 +61,7 @@ public class LlmNodeInstanceIT {
     @DisplayName("Simple String output")
     void test_WithTextOutput_returnsString() {
         metamodel.setInputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("object")
                         .withRole(LlmPort.LlmPortRole.SYSTEM_PROMPT_VARIABLE)
                         .withSchema(PortSchema.builder().stringSchema().build())
@@ -69,7 +69,7 @@ public class LlmNodeInstanceIT {
         ));
 
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("color")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().stringSchema().build())
@@ -96,7 +96,7 @@ public class LlmNodeInstanceIT {
     void test_WithNumberOutput_returnsInt() {
 
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("res")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().intSchema().build())
@@ -116,7 +116,7 @@ public class LlmNodeInstanceIT {
     @DisplayName("Simple Int output")
     void test_WithNumberOutput_returnsFloat() {
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("res")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().floatSchema().build())
@@ -136,12 +136,12 @@ public class LlmNodeInstanceIT {
     @DisplayName("Complex string output")
     void test_patientClassificationWorkflowWithTextOutput_returnsStructuredString() {
         metamodel.setInputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("medicalCategories")
                         .withRole(LlmPort.LlmPortRole.SYSTEM_PROMPT_VARIABLE)
                         .withSchema(PortSchema.builder().stringSchema().build())
                         .build(),
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("patientInput")
                         .withRole(LlmPort.LlmPortRole.USER_PROMPT)
                         .withSchema(PortSchema.builder().stringSchema().build())
@@ -149,7 +149,7 @@ public class LlmNodeInstanceIT {
         ));
 
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("medicalRecord")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().stringSchema().build())
@@ -202,12 +202,12 @@ public class LlmNodeInstanceIT {
     @DisplayName("Nested map output")
     void test_patientClassificationWorkflowWithStructuredOutput_returnsMappedData() {
         metamodel.setInputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("medicalCategories")
                         .withRole(LlmPort.LlmPortRole.SYSTEM_PROMPT_VARIABLE)
                         .withSchema(PortSchema.builder().stringSchema().build())
                         .build(),
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("patientInput")
                         .withRole(LlmPort.LlmPortRole.USER_PROMPT)
                         .withSchema(PortSchema.builder().stringSchema().build())
@@ -215,7 +215,7 @@ public class LlmNodeInstanceIT {
         ));
 
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("medicalRecord")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().objectSchema(
@@ -284,7 +284,7 @@ public class LlmNodeInstanceIT {
     @DisplayName("List of strings output")
     void test_actorFilmographyRetrievalWithStructuredArrayOutput_returnsListOfStrings() {
         metamodel.setInputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("actor")
                         .withRole(LlmPort.LlmPortRole.USER_PROMPT)
                         .withSchema(PortSchema.builder().stringSchema().build())
@@ -292,7 +292,7 @@ public class LlmNodeInstanceIT {
         ));
 
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("filmography")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().arraySchema(
@@ -368,7 +368,7 @@ public class LlmNodeInstanceIT {
     @DisplayName("List of maps output")
     void test_actorFilmographyRetrievalWithStructuredObjectArrayOutput_returnsListOfMaps() {
         metamodel.setInputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("actor")
                         .withRole(LlmPort.LlmPortRole.USER_PROMPT)
                         .withSchema(PortSchema.builder().stringSchema().build())
@@ -376,7 +376,7 @@ public class LlmNodeInstanceIT {
         ));
 
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("filmography")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().arraySchema(
@@ -455,7 +455,7 @@ public class LlmNodeInstanceIT {
     @DisplayName("Map with list output")
     void test_actorFilmographyRetrievalWithStructuredObjectWithArray() {
         metamodel.setInputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("actor")
                         .withRole(LlmPort.LlmPortRole.USER_PROMPT)
                         .withSchema(PortSchema.builder().stringSchema().build())
@@ -463,7 +463,7 @@ public class LlmNodeInstanceIT {
         ));
 
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("filmography")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().objectSchema(Map.of(
@@ -535,7 +535,7 @@ public class LlmNodeInstanceIT {
     @DisplayName("List of int output")
     void test_arrayOutput_returnsListOfInt() {
         metamodel.setInputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("MIN")
                         .withRole(LlmPort.LlmPortRole.SYSTEM_PROMPT_VARIABLE)
                         .withSchema(PortSchema.builder().intSchema().build())
@@ -543,7 +543,7 @@ public class LlmNodeInstanceIT {
         ));
 
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("res")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().arraySchema(
@@ -576,7 +576,7 @@ public class LlmNodeInstanceIT {
         metamodel.setInputPorts(List.of());
 
         metamodel.setOutputPorts(List.of(
-                LlmPort.LLMBuilder()
+                LlmPort.builder()
                         .withKey("res")
                         .withRole(LlmPort.LlmPortRole.RESPONSE)
                         .withSchema(PortSchema.builder().arraySchema(

@@ -48,10 +48,9 @@ public class RestPort extends Port {
 
         @Override
         protected RestPort createInstance() {
-            RestPort port = new RestPort();
+            var port = new RestPort();
             port.setRole(role);
             return port;
         }
     }
-
 }
