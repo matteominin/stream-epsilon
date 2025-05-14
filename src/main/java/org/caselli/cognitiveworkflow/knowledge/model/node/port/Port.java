@@ -23,7 +23,7 @@ import lombok.Data;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = StandardPort.class, name = "STANDARD"),
         @JsonSubTypes.Type(value = RestPort.class, name = "REST"),
-        @JsonSubTypes.Type(value = LLMPort.class, name = "LLM"),
+        @JsonSubTypes.Type(value = LlmPort.class, name = "LLM"),
         @JsonSubTypes.Type(value = VectorDbPort.class, name = "VECTOR_DB"),
         @JsonSubTypes.Type(value = EmbeddingsPort.class, name = "EMBEDDINGS"),
 })

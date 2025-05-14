@@ -8,8 +8,6 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.http.HttpEntity;
@@ -35,10 +33,7 @@ import java.util.Map.Entry;
 @Scope("prototype")
 public class RestToolNodeInstance extends ToolNodeInstance {
 
-    private static final Logger logger = LoggerFactory.getLogger(RestToolNodeInstance.class);
-
     private final ObjectMapper objectMapper = new ObjectMapper();
-
 
     private RestTemplate restTemplate;
 

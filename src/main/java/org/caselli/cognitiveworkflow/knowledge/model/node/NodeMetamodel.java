@@ -12,8 +12,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 
+
 /**
- * Describes the structure and metadata of a node that can be used in a workflow.
+ * Abstract class that describes the structure and metadata of a node that can be used in a workflow.
  */
 @Data
 @Document(collection = "meta_nodes")

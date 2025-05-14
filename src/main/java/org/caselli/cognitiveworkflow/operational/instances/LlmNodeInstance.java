@@ -4,13 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.port.LLMPort;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.LlmPort;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
 import org.caselli.cognitiveworkflow.operational.LLM.PortStructuredOutputConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -27,15 +25,12 @@ import java.util.Map;
 @Getter
 @Component
 @Scope("prototype")
-public class LLMNodeInstance extends NodeInstance {
-
-    Logger logger = LoggerFactory.getLogger(LLMNodeInstance.class);
-
+public class LlmNodeInstance extends AiNodeInstance {
 
     private ChatClient chatClient;
     private final LLMModelFactory llmModelFactory;
 
-    public LLMNodeInstance(LLMModelFactory llmModelFactory) {
+    public LlmNodeInstance(LLMModelFactory llmModelFactory) {
         this.llmModelFactory = llmModelFactory;
     }
 
@@ -47,7 +42,7 @@ public class LLMNodeInstance extends NodeInstance {
     @Override
     public void setMetamodel(NodeMetamodel metamodel) {
         if (!(metamodel instanceof LlmNodeMetamodel))
-            throw new IllegalArgumentException("LLMNodeInstance requires LlmNodeMetamodel");
+            throw new IllegalArgumentException("LlmNodeInstance requires LlmNodeMetamodel");
 
         super.setMetamodel(metamodel);
     }
@@ -113,10 +108,10 @@ public class LLMNodeInstance extends NodeInstance {
 
 
     private String getUserInput (ExecutionContext context){
-        List<LLMPort> inputPorts = getMetamodel().getInputPorts();
+        List<LlmPort> inputPorts = getMetamodel().getInputPorts();
         if (inputPorts != null) {
-            for (LLMPort inputPort : inputPorts) {
-                if (inputPort.getRole() == LLMPort.LLMPortRole.USER_PROMPT) {
+            for (LlmPort inputPort : inputPorts) {
+                if (inputPort.getRole() == LlmPort.LLMPortRole.USER_PROMPT) {
                     Object value = context.get(inputPort.getKey());
                     if(value == null) {
                         logger.debug("[Node {}]: User prompt input port {} has null value in context", getId(), inputPort.getKey());
@@ -133,10 +128,10 @@ public class LLMNodeInstance extends NodeInstance {
 
 
     private Port getResponsePort (){
-        List<LLMPort> outputPorts = getMetamodel().getOutputPorts();
+        List<LlmPort> outputPorts = getMetamodel().getOutputPorts();
         if (outputPorts != null)
-            for (LLMPort inputPort : outputPorts)
-                if (inputPort.getRole() == LLMPort.LLMPortRole.RESPONSE) {
+            for (LlmPort inputPort : outputPorts)
+                if (inputPort.getRole() == LlmPort.LLMPortRole.RESPONSE) {
                     logger.debug("[Node {}]: Found response output port {}", getId(), inputPort.getKey());
                     return inputPort;
                 }
@@ -149,10 +144,10 @@ public class LLMNodeInstance extends NodeInstance {
     private Map<String, Object> getSystemPromptVariables (ExecutionContext context){
         Map<String, Object> variables = new HashMap<>();
 
-        List<LLMPort> inputPorts = getMetamodel().getInputPorts();
+        List<LlmPort> inputPorts = getMetamodel().getInputPorts();
         if (inputPorts != null) {
-            for (LLMPort inputPort : inputPorts) {
-                if (inputPort.getRole() == LLMPort.LLMPortRole.SYSTEM_PROMPT_VARIABLE) {
+            for (LlmPort inputPort : inputPorts) {
+                if (inputPort.getRole() == LlmPort.LLMPortRole.SYSTEM_PROMPT_VARIABLE) {
                     variables.put(inputPort.getKey(), context.get(inputPort.getKey()));
                     logger.debug("[Node {}]: Added system prompt variable {} from context", getId(), inputPort.getKey());
                 }
@@ -168,16 +163,16 @@ public class LLMNodeInstance extends NodeInstance {
         if (chatClient == null) {
             LlmNodeMetamodel metamodel = getMetamodel();
             if (metamodel == null) {
-                logger.error("[Node {}]: LLMNodeInstance requires a metamodel during chat client initialization", getId());
-                throw new IllegalArgumentException("LLMNodeInstance requires a metamodel");
+                logger.error("[Node {}]: LlmNodeInstance requires a metamodel during chat client initialization", getId());
+                throw new IllegalArgumentException("LlmNodeInstance requires a metamodel");
             }
             if (metamodel.getProvider() == null) {
                 logger.error("[Node {}]: initialization failed: LLM provider is not specified in the metamodel.", getId());
-                throw new IllegalArgumentException("LLMNodeInstance " + getId() + " initialization failed: LLM provider is not specified in the metamodel.");
+                throw new IllegalArgumentException("LlmNodeInstance " + getId() + " initialization failed: LLM provider is not specified in the metamodel.");
             }
             if (metamodel.getModelName() == null || metamodel.getModelName().isEmpty()) {
                 logger.error("[Node {}]: initialization failed: model name is not specified in the metamodel.", getId());
-                throw new IllegalArgumentException("LLMNodeInstance " + getId() + " initialization failed: model name is not specified in the metamodel.");
+                throw new IllegalArgumentException("LlmNodeInstance " + getId() + " initialization failed: model name is not specified in the metamodel.");
             }
 
             var config = metamodel.getDefaultLlmParameters();

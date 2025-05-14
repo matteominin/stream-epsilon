@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.caselli.cognitiveworkflow.knowledge.model.node.port.LLMPort;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.LlmPort;
 import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
@@ -25,10 +25,10 @@ public class LlmNodeMetamodel extends AiNodeMetamodel {
 
 
     /** Input ports of the node */
-    @NotNull private List<LLMPort> inputPorts = Collections.emptyList();
+    @NotNull private List<LlmPort> inputPorts = Collections.emptyList();
 
     /** Output ports of the node */
-    @NotNull private List<LLMPort> outputPorts = Collections.emptyList();
+    @NotNull private List<LlmPort> outputPorts = Collections.emptyList();
 
     public LlmNodeMetamodel() {
         super();
@@ -37,22 +37,22 @@ public class LlmNodeMetamodel extends AiNodeMetamodel {
 
     @Override
     @NotNull
-    public List<LLMPort> getInputPorts() {
+    public List<LlmPort> getInputPorts() {
         return this.inputPorts;
     }
 
     @Override
     @NotNull
-    public List<LLMPort> getOutputPorts() {
+    public List<LlmPort> getOutputPorts() {
         return this.outputPorts;
     }
 
-    public void setInputPorts(List<LLMPort> inputPorts) {
+    public void setInputPorts(List<LlmPort> inputPorts) {
         // Use defensive copying
         this.inputPorts = inputPorts != null ? List.copyOf(inputPorts) : Collections.emptyList();
     }
 
-    public void setOutputPorts(List<LLMPort> outputPorts) {
+    public void setOutputPorts(List<LlmPort> outputPorts) {
         // Use defensive copying
         this.outputPorts = outputPorts != null ? List.copyOf(outputPorts) : Collections.emptyList();
     }

@@ -5,10 +5,10 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class LLMPort extends Port {
+public class LlmPort extends Port {
 
-    public static LLMPort.LLMPortBuilder LLMBuilder() {
-        return new LLMPort.LLMPortBuilder();
+    public static LlmPort.LLMPortBuilder LLMBuilder() {
+        return new LlmPort.LLMPortBuilder();
     }
 
 
@@ -36,32 +36,32 @@ public class LLMPort extends Port {
         private String key;
         private PortSchema schema;
         private Object defaultValue;
-        private LLMPort.LLMPortRole role;
+        private LlmPort.LLMPortRole role;
 
         private LLMPortBuilder() {}
 
-        public LLMPort.LLMPortBuilder withKey(String key) {
+        public LlmPort.LLMPortBuilder withKey(String key) {
             this.key = key;
             return this;
         }
 
-        public LLMPort.LLMPortBuilder withSchema(PortSchema schema) {
+        public LlmPort.LLMPortBuilder withSchema(PortSchema schema) {
             this.schema = schema;
             return this;
         }
 
-        public LLMPort.LLMPortBuilder withDefaultValue(Object defaultValue) {
+        public LlmPort.LLMPortBuilder withDefaultValue(Object defaultValue) {
             this.defaultValue = defaultValue;
             return this;
         }
 
-        public LLMPort.LLMPortBuilder withRole(LLMPort.LLMPortRole role) {
+        public LlmPort.LLMPortBuilder withRole(LlmPort.LLMPortRole role) {
             this.role = role;
             return this;
         }
 
-        public LLMPort build() {
-            LLMPort port = new LLMPort();
+        public LlmPort build() {
+            LlmPort port = new LlmPort();
             port.setKey(key);
             port.setSchema(schema);
             port.setDefaultValue(defaultValue);

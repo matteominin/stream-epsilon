@@ -1,8 +1,8 @@
 package org.caselli.cognitiveworkflow.operational.instances;
 import lombok.Getter;
 import lombok.Setter;
+import org.caselli.cognitiveworkflow.knowledge.model.node.AiNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -10,16 +10,16 @@ import org.springframework.stereotype.Component;
 @Getter
 @Component
 @Scope("prototype")
-public abstract class ToolNodeInstance extends NodeInstance {
+public abstract class AiNodeInstance extends NodeInstance {
 
     @Override
-    public ToolNodeMetamodel getMetamodel() {
-        return (ToolNodeMetamodel) super.getMetamodel();
+    public AiNodeMetamodel getMetamodel() {
+        return (AiNodeMetamodel) super.getMetamodel();
     }
 
     @Override
     public void setMetamodel(NodeMetamodel metamodel) {
-        if (!(metamodel instanceof ToolNodeMetamodel)) throw new IllegalArgumentException("ToolNodeInstance requires ToolNodeMetamodel");
+        if (!(metamodel instanceof AiNodeMetamodel)) throw new IllegalArgumentException("AiNodeInstance requires AiNodeMetamodel");
         super.setMetamodel(metamodel);
     }
 }
