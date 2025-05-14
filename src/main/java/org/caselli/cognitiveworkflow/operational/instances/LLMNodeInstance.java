@@ -2,7 +2,7 @@ package org.caselli.cognitiveworkflow.operational.instances;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.LLMPort;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
@@ -40,14 +40,14 @@ public class LLMNodeInstance extends NodeInstance {
     }
 
     @Override
-    public LLMNodeMetamodel getMetamodel() {
-        return (LLMNodeMetamodel) super.getMetamodel();
+    public LlmNodeMetamodel getMetamodel() {
+        return (LlmNodeMetamodel) super.getMetamodel();
     }
 
     @Override
     public void setMetamodel(NodeMetamodel metamodel) {
-        if (!(metamodel instanceof LLMNodeMetamodel))
-            throw new IllegalArgumentException("LLMNodeInstance requires LLMNodeMetamodel");
+        if (!(metamodel instanceof LlmNodeMetamodel))
+            throw new IllegalArgumentException("LLMNodeInstance requires LlmNodeMetamodel");
 
         super.setMetamodel(metamodel);
     }
@@ -166,7 +166,7 @@ public class LLMNodeInstance extends NodeInstance {
 
     private ChatClient getChatClient(){
         if (chatClient == null) {
-            LLMNodeMetamodel metamodel = getMetamodel();
+            LlmNodeMetamodel metamodel = getMetamodel();
             if (metamodel == null) {
                 logger.error("[Node {}]: LLMNodeInstance requires a metamodel during chat client initialization", getId());
                 throw new IllegalArgumentException("LLMNodeInstance requires a metamodel");

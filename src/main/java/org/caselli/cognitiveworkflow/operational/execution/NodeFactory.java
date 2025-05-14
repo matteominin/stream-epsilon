@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.instances.LLMNodeInstance;
@@ -45,7 +45,7 @@ public class NodeFactory {
 
 
     private Class<? extends NodeInstance> getNodeInstanceClass(NodeMetamodel metamodel) {
-        if (metamodel instanceof LLMNodeMetamodel) {
+        if (metamodel instanceof LlmNodeMetamodel) {
             return LLMNodeInstance.class;
         } else if (metamodel instanceof RestToolNodeMetamodel) {
             return RestToolNodeInstance.class;

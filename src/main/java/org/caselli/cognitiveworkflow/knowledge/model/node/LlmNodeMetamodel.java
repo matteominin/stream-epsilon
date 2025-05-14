@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "meta_nodes")
-public class LLMNodeMetamodel extends AiNodeMetamodel {
+public class LlmNodeMetamodel extends AiNodeMetamodel {
 
     /**
      * System prompt template string with placeholders (like {{input_var}})
@@ -30,7 +30,7 @@ public class LLMNodeMetamodel extends AiNodeMetamodel {
     /** Output ports of the node */
     @NotNull private List<LLMPort> outputPorts = Collections.emptyList();
 
-    public LLMNodeMetamodel() {
+    public LlmNodeMetamodel() {
         super();
         this.setModelType(ModelType.LLM);
     }

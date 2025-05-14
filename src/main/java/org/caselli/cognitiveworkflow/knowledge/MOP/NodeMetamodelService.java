@@ -91,7 +91,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @return Returns the new Metamodel
      */
     @CacheEvict(value = "nodeMetamodels", allEntries = true)
-    public LLMNodeMetamodel createLlmNode(LLMNodeMetamodel nodeMetamodel) throws BadRequestException {
+    public LlmNodeMetamodel createLlmNode(LlmNodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
         nodeMetamodel.setType(NodeMetamodel.NodeType.AI);
         nodeMetamodel.setModelType(AiNodeMetamodel.ModelType.LLM);

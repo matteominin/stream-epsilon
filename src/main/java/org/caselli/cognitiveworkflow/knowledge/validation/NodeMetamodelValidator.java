@@ -1,6 +1,6 @@
 package org.caselli.cognitiveworkflow.knowledge.validation;
 
-import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
@@ -45,8 +45,8 @@ public class NodeMetamodelValidator {
         } else if (node instanceof ToolNodeMetamodel) {
             validateToolNode((ToolNodeMetamodel) node, result);
         }
-        else if (node instanceof LLMNodeMetamodel) {
-            validateLLMNode((LLMNodeMetamodel) node, result);
+        else if (node instanceof LlmNodeMetamodel) {
+            validateLLMNode((LlmNodeMetamodel) node, result);
         }
 
         return result;
@@ -184,7 +184,7 @@ public class NodeMetamodelValidator {
     /**
      * Validates a LLM tool node metamodel
      */
-    private void validateLLMNode(LLMNodeMetamodel node, ValidationResult result) {
+    private void validateLLMNode(LlmNodeMetamodel node, ValidationResult result) {
 
         if (node.getModelName() == null) result.addError("LLM Node Model cannot be null", "node.modelName");
         if (node.getProvider() == null)

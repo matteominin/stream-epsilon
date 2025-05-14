@@ -2,7 +2,7 @@ package org.caselli.cognitiveworkflow.rest.controllers;
 
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
@@ -41,8 +41,8 @@ public class NodeController {
      * Create a new LLM node metamodel
      */
     @PostMapping("/llm")
-    public ResponseEntity<LLMNodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody LLMNodeMetamodel llmNodeMetamodel) throws  BadRequestException{
-        LLMNodeMetamodel result = nodeMetamodelService.createLlmNode(llmNodeMetamodel);
+    public ResponseEntity<LlmNodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody LlmNodeMetamodel llmNodeMetamodel) throws  BadRequestException{
+        LlmNodeMetamodel result = nodeMetamodelService.createLlmNode(llmNodeMetamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
@@ -50,17 +50,17 @@ public class NodeController {
      * Update an existing LLM node metamodel
      */
     @PutMapping("/llm/{id}")
-    public ResponseEntity<LLMNodeMetamodel> updateLlmNodeMetamodel(
+    public ResponseEntity<LlmNodeMetamodel> updateLlmNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody LLMNodeMetamodel llmNodeMetamodel) {
+            @Valid @RequestBody LlmNodeMetamodel llmNodeMetamodel) {
 
         // Check it is a correct node type
         var existing = nodeMetamodelService.getNodeById(id);
         if (existing.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        if (!(existing.get() instanceof LLMNodeMetamodel)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        if (!(existing.get() instanceof LlmNodeMetamodel)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
         llmNodeMetamodel.setId(id);
-        LLMNodeMetamodel result = (LLMNodeMetamodel) nodeMetamodelService.updateNode(id, llmNodeMetamodel);
+        LlmNodeMetamodel result = (LlmNodeMetamodel) nodeMetamodelService.updateNode(id, llmNodeMetamodel);
         return ResponseEntity.ok(result);
     }
 

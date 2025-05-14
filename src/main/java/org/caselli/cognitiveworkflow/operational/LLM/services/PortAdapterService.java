@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.LLM.services;
 
 import lombok.Data;
-import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.LLM.LLMAbstractService;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
@@ -167,7 +167,7 @@ public class PortAdapterService extends LLMAbstractService {
 
     @Override
     protected ChatClient buildChatClient() {
-        var options = new LLMNodeMetamodel.LlmModelOptions();
+        var options = new LlmNodeMetamodel.LlmModelOptions();
         options.setTemperature(temperature);
         return llmModelFactory.createChatClient(provider, model, apiKey, options);
     }

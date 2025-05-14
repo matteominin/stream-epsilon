@@ -1,6 +1,6 @@
 package org.caselli.cognitiveworkflow.operational.instances;
 
-import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.LLMPort;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
@@ -30,16 +30,16 @@ public class LLMNodeInstanceIT {
 
     private LLMNodeInstance llmNodeInstance;
     private ExecutionContext context;
-    private LLMNodeMetamodel metamodel;
+    private LlmNodeMetamodel metamodel;
 
     @BeforeEach
     void setUp() {
         llmNodeInstance = new LLMNodeInstance(llmModelFactory);
-        metamodel = new LLMNodeMetamodel();
-        metamodel.setLlmProvider("openai");
+        metamodel = new LlmNodeMetamodel();
+        metamodel.setProvider("openai");
         metamodel.setModelName("gpt-4o");
 
-        var options = new LLMNodeMetamodel.LlmModelOptions();
+        var options = new LlmNodeMetamodel.LlmModelOptions();
         options.setTemperature(0.4);
         options.setMaxTokens(400);
         metamodel.setDefaultLlmParameters(options);
