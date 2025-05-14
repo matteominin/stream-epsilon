@@ -2,7 +2,7 @@ package org.caselli.cognitiveworkflow.knowledge.model.node;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.caselli.cognitiveworkflow.knowledge.model.node.port.VectorSearchPort;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.VectorDbPort;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Collections;
 import java.util.List;
@@ -30,29 +30,29 @@ public class VectorSearchNodeMetamodel extends ToolNodeMetamodel {
     }
 
     /** Input ports of the node */
-    @NotNull private List<VectorSearchPort> inputPorts = Collections.emptyList();
+    @NotNull private List<VectorDbPort> inputPorts = Collections.emptyList();
 
     /** Output ports of the node */
-    @NotNull private List<VectorSearchPort> outputPorts = Collections.emptyList();
+    @NotNull private List<VectorDbPort> outputPorts = Collections.emptyList();
 
     @Override
     @NotNull
-    public List<VectorSearchPort> getInputPorts() {
+    public List<VectorDbPort> getInputPorts() {
         return this.inputPorts;
     }
 
     @Override
     @NotNull
-    public List<VectorSearchPort> getOutputPorts() {
+    public List<VectorDbPort> getOutputPorts() {
         return this.outputPorts;
     }
 
-    public void setInputPorts(List<VectorSearchPort> inputPorts) {
+    public void setInputPorts(List<VectorDbPort> inputPorts) {
         // Use defensive copying
         this.inputPorts = inputPorts != null ? List.copyOf(inputPorts) : Collections.emptyList();
     }
 
-    public void setOutputPorts(List<VectorSearchPort> outputPorts) {
+    public void setOutputPorts(List<VectorDbPort> outputPorts) {
         // Use defensive copying
         this.outputPorts = outputPorts != null ? List.copyOf(outputPorts) : Collections.emptyList();
     }

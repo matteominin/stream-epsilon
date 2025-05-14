@@ -24,6 +24,8 @@ import lombok.Data;
         @JsonSubTypes.Type(value = StandardPort.class, name = "STANDARD"),
         @JsonSubTypes.Type(value = RestPort.class, name = "REST"),
         @JsonSubTypes.Type(value = LLMPort.class, name = "LLM"),
+        @JsonSubTypes.Type(value = VectorDbPort.class, name = "VECTOR_DB"),
+        @JsonSubTypes.Type(value = EmbeddingsPort.class, name = "EMBEDDINGS"),
 })
 public class Port {
     Port() {}
@@ -50,7 +52,9 @@ public class Port {
     public enum PortImplementationType {
         STANDARD,
         REST,
-        LLM
+        LLM,
+        EMBEDDINGS,
+        VECTOR_DB
     }
 
 

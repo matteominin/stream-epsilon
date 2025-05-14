@@ -5,14 +5,15 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class VectorSearchPort extends Port {
+public class VectorDbPort extends Port {
     private VectorSearchPortRole role;
 
     /**
-     * Roles that vector search ports can have.
+     * Roles that Vector Database Ports can have.
      */
     public enum VectorSearchPortRole {
-        QUERY_TEXT,
+        INPUT_VECTOR,
         RESULTS,
+        FIRST_RESULT
     }
 }
