@@ -171,7 +171,7 @@ public class LLMNodeInstance extends NodeInstance {
                 logger.error("[Node {}]: LLMNodeInstance requires a metamodel during chat client initialization", getId());
                 throw new IllegalArgumentException("LLMNodeInstance requires a metamodel");
             }
-            if (metamodel.getLlmProvider() == null) {
+            if (metamodel.getProvider() == null) {
                 logger.error("[Node {}]: initialization failed: LLM provider is not specified in the metamodel.", getId());
                 throw new IllegalArgumentException("LLMNodeInstance " + getId() + " initialization failed: LLM provider is not specified in the metamodel.");
             }
@@ -181,9 +181,9 @@ public class LLMNodeInstance extends NodeInstance {
             }
 
             var config = metamodel.getDefaultLlmParameters();
-            this.chatClient = llmModelFactory.createChatClient(metamodel.getLlmProvider(), metamodel.getModelName(), null, config);
+            this.chatClient = llmModelFactory.createChatClient(metamodel.getProvider(), metamodel.getModelName(), null, config);
 
-            logger.info("[Node {}]: Created ChatClient for provider {} and model {}", getId(), metamodel.getLlmProvider(), metamodel.getModelName());
+            logger.info("[Node {}]: Created ChatClient for provider {} and model {}", getId(), metamodel.getProvider(), metamodel.getModelName());
             if (config != null) logger.info("[Node {}]: LLM Parameters - Temperature: {}, TopP: {}, MaxTokens: {}", getId(), config.getTemperature(), config.getTopP(), config.getMaxTokens());
         }
         return chatClient;

@@ -2,10 +2,7 @@ package org.caselli.cognitiveworkflow.knowledge.MOP;
 import jakarta.annotation.Nonnull;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.NodeMetamodelUpdateEvent;
-import org.caselli.cognitiveworkflow.knowledge.model.node.LLMNodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.*;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.repository.NodeMetamodelCatalog;
 import org.caselli.cognitiveworkflow.knowledge.validation.NodeMetamodelValidator;
@@ -96,7 +93,8 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
     @CacheEvict(value = "nodeMetamodels", allEntries = true)
     public LLMNodeMetamodel createLlmNode(LLMNodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
-        nodeMetamodel.setType(NodeMetamodel.NodeType.LLM);
+        nodeMetamodel.setType(NodeMetamodel.NodeType.AI);
+        nodeMetamodel.setModelType(AiNodeMetamodel.ModelType.LLM);
         // validate
         var res = nodeMetamodelValidator.validate(nodeMetamodel);
         if(!res.isValid()) throw new BadRequestException("NodeMetamodel is not valid: " + res.getErrors());

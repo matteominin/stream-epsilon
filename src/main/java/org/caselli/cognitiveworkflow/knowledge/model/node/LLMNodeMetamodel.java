@@ -10,22 +10,17 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "meta_nodes")
-public class LLMNodeMetamodel extends NodeMetamodel {
-
-    @NotNull private String llmProvider;
-
-    @NotNull private String modelName;
+public class LLMNodeMetamodel extends AiNodeMetamodel {
 
     /**
      * System prompt template string with placeholders (like {{input_var}})
      */
     private String systemPromptTemplate;
 
-    // Default parameters for the LLM call (can be overridden at instance level TODO)
+    /** Default parameters for the LLM call (can be overridden at instance level TODO) */
     private LlmModelOptions defaultLlmParameters;
 
 
@@ -35,12 +30,10 @@ public class LLMNodeMetamodel extends NodeMetamodel {
     /** Output ports of the node */
     @NotNull private List<LLMPort> outputPorts = Collections.emptyList();
 
-
     public LLMNodeMetamodel() {
         super();
-        this.setType(NodeType.LLM);
+        this.setModelType(ModelType.LLM);
     }
-
 
     @Override
     @NotNull

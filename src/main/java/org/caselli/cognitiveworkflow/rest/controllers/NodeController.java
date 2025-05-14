@@ -57,9 +57,7 @@ public class NodeController {
         // Check it is a correct node type
         var existing = nodeMetamodelService.getNodeById(id);
         if (existing.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        if (existing.get().getType() != NodeMetamodel.NodeType.LLM)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
+        if (!(existing.get() instanceof LLMNodeMetamodel)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
         llmNodeMetamodel.setId(id);
         LLMNodeMetamodel result = (LLMNodeMetamodel) nodeMetamodelService.updateNode(id, llmNodeMetamodel);

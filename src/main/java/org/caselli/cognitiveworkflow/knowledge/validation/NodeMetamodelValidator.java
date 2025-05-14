@@ -187,7 +187,7 @@ public class NodeMetamodelValidator {
     private void validateLLMNode(LLMNodeMetamodel node, ValidationResult result) {
 
         if (node.getModelName() == null) result.addError("LLM Node Model cannot be null", "node.modelName");
-        if (node.getLlmProvider() == null)
+        if (node.getProvider() == null)
             result.addError("LLM Node Model Provider cannot be null", "node.llmProvider");
 
     }

@@ -1,6 +1,5 @@
 package org.caselli.cognitiveworkflow.knowledge.model.node;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
@@ -48,7 +47,7 @@ public abstract class NodeMetamodel {
 
 
     public enum NodeType {
-        LLM,
+        AI,
         TOOL,
     }
 }
