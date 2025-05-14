@@ -19,8 +19,11 @@ public class EmbeddingService {
     @Value("${embedding.provider}")
     private String embeddingProvider;
 
-    @Value("${embedding.apikey}")
+    @Value("${embedding.api-key}")
     private String embeddingApiKey;
+
+    @Value("${embedding.model}")
+    private String embeddingModelName;
 
     private static final Logger log = LoggerFactory.getLogger(EmbeddingService.class);
 
@@ -71,11 +74,11 @@ public class EmbeddingService {
     private EmbeddingModel getEmbeddingModel() {
        if(this.embeddingModel != null) return embeddingModel;
 
-       if(embeddingProvider == null || embeddingApiKey == null) {
-           throw new IllegalStateException("Embedding provider and API key must be set before using the service.");
-       }
+       if(embeddingProvider == null || embeddingApiKey == null || embeddingModelName == null)
+           throw new IllegalStateException("Embedding provider, model name and API key must be set before using the service.");
 
-       this.embeddingModel = embeddingModelFactory.createEmbeddingModel(embeddingProvider, embeddingApiKey);
+
+        this.embeddingModel = embeddingModelFactory.createEmbeddingModel(embeddingProvider, embeddingModelName, embeddingApiKey);
        return embeddingModel;
     }
 

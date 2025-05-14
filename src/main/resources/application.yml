@@ -32,7 +32,8 @@ llm:
 # EMBEDDINGS SERVICE
 embedding:
   provider: openai
-  apikey: ${OPENAI_API_KEY}
+  api-key: ${OPENAI_API_KEY}
+  model: text-embedding-3-small
 
 # INTENT MANAGER SERVICE
 intent-detector:

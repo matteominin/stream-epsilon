@@ -115,8 +115,6 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
                 throw new IllegalArgumentException("LlmNodeInstance " + getId() + " initialization failed: model name is not specified in the metamodel.");
             }
 
-
-            // FIXME
             this.embeddingModel = embeddingModelFactory.createEmbeddingModel(metamodel.getProvider(), metamodel.getModelName());
             logger.info("[Node {}]: Created EmbeddingModel for provider {} and model {}", getId(), metamodel.getProvider(), metamodel.getModelName());
         }
