@@ -6,7 +6,6 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.EmbeddingsPort;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.EmbeddingModelFactory;
-import org.caselli.cognitiveworkflow.operational.LLM.services.EmbeddingService;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -53,11 +52,11 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
                     for (float value : embedding) embeddingList.add((double) value);
                     saveResult(context, embeddingList);
                 } else {
-                    throw new EmbeddingService.EmbeddingGenerationException("Spring AI EmbeddingModel returned null or empty output.");
+                    throw new RuntimeException("Spring AI EmbeddingModel returned null or empty output.");
                 }
             } catch (Exception e) {
                 logger.error("[Node {}]: Error processing Embedding Model response: {}", getId(), e.getMessage(), e);
-                throw new EmbeddingService.EmbeddingGenerationException("Failed to generate embedding for text: " + text, e);
+                throw new RuntimeException("Failed to generate embedding for text: " + text, e);
             }
         }
     }
@@ -88,10 +87,10 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
     private Port getResponsePort(){
         List<EmbeddingsPort> outputPorts = getMetamodel().getOutputPorts();
         if (outputPorts != null)
-            for (EmbeddingsPort inputPort : outputPorts)
-                if (inputPort.getRole() == EmbeddingsPort.EmbeddingsPortRole.OUTPUT_VECTOR) {
-                    logger.debug("[Node {}]: Found output port {}", getId(), inputPort.getKey());
-                    return inputPort;
+            for (EmbeddingsPort port : outputPorts)
+                if (port.getRole() == EmbeddingsPort.EmbeddingsPortRole.OUTPUT_VECTOR) {
+                    logger.debug("[Node {}]: Found output port {}", getId(), port.getKey());
+                    return port;
                 }
         logger.warn("[Node {}]: No output port found", getId());
         return null;

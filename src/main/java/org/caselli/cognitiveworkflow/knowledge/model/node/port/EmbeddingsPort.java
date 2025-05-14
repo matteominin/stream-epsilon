@@ -8,8 +8,8 @@ import lombok.EqualsAndHashCode;
 public class EmbeddingsPort extends Port {
     private EmbeddingsPortRole role;
 
-    public static LlmPort.LlmPortBuilder builder() {
-        return new LlmPort.LlmPortBuilder();
+    public static EmbeddingsPort.EmbeddingsPortBuilder builder() {
+        return new EmbeddingsPort.EmbeddingsPortBuilder();
     }
 
     /**

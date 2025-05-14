@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Tag("it")
-@Tag("focus")
 @ActiveProfiles("test")
 @DisplayName("LlmNodeInstance Integration Tests")
 public class LlmNodeInstanceIT {
