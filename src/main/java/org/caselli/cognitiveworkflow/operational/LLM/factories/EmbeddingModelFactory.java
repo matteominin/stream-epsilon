@@ -43,7 +43,6 @@ public class EmbeddingModelFactory {
 
     private EmbeddingModel createVertexEmbeddingModel(String apiKey) {
         if (!StringUtils.hasText(apiKey)) throw new IllegalArgumentException("OpenAI API key is required");
-
         // TODO: Implement Vertex Embedding Model creation
         throw new UnsupportedOperationException("Vertex Embedding Model is not yet implemented.");
     }

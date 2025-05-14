@@ -111,7 +111,7 @@ public class LlmNodeInstance extends AiNodeInstance {
         List<LlmPort> inputPorts = getMetamodel().getInputPorts();
         if (inputPorts != null) {
             for (LlmPort inputPort : inputPorts) {
-                if (inputPort.getRole() == LlmPort.LLMPortRole.USER_PROMPT) {
+                if (inputPort.getRole() == LlmPort.LlmPortRole.USER_PROMPT) {
                     Object value = context.get(inputPort.getKey());
                     if(value == null) {
                         logger.debug("[Node {}]: User prompt input port {} has null value in context", getId(), inputPort.getKey());
@@ -131,7 +131,7 @@ public class LlmNodeInstance extends AiNodeInstance {
         List<LlmPort> outputPorts = getMetamodel().getOutputPorts();
         if (outputPorts != null)
             for (LlmPort inputPort : outputPorts)
-                if (inputPort.getRole() == LlmPort.LLMPortRole.RESPONSE) {
+                if (inputPort.getRole() == LlmPort.LlmPortRole.RESPONSE) {
                     logger.debug("[Node {}]: Found response output port {}", getId(), inputPort.getKey());
                     return inputPort;
                 }
@@ -147,7 +147,7 @@ public class LlmNodeInstance extends AiNodeInstance {
         List<LlmPort> inputPorts = getMetamodel().getInputPorts();
         if (inputPorts != null) {
             for (LlmPort inputPort : inputPorts) {
-                if (inputPort.getRole() == LlmPort.LLMPortRole.SYSTEM_PROMPT_VARIABLE) {
+                if (inputPort.getRole() == LlmPort.LlmPortRole.SYSTEM_PROMPT_VARIABLE) {
                     variables.put(inputPort.getKey(), context.get(inputPort.getKey()));
                     logger.debug("[Node {}]: Added system prompt variable {} from context", getId(), inputPort.getKey());
                 }

@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "meta_nodes")
-public class EmbeddingsNode extends AiNodeMetamodel {
+public class EmbeddingsNodeMetamodel extends AiNodeMetamodel {
 
     /** Input ports of the node */
     @NotNull private List<EmbeddingsPort> inputPorts = Collections.emptyList();
@@ -19,7 +19,7 @@ public class EmbeddingsNode extends AiNodeMetamodel {
     /** Output ports of the node */
     @NotNull private List<EmbeddingsPort> outputPorts = Collections.emptyList();
 
-    public EmbeddingsNode() {
+    public EmbeddingsNodeMetamodel() {
         super();
         this.setModelType(ModelType.LLM);
     }

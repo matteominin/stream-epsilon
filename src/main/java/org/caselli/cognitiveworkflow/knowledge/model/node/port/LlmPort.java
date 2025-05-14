@@ -15,13 +15,13 @@ public class LlmPort extends Port {
     /**
      * REST-specific port roles
      */
-    private LLMPortRole role;
+    private LlmPortRole role;
 
 
     /**
      * REST-specific port roles
      */
-    public enum LLMPortRole {
+    public enum LlmPortRole {
         USER_PROMPT,
         SYSTEM_PROMPT_VARIABLE,
         RESPONSE
@@ -36,7 +36,7 @@ public class LlmPort extends Port {
         private String key;
         private PortSchema schema;
         private Object defaultValue;
-        private LlmPort.LLMPortRole role;
+        private LlmPortRole role;
 
         private LLMPortBuilder() {}
 
@@ -55,7 +55,7 @@ public class LlmPort extends Port {
             return this;
         }
 
-        public LlmPort.LLMPortBuilder withRole(LlmPort.LLMPortRole role) {
+        public LlmPort.LLMPortBuilder withRole(LlmPortRole role) {
             this.role = role;
             return this;
         }
