@@ -43,14 +43,14 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
 
         if (text == null || text.trim().isEmpty()) {
             logger.error("[Node {}]: No input found", getId());
-            saveResult(context, null);
+            processResultsToContext(context, null);
         } else {
             try {
                 float[] embedding = getEmbeddingsModel().embed(text);
                 if (embedding != null) {
                     List<Double> embeddingList = new ArrayList<>(embedding.length);
                     for (float value : embedding) embeddingList.add((double) value);
-                    saveResult(context, embeddingList);
+                    processResultsToContext(context, embeddingList);
                 } else {
                     throw new RuntimeException("Spring AI EmbeddingModel returned null or empty output.");
                 }
@@ -61,7 +61,7 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
         }
     }
 
-    private void saveResult(ExecutionContext context, List<Double> res) {
+    private void processResultsToContext(ExecutionContext context, List<Double> res) {
         var output = getResponsePort();
         if(output != null) context.put(output.getKey(), res == null ? new ArrayList<>() : res);
     }

@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Tag("it")
 @ActiveProfiles("test")
-@DisplayName("LlmNodeInstance Integration Tests")
+
 public class LlmNodeInstanceIT {
 
     @Autowired
@@ -41,7 +41,7 @@ public class LlmNodeInstanceIT {
         var options = new LlmNodeMetamodel.LlmModelOptions();
         options.setTemperature(0.4);
         options.setMaxTokens(400);
-        metamodel.setDefaultLlmParameters(options);
+        metamodel.setDefaultParameters(options);
 
         llmNodeInstance.setMetamodel(metamodel);
         llmNodeInstance.setId("test-llm-node");

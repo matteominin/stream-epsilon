@@ -175,7 +175,7 @@ public class LlmNodeInstance extends AiNodeInstance {
                 throw new IllegalArgumentException("LlmNodeInstance " + getId() + " initialization failed: model name is not specified in the metamodel.");
             }
 
-            var config = metamodel.getDefaultLlmParameters();
+            var config = metamodel.getDefaultParameters();
             this.chatClient = llmModelFactory.createChatClient(metamodel.getProvider(), metamodel.getModelName(), null, config);
 
             logger.info("[Node {}]: Created ChatClient for provider {} and model {}", getId(), metamodel.getProvider(), metamodel.getModelName());

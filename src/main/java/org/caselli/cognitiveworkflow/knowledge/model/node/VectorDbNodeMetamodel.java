@@ -6,24 +6,44 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.VectorDbPort;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import jakarta.validation.constraints.NotNull;
+
+/**
+ * Represents the metamodel for a Vector Database node within the cognitive workflow.
+ * This node is specialized for performing vector search operations.
+ * <p>
+ * Currently, this implementation serves as a proof of concept and primarily supports
+ * MongoDB Atlas Vector Search.
+ * </p>
+ * <p>
+ * TODO: Future development should include support for various vector database providers
+ * by (1) potentially introducing multiple specialized subclasses of this metamodel or
+ * (2) making the implementation provider-agnostic through configuration.
+ * </p>
+ */
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "meta_nodes")
-public class VectorSearchNodeMetamodel extends ToolNodeMetamodel {
+public class VectorDbNodeMetamodel extends ToolNodeMetamodel {
 
-    /** Connection parameters for vector database */
-    private Map<String, String> connectionParams;
+    /** Database name */
+    @NotNull private String databaseName;
 
-    /** Vector database type */
-    @NotNull private VectorDbType vectorDbType;
+    /** Collection name to search in */
+    @NotNull private String collectionName;
 
-    /** Vector search configuration */
-    private VectorSearchConfig searchConfig;
+    /** Index name for vector search */
+    private String indexName;
 
-    public VectorSearchNodeMetamodel() {
+    /** Field containing vector embeddings */
+    @NotNull private String vectorField;
+
+
+    /** Default parameters for the LLM call (can be overridden at instance level TODO) */
+    private VectorSearchConfig defaultParameters;
+
+    public VectorDbNodeMetamodel() {
         super();
         this.setType(NodeType.TOOL);
         this.setToolType(ToolNodeMetamodel.ToolType.VECTOR_SEARCH);
@@ -57,44 +77,16 @@ public class VectorSearchNodeMetamodel extends ToolNodeMetamodel {
         this.outputPorts = outputPorts != null ? List.copyOf(outputPorts) : Collections.emptyList();
     }
 
-    /**
-     * Supported vector database types.
-     */
-    public enum VectorDbType {
-        MONGODB_ATLAS,
-        PINECONE
-    }
 
     /**
      * Vector search configuration parameters.
      */
     @Data
     public static class VectorSearchConfig {
-        /** Collection/table/index name to search in */
-        @NotNull private String collectionName;
-
-        /** Index name for vector search */
-        private String indexName;
-
-        /** Field containing vector embeddings */
-        @NotNull private String vectorField;
-
-        /** Database name */
-        private String databaseName;
-
         /** Number of results to return */
         private Integer limit = 10;
 
         /** Similarity threshold (0.0-1.0) */
         private Double threshold;
-
-        /** Embedding model provider (e.g., OpenAI, Cohere) */
-        private String embeddingProvider;
-
-        /** Embedding model name (e.g., text-embedding-3-small) */
-        private String embeddingModel;
-
-        /** Embedding dimension size */
-        private Integer embeddingDimension;
     }
 }

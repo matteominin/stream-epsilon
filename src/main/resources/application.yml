@@ -28,7 +28,6 @@ llm:
   anthropic:
     api-key: ${ANTHROPIC_API_KEY}
 
-
 # EMBEDDINGS SERVICE
 embedding:
   provider: openai

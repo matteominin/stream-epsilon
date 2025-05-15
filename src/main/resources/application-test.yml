@@ -13,8 +13,5 @@ spring:
 
 
 
-
-# LLM
-default-api-keys:
-  openai: ${OPENAI_API_KEY}
-  anthropic: ${ANTHROPIC_API_KEY}
+mongodb-vector-search-demo:
+  uri: ${MONGO_VECTOR_SEARCH_DEMO_URI}

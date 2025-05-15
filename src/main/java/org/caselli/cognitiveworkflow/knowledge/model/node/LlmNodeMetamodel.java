@@ -21,7 +21,7 @@ public class LlmNodeMetamodel extends AiNodeMetamodel {
     private String systemPromptTemplate;
 
     /** Default parameters for the LLM call (can be overridden at instance level TODO) */
-    private LlmModelOptions defaultLlmParameters;
+    private LlmModelOptions defaultParameters;
 
 
     /** Input ports of the node */
