@@ -14,7 +14,7 @@ public abstract class ToolNodeMetamodel extends NodeMetamodel {
     @NotNull private ToolType toolType;
 
     /** Service endpoint URI */
-    @NotNull private String serviceUri;
+    @NotNull private String uri;
 
     public ToolNodeMetamodel() {
         super();

@@ -42,7 +42,7 @@ class VectorDbNodeInstanceIT {
         metamodel.setIndexName("embedded_movies_vector_index");
         metamodel.setDatabaseName("sample_mflix");
         metamodel.setVectorField("plot_embedding");
-        metamodel.setServiceUri(mongodbURI);
+        metamodel.setUri(mongodbURI);
         nodeInstance.setMetamodel(metamodel);
         nodeInstance.setId("test-node");
         context = new ExecutionContext();

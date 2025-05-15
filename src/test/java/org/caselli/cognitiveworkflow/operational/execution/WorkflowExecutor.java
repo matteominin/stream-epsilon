@@ -34,7 +34,7 @@ class WorkflowExecutorTest {
         nodeMetamodel.setId(id);
         nodeMetamodel.setName("name");
         nodeMetamodel.setDescription("description");
-        nodeMetamodel.setServiceUri("http://localhost:8080/service");
+        nodeMetamodel.setUri("http://localhost:8080/service");
         nodeMetamodel.setInvocationMethod(RestToolNodeMetamodel.InvocationMethod.POST);
         nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);
         nodeMetamodel.setToolType(RestToolNodeMetamodel.ToolType.REST);

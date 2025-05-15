@@ -173,7 +173,7 @@ public class NodeMetamodelValidator {
      */
     private void validateToolNode(ToolNodeMetamodel node, ValidationResult result) {
         // Check service URI
-        if (node.getServiceUri() == null || node.getServiceUri().trim().isEmpty())
+        if (node.getUri() == null || node.getUri().trim().isEmpty())
             result.addError("Tool node service URI cannot be empty", "node.serviceUri");
 
         // Check tool type
@@ -203,7 +203,7 @@ public class NodeMetamodelValidator {
 
 
         // Validate service URI format
-        String serviceUri = node.getServiceUri();
+        String serviceUri = node.getUri();
         if (serviceUri != null && !serviceUri.trim().isEmpty()) {
             if (!serviceUri.startsWith("http://") && !serviceUri.startsWith("https://"))
                 result.addError("REST service URI must start with http:// or https://", "node.serviceUri");
@@ -219,7 +219,7 @@ public class NodeMetamodelValidator {
      * @param result ValidationResult to store errors and warnings
      */
     private void validateRestUriTemplateVariables(RestToolNodeMetamodel node, ValidationResult result) {
-        String serviceUri = node.getServiceUri();
+        String serviceUri = node.getUri();
         List<String> templateVars = extractTemplateVariables(serviceUri);
         List<String> pathVariablesPortKeys = node.getInputPorts().stream()
                 .filter(Objects::nonNull)

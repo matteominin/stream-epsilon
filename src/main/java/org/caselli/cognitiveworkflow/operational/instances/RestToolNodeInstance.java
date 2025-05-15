@@ -60,7 +60,7 @@ public class RestToolNodeInstance extends ToolNodeInstance {
         logger.info("[Node {}]: Processing REST request.", getId());
 
         RestToolNodeMetamodel metamodel = getMetamodel();
-        String serviceUri = metamodel.getServiceUri();
+        String serviceUri = metamodel.getUri();
         RestToolNodeMetamodel.InvocationMethod invocationMethod = metamodel.getInvocationMethod();
 
         // PATH VARIABLES (e.g., /resource/{id})

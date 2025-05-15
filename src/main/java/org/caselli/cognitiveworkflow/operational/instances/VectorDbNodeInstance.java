@@ -86,7 +86,7 @@ public class VectorDbNodeInstance extends ToolNodeInstance {
     private void initializeConnection() {
         try {
             VectorDbNodeMetamodel metamodel = getMetamodel();
-            String connectionString = metamodel.getServiceUri();
+            String connectionString = metamodel.getUri();
             String databaseName = metamodel.getDatabaseName();
 
             if (connectionString == null || connectionString.isEmpty()) throw new IllegalStateException("MongoDB connection string not configured for this node");
