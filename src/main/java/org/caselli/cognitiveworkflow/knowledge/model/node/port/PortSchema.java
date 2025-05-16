@@ -45,7 +45,6 @@ public class PortSchema {
 
 
 
-
     /**
      * Converts a PortSchema to JSON string representation.
      * @return JSON string representation of the PortSchema object
@@ -62,7 +61,6 @@ public class PortSchema {
             throw new RuntimeException("Failed to serialize PortSchema to JSON", e);
         }
     }
-
 
     /**
      * Checks if this schema is compatible with another schema for data flow.
@@ -284,7 +282,104 @@ public class PortSchema {
 
 
     /**
-     * Builder
+     * Transforms object structures to match the expected schema
+     * (performing type conversions if necessary)
+     * @param value Object to map
+     * @param schema Target PortSchema to map the value to
+     * @return Object that conforms to the provided schema
+     */
+    public static Object mapToSchema(Object value, PortSchema schema) {
+        if (value == null) return null;
+
+        // Handle based on schema type
+        switch (schema.getType()) {
+            case STRING:
+                if (value instanceof String) return value;
+                return value.toString();
+
+            case INT:
+                if (value instanceof Integer || value instanceof Long) return value;
+                if (value instanceof Number) return ((Number) value).longValue();
+                try {
+                    return Long.parseLong(value.toString());
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+
+            case FLOAT:
+                if (value instanceof Float || value instanceof Double) return value;
+                if (value instanceof Number) return ((Number) value).doubleValue();
+                try {
+                    return Double.parseDouble(value.toString());
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+
+            case BOOLEAN:
+                if (value instanceof Boolean) return value;
+                String str = value.toString().toLowerCase();
+                return "true".equals(str) || "1".equals(str) || "yes".equals(str);
+
+            case ARRAY: return mapArrayToSchema(value, schema);
+            case OBJECT: return mapObjectToSchema(value, schema);
+            default: return null;
+        }
+    }
+
+    /**
+     * Helper method to map arrays to match a target array schema
+     * (used by mapToSchema)
+     */
+    private static Object mapArrayToSchema(Object value, PortSchema schema) {
+        if (schema.getItems() == null) return null;
+
+        List<Object> resultList = new ArrayList<>();
+        PortSchema itemSchema = schema.getItems();
+
+        if (value instanceof List<?> list)
+            for (Object item : list)
+                resultList.add(mapToSchema(item, itemSchema));
+
+        else if (value instanceof Object[] array)
+            for (Object item : array)
+                resultList.add(mapToSchema(item, itemSchema));
+
+        else if (value instanceof org.bson.Document doc) resultList.add(mapToSchema(doc, itemSchema));
+        else resultList.add(mapToSchema(value, itemSchema)); // Fallback
+
+        return resultList;
+    }
+
+    /**
+     * Helper method to map objects (maps, documents) to match a target object schema
+     * (used by mapToSchema)
+     */
+    private static Object mapObjectToSchema(Object value, PortSchema schema) {
+        Map<String, Object> resultMap = new HashMap<>();
+        Map<String, PortSchema> propSchemas = schema.getProperties();
+
+        if (propSchemas == null || propSchemas.isEmpty()) return resultMap;
+
+        Map<?, ?> sourceMap;
+        if (value instanceof Map) sourceMap = (Map<?, ?>) value;
+        else if (value instanceof org.bson.Document) sourceMap = ((org.bson.Document) value);
+        else return resultMap;
+
+        for (Map.Entry<String, PortSchema> entry : propSchemas.entrySet()) {
+            String propName = entry.getKey();
+            PortSchema propSchema = entry.getValue();
+            Object propValue = sourceMap.get(propName);
+            if (propValue != null) resultMap.put(propName, mapToSchema(propValue, propSchema));
+            else  resultMap.put(propName, null);
+        }
+
+        return resultMap;
+    }
+
+
+
+    /**
+     * Builder of Port Schema
      */
     public static class PortSchemaBuilder {
         private PortType type;

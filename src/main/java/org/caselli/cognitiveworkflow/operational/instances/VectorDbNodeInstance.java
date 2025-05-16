@@ -10,6 +10,8 @@ import lombok.Setter;
 import org.bson.Document;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.VectorDbNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.VectorDbPort;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.springframework.context.annotation.Scope;
@@ -269,6 +271,7 @@ public class VectorDbNodeInstance extends ToolNodeInstance {
         for (VectorDbPort outputPort : outputPorts) {
             Object valueToSet = null;
             VectorDbPort.VectorSearchPortRole role = outputPort.getRole();
+            PortSchema portSchema = outputPort.getSchema();
 
             if (role == null) {
                 logger.warn("[Node {}]: Output port '{}' has no role defined. This port will be ignored.", getId(), outputPort.getKey());
@@ -277,11 +280,13 @@ public class VectorDbNodeInstance extends ToolNodeInstance {
 
             switch (role) {
                 case RESULTS:
-                    valueToSet = results;
+                    valueToSet = mapDocumentsToSchema(results, portSchema);
                     break;
 
                 case FIRST_RESULT:
-                    valueToSet = results != null && !results.isEmpty() ? results.get(0) : null;
+                    valueToSet = (results != null && !results.isEmpty()) ?
+                            mapDocumentToSchema(results.get(0), portSchema)
+                            : null;
                     break;
 
                 default:
@@ -292,5 +297,46 @@ public class VectorDbNodeInstance extends ToolNodeInstance {
             context.put(outputPort.getKey(), valueToSet);
             logger.info("[Node {}]: Set output port '{}' with value type: {}", getId(), outputPort.getKey(), valueToSet != null ? valueToSet.getClass().getSimpleName() : "null");
         }
+    }
+
+
+    /**
+     * Helper method to map a MongoDB document to a port schema
+     * @param document MongoDB Document to map
+     * @param schema Target schema to map to
+     * @return Object that conforms to the schema (if possible)
+     */
+    private Object mapDocumentToSchema(org.bson.Document document, PortSchema schema) {
+        return PortSchema.mapToSchema(document, schema);
+    }
+
+    /**
+     * Convenience method to map a list of documents to a port schema
+     * @param documents List of MongoDB Documents to map
+     * @param schema Target schema to map to
+     * @return List of objects that conform to the schema
+     */
+    private Object mapDocumentsToSchema(List<org.bson.Document> documents, PortSchema schema) {
+        if (schema.getType() != PortType.ARRAY) {
+            if (schema.getType() == PortType.STRING && documents != null) {
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    return mapper.writeValueAsString(documents);
+                } catch (Exception e) {
+                    logger.warn("[Node {}]: Failed to convert document list to JSON string: {}", getId(), e.getMessage());
+                    return documents.toString();
+                }
+            }
+            logger.warn("[Node {}]: Target schema must be of type ARRAY when mapping multiple documents", getId());
+            return null;
+        }
+
+        List<Object> results = new ArrayList<>();
+
+        if (documents != null)
+            for (org.bson.Document doc : documents)
+                results.add(PortSchema.mapToSchema(doc, schema.getItems()));
+
+        return results;
     }
 }
