@@ -3,9 +3,9 @@ package org.caselli.cognitiveworkflow.knowledge.model.node.port;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.util.*;
+
 import org.bson.Document;
 
 @Tag("test")
@@ -243,5 +243,89 @@ class PortSchemaTest {
         assertThrows(IllegalArgumentException.class, () -> personSchema.getSchemaByPath("nonexistent"));
         assertThrows(IllegalArgumentException.class, () -> personSchema.getSchemaByPath("name.street"));
         assertThrows(IllegalArgumentException.class, () -> personSchema.getSchemaByPath(".address"));
+    }
+
+    @Test
+    void testMapToSchemaPrimitives() {
+        // String schema
+        PortSchema stringSchema = PortSchema.builder().stringSchema().build();
+        assertEquals("42", PortSchema.mapToSchema(42, stringSchema));
+        assertEquals("true", PortSchema.mapToSchema(true, stringSchema));
+        assertEquals("test", PortSchema.mapToSchema("test", stringSchema));
+
+        // Int schema
+        PortSchema intSchema = PortSchema.builder().intSchema().build();
+        assertEquals(42, PortSchema.mapToSchema(42, intSchema));
+        assertEquals(42, PortSchema.mapToSchema("42", intSchema));
+        assertEquals(42, PortSchema.mapToSchema(42.0f, intSchema));
+        assertNull(PortSchema.mapToSchema("not a number", intSchema));
+
+        // Float schema
+        PortSchema floatSchema = PortSchema.builder().floatSchema().build();
+        assertEquals(42.0, PortSchema.mapToSchema(42, floatSchema));
+        assertEquals(3.14, PortSchema.mapToSchema("3.14", floatSchema));
+        assertEquals(3.14, PortSchema.mapToSchema(3.14, floatSchema));
+        assertNull(PortSchema.mapToSchema("not a number", floatSchema));
+
+        // Boolean schema
+        PortSchema boolSchema = PortSchema.builder().booleanSchema().build();
+        assertEquals(true, PortSchema.mapToSchema(true, boolSchema));
+        assertEquals(true, PortSchema.mapToSchema("true", boolSchema));
+        assertEquals(true, PortSchema.mapToSchema("yes", boolSchema));
+        assertEquals(true, PortSchema.mapToSchema("1", boolSchema));
+        assertEquals(false, PortSchema.mapToSchema("false", boolSchema));
+        assertEquals(false, PortSchema.mapToSchema(0, boolSchema));
+    }
+
+    @Test
+    void testMapToSchemaNested() {
+        // Address schema
+        Map<String, PortSchema> addressProps = new HashMap<>();
+        addressProps.put("street", PortSchema.builder().stringSchema().build());
+        addressProps.put("zipCode", PortSchema.builder().intSchema().build());
+        PortSchema addressSchema = PortSchema.builder().objectSchema(addressProps).build();
+
+        // Scores
+        PortSchema intItemSchema = PortSchema.builder().intSchema().build();
+        PortSchema scoresSchema = PortSchema.builder().arraySchema(intItemSchema).build();
+
+        // Create person schema
+        Map<String, PortSchema> personProps = new HashMap<>();
+        personProps.put("name", PortSchema.builder().stringSchema().build());
+        personProps.put("addresses", PortSchema.builder().arraySchema(addressSchema).build());
+        personProps.put("scores", scoresSchema);
+        PortSchema personSchema = PortSchema.builder().objectSchema(personProps).build();
+
+
+        Map<String, Object> address1 = new HashMap<>();
+        address1.put("street", "Main St");
+        address1.put("zipCode", "12345");
+
+        Map<String, Object> address2 = new HashMap<>();
+        address2.put("street", "Main St");
+        address2.put("zipCode", "12345");
+
+
+        Map<String, Object> person = new HashMap<>();
+        person.put("name", "John");
+        person.put("addresses", List.of(address1, address2));
+        person.put("scores", List.of("1", "2", "3"));
+
+        // Test mapping
+        Map<?, ?> result = (Map<?, ?>) PortSchema.mapToSchema(person, personSchema);
+        assertEquals("John", result.get("name"));
+
+        List<?> resultAddresses = (List<?>) result.get("addresses");
+        assertNotNull(resultAddresses);
+
+        for (var resultAddress : resultAddresses) {
+            assertInstanceOf(Map.class, resultAddress);
+            assertEquals("Main St", ((Map<?,?>)resultAddress).get("street"));
+            assertEquals(12345, ((Map<?,?>)resultAddress).get("zipCode"));
+        }
+
+        List<?> resultScores = (List<?>) result.get("scores");
+        assertNotNull(resultScores);
+        for (var resultScore : resultScores) assertInstanceOf(Integer.class, resultScore);
     }
 }

@@ -299,9 +299,9 @@ public class PortSchema {
 
             case INT:
                 if (value instanceof Integer || value instanceof Long) return value;
-                if (value instanceof Number) return ((Number) value).longValue();
+                if (value instanceof Number) return ((Number) value).intValue();
                 try {
-                    return Long.parseLong(value.toString());
+                    return Integer.parseInt(value.toString());
                 } catch (NumberFormatException e) {
                     return null;
                 }
