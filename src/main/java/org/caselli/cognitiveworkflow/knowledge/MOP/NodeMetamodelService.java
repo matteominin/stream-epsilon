@@ -63,13 +63,9 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      */
     @CacheEvict(value = "nodeMetamodels", key = "#id")
     public NodeMetamodel updateNode(String id, NodeMetamodel updatedData) {
-        // TODO: da capire se fa anche senza specializzazione (?)
-
         // Check if the documents exists
         repository.findById(id).orElseThrow(() -> new IllegalArgumentException("NodeMetamodel with id " + id + " does not exist."));
-
         NodeMetamodel saved = repository.save(updatedData);
-
         // Notify the Operational Level of the modification
         eventPublisher.publishEvent(new NodeMetamodelUpdateEvent(id, saved));
 
@@ -91,16 +87,32 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @return Returns the new Metamodel
      */
     @CacheEvict(value = "nodeMetamodels", allEntries = true)
-    public LlmNodeMetamodel createLlmNode(LlmNodeMetamodel nodeMetamodel) throws BadRequestException {
-        nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
+    public NodeMetamodel createNodeMetamodel(LlmNodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setType(NodeMetamodel.NodeType.AI);
         nodeMetamodel.setModelType(AiNodeMetamodel.ModelType.LLM);
-        // validate
-        var res = nodeMetamodelValidator.validate(nodeMetamodel);
-        if(!res.isValid()) throw new BadRequestException("NodeMetamodel is not valid: " + res.getErrors());
-
-        return repository.save(nodeMetamodel);
+        // Set the correct port types
+        nodeMetamodel.getInputPorts().forEach(port -> port.setPortType(Port.PortImplementationType.LLM));
+        // Create
+        return createBaseNodeMetamodel(nodeMetamodel);
     }
+
+
+    /**
+     * Save in the DB a new Embeddings Node Metamodel
+     * @param nodeMetamodel Metamodel to create
+     * @return Returns the new Metamodel
+     */
+    @CacheEvict(value = "nodeMetamodels", allEntries = true)
+    public NodeMetamodel createNodeMetamodel(EmbeddingsNodeMetamodel nodeMetamodel) throws BadRequestException {
+        nodeMetamodel.setType(NodeMetamodel.NodeType.AI);
+        nodeMetamodel.setModelType(AiNodeMetamodel.ModelType.EMBEDDINGS);
+        // Set the correct port types
+        nodeMetamodel.getInputPorts().forEach(port -> port.setPortType(Port.PortImplementationType.EMBEDDINGS));
+        // Create
+        return createBaseNodeMetamodel(nodeMetamodel);
+    }
+
+
 
     /**
      * Save in the DB a new Node Metamodel of a REST TOOL
@@ -108,20 +120,48 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @return Returns the new Metamodel
      */
     @CacheEvict(value = "nodeMetamodels", allEntries = true)
-    public RestToolNodeMetamodel createRestToolNode(RestToolNodeMetamodel nodeMetamodel) throws BadRequestException {
-        nodeMetamodel.setId(UUID.randomUUID().toString()); // ignore the pre-existing ID
+    public NodeMetamodel createNodeMetamodel(RestToolNodeMetamodel nodeMetamodel) throws BadRequestException {
         // Set correct types
         nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);
         nodeMetamodel.setToolType(ToolNodeMetamodel.ToolType.REST);
         // Set the correct port types
         nodeMetamodel.getInputPorts().forEach(port -> port.setPortType(Port.PortImplementationType.REST));
+        // Create
+        return createBaseNodeMetamodel(nodeMetamodel);
+    }
 
-        // validate
+    /**
+     * Save in the DB a new Node Metamodel of a Vector Database
+     * @param nodeMetamodel Metamodel to create
+     * @return Returns the new Metamodel
+     */
+    @CacheEvict(value = "nodeMetamodels", allEntries = true)
+    public NodeMetamodel createNodeMetamodel(VectorDbNodeMetamodel nodeMetamodel) throws BadRequestException {
+        // Set correct types
+        nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);
+        nodeMetamodel.setToolType(ToolNodeMetamodel.ToolType.VECTOR_DB);
+        // Set the correct port types
+        nodeMetamodel.getInputPorts().forEach(port -> port.setPortType(Port.PortImplementationType.VECTOR_DB));
+        // Create
+        return createBaseNodeMetamodel(nodeMetamodel);
+    }
+
+
+    private NodeMetamodel createBaseNodeMetamodel(NodeMetamodel nodeMetamodel) throws BadRequestException {
+        nodeMetamodel.setId(UUID.randomUUID().toString()); // Ignore the pre-existing ID
+        // Validate
         var res = nodeMetamodelValidator.validate(nodeMetamodel);
         if(!res.isValid()) throw new BadRequestException("NodeMetamodel is not valid: " + res.getErrors());
-
+        // Create
         return repository.save(nodeMetamodel);
     }
+
+
+
+
+
+
+
 
 
     @Override

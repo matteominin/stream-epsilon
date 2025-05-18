@@ -21,7 +21,7 @@ public class EmbeddingsNodeMetamodel extends AiNodeMetamodel {
 
     public EmbeddingsNodeMetamodel() {
         super();
-        this.setModelType(ModelType.LLM);
+        this.setModelType(ModelType.EMBEDDINGS);
     }
 
     @Override

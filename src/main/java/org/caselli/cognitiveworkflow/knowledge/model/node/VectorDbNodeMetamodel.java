@@ -34,11 +34,10 @@ public class VectorDbNodeMetamodel extends ToolNodeMetamodel {
     @NotNull private String collectionName;
 
     /** Index name for vector search */
-    private String indexName;
+    @NotNull private String indexName;
 
     /** Field containing vector embeddings */
     @NotNull private String vectorField;
-
 
     /** Default parameters for the LLM call (can be overridden at instance level TODO) */
     private VectorSearchConfig defaultParameters;
@@ -46,7 +45,7 @@ public class VectorDbNodeMetamodel extends ToolNodeMetamodel {
     public VectorDbNodeMetamodel() {
         super();
         this.setType(NodeType.TOOL);
-        this.setToolType(ToolNodeMetamodel.ToolType.VECTOR_SEARCH);
+        this.setToolType(ToolNodeMetamodel.ToolType.VECTOR_DB);
     }
 
     /** Input ports of the node */

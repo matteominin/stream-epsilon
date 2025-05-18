@@ -23,6 +23,6 @@ public abstract class ToolNodeMetamodel extends NodeMetamodel {
 
      public enum ToolType {
         REST,
-         VECTOR_SEARCH
+         VECTOR_DB
     }
 }
