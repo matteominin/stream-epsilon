@@ -27,4 +27,50 @@ public class Version {
     public String toString() {
         return major + "." + minor + "." + patch + (label != null ? "-" + label : "");
     }
+
+    
+    /**
+     * Determines if version changes are backward compatible
+     * - Major version changes = breaking changes
+     * - Minor/patch = backward compatible
+     */
+    public boolean isCompatible(Version oldVersion, Version newVersion) {
+        return oldVersion.getMajor() == newVersion.getMajor() &&
+                (oldVersion.getMinor() < newVersion.getMinor() ||
+                        (oldVersion.getMinor() == newVersion.getMinor() &&
+                                oldVersion.getPatch() <= newVersion.getPatch()));
+    }
+
+    /**
+     * Creates a new version based on change type
+     */
+    public Version incrementVersion(Version currentVersion, ChangeType changeType) {
+        Version newVersion = new Version();
+        newVersion.setMajor(currentVersion.getMajor());
+        newVersion.setMinor(currentVersion.getMinor());
+        newVersion.setPatch(currentVersion.getPatch());
+
+        switch (changeType) {
+            case MAJOR:
+                newVersion.setMajor(currentVersion.getMajor() + 1);
+                newVersion.setMinor(0);
+                newVersion.setPatch(0);
+                break;
+            case MINOR:
+                newVersion.setMinor(currentVersion.getMinor() + 1);
+                newVersion.setPatch(0);
+                break;
+            case PATCH:
+                newVersion.setPatch(currentVersion.getPatch() + 1);
+                break;
+        }
+
+        return newVersion;
+    }
+
+    public enum ChangeType {
+            MAJOR,
+            MINOR,
+            PATCH
+    }
 }
