@@ -11,10 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +46,7 @@ public class WorkflowOrchestrator {
      * @param request The user request to be processed
      * @throws RuntimeException if intent cannot be satisfied or no workflow is available
      */
-    public void orchestrateWorkflowExecution(String request){
+    public Map<String, Object> orchestrateWorkflowExecution(String request){
         logger.info("Starting workflow orchestration for request: {}", request);
 
         var intentRes = intentDetectionService.detect(request);
@@ -91,15 +89,17 @@ public class WorkflowOrchestrator {
 
         // EXECUTION
         var userVariables = intentRes.getUserVariables();
+        userVariables.put("COMPLETE_USER_REQUEST", request);
         logger.debug("Starting workflow with variables: {}", userVariables);
-        startWorkflow(workflowInstance, userVariables);
+        var context = startWorkflow(workflowInstance, userVariables);
 
-        // EXTRACT OUTPUT
-        // todo
+
         logger.debug("Workflow execution completed for request: {}", request);
+
+        return extractOutputs(context, workflowInstance);
     }
 
-    private void startWorkflow(WorkflowInstance workflowInstance, Map<String,Object> variables) {
+    private ExecutionContext startWorkflow(WorkflowInstance workflowInstance, Map<String,Object> variables) {
         logger.debug("Starting workflow instance: {}", workflowInstance.getId());
 
         // Get the entry points of the workflow
@@ -130,5 +130,29 @@ public class WorkflowOrchestrator {
         WorkflowExecutor executor = executorProvider.getObject(workflowInstance);
         logger.debug("Obtained workflow executor for instance: {}", workflowInstance.getId());
         executor.execute(context, startingNodeId);
+
+        return context;
+    }
+
+
+    private Map<String, Object> extractOutputs(ExecutionContext context, WorkflowInstance workflowInstance){
+
+        Map<String, Object> res = new HashMap<>();
+
+        var exitPointIDs = workflowInstance.getMetamodel().getExitNodes();
+        List<NodeMetamodel> exitPointMetamodels = exitPointIDs.stream()
+                .map(id -> workflowInstance.getInstanceByWorkflowNodeId(id).getMetamodel())
+                .toList();
+
+        for (var model : exitPointMetamodels){
+            if(model.getOutputPorts() != null){
+                for (var outputPort : model.getOutputPorts()){
+                    if(outputPort.getKey() != null && context.get(outputPort.getKey()) != null)
+                        res.put(outputPort.getKey(), context.get(outputPort.getKey()));
+                }
+            }
+        }
+
+        return res;
     }
 }

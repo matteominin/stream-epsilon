@@ -1,5 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.instances;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
@@ -27,6 +29,7 @@ import java.util.Map;
 @Scope("prototype")
 public class LlmNodeInstance extends AiNodeInstance {
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private ChatClient chatClient;
     private final LLMModelFactory llmModelFactory;
 
@@ -118,7 +121,7 @@ public class LlmNodeInstance extends AiNodeInstance {
                         return null;
                     }
                     logger.debug("[Node {}]: Found user prompt input port {} with value", getId(), inputPort.getKey());
-                    return value.toString();
+                    return convertObjectToJsonString(value);
                 }
             }
         }
@@ -148,7 +151,7 @@ public class LlmNodeInstance extends AiNodeInstance {
         if (inputPorts != null) {
             for (LlmPort inputPort : inputPorts) {
                 if (inputPort.getRole() == LlmPort.LlmPortRole.SYSTEM_PROMPT_VARIABLE) {
-                    variables.put(inputPort.getKey(), context.get(inputPort.getKey()));
+                    variables.put(inputPort.getKey(), convertObjectToJsonString(context.get(inputPort.getKey())));
                     logger.debug("[Node {}]: Added system prompt variable {} from context", getId(), inputPort.getKey());
                 }
             }
@@ -184,4 +187,22 @@ public class LlmNodeInstance extends AiNodeInstance {
         return chatClient;
     }
 
+
+
+
+
+    /**
+     * Converts a Java object to a JSON string.
+     *
+     * @param object The object to convert.
+     * @return A JSON string representation of the object, or null if an error occurs.
+     */
+    public String convertObjectToJsonString(Object object) {
+        try {
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            logger.warn("Error converting object to JSON string: " + e.getMessage());
+            return null;
+        }
+    }
 }

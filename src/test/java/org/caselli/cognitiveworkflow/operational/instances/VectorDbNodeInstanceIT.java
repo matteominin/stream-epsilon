@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Tag("it")
-@Tag("focus")
 @ActiveProfiles("test")
 class VectorDbNodeInstanceIT {
 

@@ -50,6 +50,7 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
                 if (embedding != null) {
                     List<Double> embeddingList = new ArrayList<>(embedding.length);
                     for (float value : embedding) embeddingList.add((double) value);
+                    logger.info("[Node {}]: Completed embeddings creation", getId());
                     processResultsToContext(context, embeddingList);
                 } else {
                     throw new RuntimeException("Spring AI EmbeddingModel returned null or empty output.");
@@ -63,7 +64,10 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
 
     private void processResultsToContext(ExecutionContext context, List<Double> res) {
         var output = getResponsePort();
-        if(output != null) context.put(output.getKey(), res == null ? new ArrayList<>() : res);
+        if(output != null) {
+            context.put(output.getKey(), res == null ? new ArrayList<>() : res);
+            logger.info("[Node {}]: Exposed result vector at the port {}", getId(), output.getKey());
+        }
     }
 
     private String getInput(ExecutionContext context){
@@ -89,7 +93,7 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
         if (outputPorts != null)
             for (EmbeddingsPort port : outputPorts)
                 if (port.getRole() == EmbeddingsPort.EmbeddingsPortRole.OUTPUT_VECTOR) {
-                    logger.debug("[Node {}]: Found output port {}", getId(), port.getKey());
+                    logger.info("[Node {}]: Found output port {}", getId(), port.getKey());
                     return port;
                 }
         logger.warn("[Node {}]: No output port found", getId());

@@ -88,7 +88,9 @@ public class WorkflowExecutor {
             String currentId = queue.poll();
             NodeInstance current = workflow.getInstanceByWorkflowNodeId(currentId);
 
+            logger.info("*******************************************");
             logger.info("Processing node: {}", currentId);
+
 
             if (current == null) {
                 logger.error("Node instance not found for ID: {}", currentId);
@@ -102,6 +104,8 @@ public class WorkflowExecutor {
             checkRequiredInputPorts(current, context);
 
             try {
+                logger.info("Current context: {}", context.keySet());
+
                 // Process the node
                 current.process(context);
                 processedNodeIds.add(currentId);
@@ -211,7 +215,7 @@ public class WorkflowExecutor {
             if (value != null) {
                 // Source value found, set it at the target using dot notation
                 context.put(targetKey, value);
-                logger.debug("Applied binding: {} -> {} (value: {})", sourceKey, targetKey, value);
+                logger.info("Applied binding: {} -> {} (value: {})", sourceKey, targetKey, value);
             } else {
                 // Source key (or path) not found in context, check if the target port has a default value
                 // This requires finding the *root* port key for the target path.

@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Tag("it")
 @ActiveProfiles("test")
+@Tag("focus")
 public class InputMapperServiceIT {
 
     @Autowired

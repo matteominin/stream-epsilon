@@ -41,11 +41,9 @@ public class WorkflowController {
     }
 
     @PostMapping("/execute")
-    public ResponseEntity<String> execute(@RequestBody ExecuteDTO request) {
-        workflowOrchestrator.orchestrateWorkflowExecution(request.request);
-
-        // TODO
-        return ResponseEntity.ok("ciao");
+    public ResponseEntity<Object> execute(@RequestBody ExecuteDTO request) {
+        var context = workflowOrchestrator.orchestrateWorkflowExecution(request.request);
+        return ResponseEntity.ok(context);
     }
 
 
