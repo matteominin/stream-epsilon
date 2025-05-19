@@ -6,16 +6,13 @@ import lombok.Data;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.execution.WorkflowInstanceManager;
-import org.caselli.cognitiveworkflow.operational.execution.WorkflowExecutor;
 import org.caselli.cognitiveworkflow.operational.execution.WorkflowOrchestrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Optional;
 
 @Validated
 @RestController
@@ -42,31 +39,6 @@ public class WorkflowController {
     public ResponseEntity<WorkflowMetamodel> createWorkflow(@Valid @RequestBody WorkflowMetamodel workflow) throws BadRequestException {
         return ResponseEntity.ok(workflowMetamodelService.createWorkflow(workflow));
     }
-
-    @PostMapping("/execute/{workflowId}/{star}")
-    public ResponseEntity<String> executeWorkflow(@PathVariable String workflowId) {
-        // TODO: this endpoint is for test only, remove
-
-        Optional<WorkflowMetamodel> modelRes = this.workflowMetamodelService.getWorkflowById(workflowId);
-
-        if(modelRes.isPresent()){
-
-            // TODO: only for test
-            var model = modelRes.get();
-
-
-            var workflow = this.workflowInstanceManager.getOrCreate(model);
-
-            ExecutionContext context = new ExecutionContext();
-
-            WorkflowExecutor workflowExecutor = new WorkflowExecutor(workflow);
-
-            workflowExecutor.execute(context, "");
-        }
-
-        return ResponseEntity.ok("ciao");
-    }
-
 
     @PostMapping("/execute")
     public ResponseEntity<String> execute(@RequestBody ExecuteDTO request) {

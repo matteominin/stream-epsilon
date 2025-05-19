@@ -1,12 +1,8 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
-import org.caselli.cognitiveworkflow.operational.instances.LlmNodeInstance;
-import org.caselli.cognitiveworkflow.operational.instances.NodeInstance;
-import org.caselli.cognitiveworkflow.operational.instances.RestToolNodeInstance;
+import org.caselli.cognitiveworkflow.knowledge.model.node.*;
+import org.caselli.cognitiveworkflow.operational.instances.*;
 import org.slf4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -49,6 +45,12 @@ public class NodeFactory {
             return LlmNodeInstance.class;
         } else if (metamodel instanceof RestToolNodeMetamodel) {
             return RestToolNodeInstance.class;
+        }
+        else if (metamodel instanceof EmbeddingsNodeMetamodel) {
+            return EmbeddingsNodeInstance.class;
+        }
+        else if (metamodel instanceof VectorDbNodeMetamodel) {
+            return VectorDbNodeInstance.class;
         }
         else {
             throw new IllegalArgumentException("Unsupported NodeMetamodel type: " + metamodel.getClass().getName());
