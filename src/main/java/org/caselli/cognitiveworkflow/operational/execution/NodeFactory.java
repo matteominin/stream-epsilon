@@ -1,6 +1,5 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.caselli.cognitiveworkflow.knowledge.model.node.*;
 import org.caselli.cognitiveworkflow.operational.instances.*;
 import org.slf4j.Logger;
@@ -11,11 +10,9 @@ import org.springframework.stereotype.Component;
 public class NodeFactory {
     private final Logger logger = org.slf4j.LoggerFactory.getLogger(NodeFactory.class);
     private final ApplicationContext context;
-    private final ObjectMapper mapper;
 
-    public NodeFactory(ApplicationContext context, ObjectMapper mapper) {
+    public NodeFactory(ApplicationContext context) {
         this.context = context;
-        this.mapper = mapper;
     }
 
     public NodeInstance create(NodeMetamodel metamodel) {
@@ -51,6 +48,9 @@ public class NodeFactory {
         }
         else if (metamodel instanceof VectorDbNodeMetamodel) {
             return VectorDbNodeInstance.class;
+        }
+        else if (metamodel instanceof GatewayNodeMetamodel) {
+            return GatewayNodeInstance.class;
         }
         else {
             throw new IllegalArgumentException("Unsupported NodeMetamodel type: " + metamodel.getClass().getName());

@@ -21,7 +21,6 @@ public class NodeController {
 
     private final NodeMetamodelService nodeMetamodelService;
 
-
     @Autowired
     public NodeController(NodeMetamodelService nodeMetamodelService) {
         this.nodeMetamodelService = nodeMetamodelService;
@@ -35,6 +34,7 @@ public class NodeController {
         Page<NodeMetamodel> page = nodeMetamodelService.findAll(pageable);
         return ResponseEntity.ok(page);
     }
+
 
     /**
      * Create a new LLM node metamodel
@@ -71,6 +71,15 @@ public class NodeController {
     @PostMapping("/embeddings")
     public ResponseEntity<NodeMetamodel> createEmbeddingsNodeMetamodel(@Valid @RequestBody EmbeddingsNodeMetamodel metamodel) throws BadRequestException {
         var result = nodeMetamodelService.createNodeMetamodel(metamodel);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+    /**
+     * Create a new Gateway
+     */
+    @PostMapping("/gateway")
+    public ResponseEntity<NodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody GatewayNodeMetamodel gatewayNodeMetamodel) throws BadRequestException {
+        var result = nodeMetamodelService.createNodeMetamodel(gatewayNodeMetamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
@@ -141,6 +150,22 @@ public class NodeController {
         );
     }
 
+    /**
+     * Update an existing Gateway node metamodel
+     */
+    @PutMapping("/gateway/{id}")
+    public ResponseEntity<NodeMetamodel> updateGatewayNodeMetamodel(
+            @PathVariable String id,
+            @Valid @RequestBody GatewayNodeMetamodel metamodel) {
+
+        return validateAndUpdateNode(
+                id,
+                metamodel,
+                node -> node.getType() == NodeMetamodel.NodeType.FLOW &&
+                        node instanceof GatewayNodeMetamodel &&
+                        ((GatewayNodeMetamodel) node).getControlType() == GatewayNodeMetamodel.ControlType.GATEWAY
+        );
+    }
 
     /**
      * Helper method to validate and update node metamodels
@@ -156,15 +181,10 @@ public class NodeController {
 
         // Check if node exists
         Optional<NodeMetamodel> existing = nodeMetamodelService.getNodeById(id);
-        if (existing.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        if (existing.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
         // Validate node type
-        if (!validationPredicate.test(existing.get())) {
-            System.out.println("iao");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        if (!validationPredicate.test(existing.get())) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
         // Update node
         metamodel.setId(id);
