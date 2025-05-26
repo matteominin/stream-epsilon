@@ -2,13 +2,14 @@ package org.caselli.cognitiveworkflow.operational.execution;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
+import org.caselli.cognitiveworkflow.knowledge.validation.WorkflowMetamodelValidator;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.instances.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 import java.util.*;
 
 /**
@@ -17,35 +18,34 @@ import java.util.*;
  * respecting port bindings and transition conditions.
  * Execution progresses in a topological order.
  */
-@Component
-@Scope("prototype")
+@Service
 public class WorkflowExecutor {
     private static final Logger logger = LoggerFactory.getLogger(WorkflowExecutor.class);
-    /**
-     * Workflow to execute
-     */
-    private final WorkflowInstance workflow;
 
-    public WorkflowExecutor(WorkflowInstance workflow) {
-        this.workflow = workflow;
+    private final WorkflowMetamodelValidator workflowMetamodelValidator;
+
+    public WorkflowExecutor(WorkflowMetamodelValidator workflowMetamodelValidator) {
+        this.workflowMetamodelValidator = workflowMetamodelValidator;
     }
 
-    public void execute(ExecutionContext context) {
-        execute(context, null);
+
+    public void execute(WorkflowInstance workflow, ExecutionContext context) {
+        this.execute(workflow, context, null);
     }
 
-    public void execute(ExecutionContext context, String startingNodeId) {
+
+    public void execute(WorkflowInstance workflow, ExecutionContext context, String startingNodeId) {
 
         logger.info("-------------------------------------------");
 
         // Check if the workflow is enabled
-        if (!this.workflow.getMetamodel().getEnabled())
+        if (!workflow.getMetamodel().getEnabled())
             throw new RuntimeException("Cannot execute Workflow " + workflow.getId() + ". It is not enabled.");
 
 
         // Validate that all nodes referenced in edges exist
         List<WorkflowEdge> edges = workflow.getMetamodel().getEdges();
-        validateEdges(edges);
+        validateEdges(workflow, edges);
 
         // Adjacency list
         Map<String, List<WorkflowEdge>> outgoing = new HashMap<>();
@@ -133,11 +133,26 @@ public class WorkflowExecutor {
                 }
 
                 // Evaluate the edge condition
-                boolean pass = evaluateEdgeCondition(edge, context);
+                boolean pass = evaluateEdgeCondition(workflow, edge, context);
+
+
+
 
                 if (pass) {
+
+
+
+                    // Check if there is compatibility between the output ports of the current node
+                    // and the input ports of the target node
+                    // if there is not compatibility invoke the port adaptor service
+
+                    var isEdgeCompatible = workflowMetamodelValidator.isEdgePortCompatible(edge, workflow.getMetamodel());
+
+                    System.out.println("Checking edge compatibility from " + edge.getSourceNodeId() + " to " + edge.getTargetNodeId() + ": " + isEdgeCompatible);
+
+
                     // Apply bindings
-                    if (edge.getBindings() != null) applyEdgeBindings(edge, context);
+                    if (edge.getBindings() != null) applyEdgeBindings(workflow, edge, context);
 
                     // Decrement in-degree if the condition passed
                     inDegree.compute(targetId, (k, v) -> (v == null ? 0 : v) - 1);
@@ -160,7 +175,7 @@ public class WorkflowExecutor {
     /**
      * Validates that all nodes referenced in edges exist in the node map.
      */
-    private void validateEdges(List<WorkflowEdge> edges) {
+    private void validateEdges(WorkflowInstance workflow, List<WorkflowEdge> edges) {
         for (WorkflowEdge edge : edges) {
             String sourceId = edge.getSourceNodeId();
             String targetId = edge.getTargetNodeId();
@@ -177,7 +192,7 @@ public class WorkflowExecutor {
      *
      * @return true if the condition passes or there is no condition, false otherwise
      */
-    private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context) {
+    private boolean evaluateEdgeCondition(WorkflowInstance workflow, WorkflowEdge edge, ExecutionContext context) {
         WorkflowEdge.Condition cond = edge.getCondition();
         if (cond == null) return true;
 
@@ -204,7 +219,7 @@ public class WorkflowExecutor {
      * Applies the bindings from an edge to copy data in the execution context.
      * Bindings map source port keys to target port keys
      */
-    private void applyEdgeBindings(WorkflowEdge edge, ExecutionContext context) {
+    private void applyEdgeBindings(WorkflowInstance workflow, WorkflowEdge edge, ExecutionContext context) {
         for (Map.Entry<String, String> bind : edge.getBindings().entrySet()) {
             String sourceKey = bind.getKey();
             String targetKey = bind.getValue();
@@ -303,4 +318,5 @@ public class WorkflowExecutor {
             }
         }
     }
+
 }

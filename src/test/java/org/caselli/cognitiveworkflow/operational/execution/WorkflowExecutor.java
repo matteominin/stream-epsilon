@@ -13,14 +13,20 @@ import org.caselli.cognitiveworkflow.operational.instances.RestToolNodeInstance;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
 @Tag("test")
 class WorkflowExecutorTest {
+
+    @Autowired private WorkflowExecutor executor;
 
     private RestPort createStringPort(String id) {
         return RestPort.builder()
@@ -108,8 +114,7 @@ class WorkflowExecutorTest {
         }).when(nodeA).process(context);
 
         // EXECUTE
-        WorkflowExecutor executor = new WorkflowExecutor(workflowInstance);
-        executor.execute(context);
+        executor.execute(workflowInstance, context);
 
         // Verify that the nodes were executed in the correct order
         verify(nodeA).process(context);
@@ -157,8 +162,7 @@ class WorkflowExecutorTest {
         }).when(nodeA).process(context);
 
         // EXECUTE
-        WorkflowExecutor executor = new WorkflowExecutor(workflowInstance);
-        executor.execute(context);
+        executor.execute(workflowInstance, context);
 
         // Verify that the nodes were executed in the correct order
         verify(nodeA).process(context);
@@ -205,8 +209,6 @@ class WorkflowExecutorTest {
         }).when(nodeA).process(context);
 
         // EXECUTE
-        WorkflowExecutor executor = new WorkflowExecutor(workflowInstance);
-
-        assertThrows(Exception.class, () -> executor.execute(context));
+        assertThrows(Exception.class, () -> executor.execute(workflowInstance, context));
     }
 }
