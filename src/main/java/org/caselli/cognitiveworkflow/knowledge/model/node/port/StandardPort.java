@@ -14,18 +14,17 @@ public class StandardPort extends Port {
     /**
      * Standard Port builder
      */
-    public static class StandardPortBuilder extends AbstractPortBuilder<Port, StandardPortBuilder> {
+    public static class StandardPortBuilder extends AbstractPortBuilder<StandardPort, StandardPortBuilder> {
         @Override
         protected StandardPortBuilder self() {
             return this;
         }
 
         @Override
-        protected Port createInstance() {
-            Port port = new Port();
+        protected StandardPort createInstance() {
+            StandardPort port = new StandardPort();
             port.setPortType(PortImplementationType.STANDARD);
             return port;
         }
     }
-
 }

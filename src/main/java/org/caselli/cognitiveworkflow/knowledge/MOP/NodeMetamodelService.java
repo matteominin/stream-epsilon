@@ -17,6 +17,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -112,8 +114,6 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         return createBaseNodeMetamodel(nodeMetamodel);
     }
 
-
-
     /**
      * Save in the DB a new Node Metamodel of a REST TOOL
      * @param nodeMetamodel Metamodel to create
@@ -147,21 +147,37 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
     }
 
 
+    /**
+     * Save in the DB a new Gateway Node Metamodel
+     * @param nodeMetamodel Metamodel to create
+     * @return Returns the new Metamodel
+     */
+    @CacheEvict(value = "nodeMetamodels", allEntries = true)
+    public NodeMetamodel createNodeMetamodel(GatewayNodeMetamodel nodeMetamodel) throws BadRequestException {
+        nodeMetamodel.setType(NodeMetamodel.NodeType.FLOW);
+        nodeMetamodel.setControlType(FlowNodeMetamodel.ControlType.GATEWAY);
+        // Set the correct port types
+        nodeMetamodel.getInputPorts().forEach(port -> port.setPortType(Port.PortImplementationType.STANDARD));
+        // Create
+        return createBaseNodeMetamodel(nodeMetamodel);
+    }
+
+
+    /**
+     * Helper function to create a base Node Metamodel
+     * @param nodeMetamodel Metamodel to create and save in the database
+     * @return Returns the new Metamodel
+     * @throws BadRequestException If the Node Metamodel is not valid
+     */
     private NodeMetamodel createBaseNodeMetamodel(NodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // Ignore the pre-existing ID
+        nodeMetamodel.setCreatedAt(LocalDateTime.now());
         // Validate
         var res = nodeMetamodelValidator.validate(nodeMetamodel);
         if(!res.isValid()) throw new BadRequestException("NodeMetamodel is not valid: " + res.getErrors());
         // Create
         return repository.save(nodeMetamodel);
     }
-
-
-
-
-
-
-
 
 
     @Override

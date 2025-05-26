@@ -49,6 +49,6 @@ public abstract class NodeMetamodel {
 
     public enum NodeType {
         AI,
-        TOOL,
+        TOOL,FLOW
     }
 }

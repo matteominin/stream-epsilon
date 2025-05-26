@@ -84,7 +84,6 @@ public class EmbeddingModelFactory {
         throw new UnsupportedOperationException("Vertex Embedding Model is not yet implemented.");
     }
 
-
     /**
      * Returns the provided API key if it is not null or blank; otherwise, returns the default API key
      * configured for the specified provider.
