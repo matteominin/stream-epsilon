@@ -10,7 +10,6 @@ import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 
 /**
@@ -23,7 +22,6 @@ import java.util.*;
 public class WorkflowExecutor {
     private static final Logger logger = LoggerFactory.getLogger(WorkflowExecutor.class);
 
-
     private final WorkflowMetamodelService workflowMetamodelService;
 
     private final PortAdapterService portAdapterService;
@@ -33,14 +31,7 @@ public class WorkflowExecutor {
         this.portAdapterService = portAdapterService;
     }
 
-
     public void execute(WorkflowInstance workflow, ExecutionContext context) {
-        this.execute(workflow, context, null);
-    }
-
-
-    public void execute(WorkflowInstance workflow, ExecutionContext context, String startingNodeId) {
-
         logger.info("-------------------------------------------");
 
         // Check if the workflow is enabled
@@ -67,23 +58,13 @@ public class WorkflowExecutor {
         }
 
         // Starting Queue
-
         Queue<String> queue = new LinkedList<>();
 
-        if (startingNodeId != null) {
-            // If startingNodeId is specified, begin from that node
-            if (!workflow.getWorkflowNodesMap().containsKey(startingNodeId)) throw new RuntimeException("Starting node with ID " + startingNodeId + " does not exist.");
-
-            queue.add(startingNodeId);
-
-            logger.info("Starting workflow execution from specified node: {}", startingNodeId);
-        } else {
-            // Otherwise, start from all nodes with in-degree 0
-            for (Map.Entry<String, Integer> entry : inDegree.entrySet()) {
-                if (entry.getValue() == 0) queue.add(workflow.getWorkflowNodesMap().get(entry.getKey()).getId());
-            }
-            logger.info("Starting workflow execution from all entry nodes");
+        // Start from all nodes with in-degree 0
+        for (Map.Entry<String, Integer> entry : inDegree.entrySet()) {
+            if (entry.getValue() == 0) queue.add(workflow.getWorkflowNodesMap().get(entry.getKey()).getId());
         }
+        logger.info("Starting workflow execution from all entry nodes");
 
 
         Set<String> processedNodeIds = new HashSet<>();

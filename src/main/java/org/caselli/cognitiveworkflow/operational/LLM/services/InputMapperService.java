@@ -47,15 +47,16 @@ public class InputMapperService extends LLMAbstractService {
     }
 
     /**
-     * Maps input variables to the most suitable workflow starting node using LLM.
+     * Maps input variables to the input ports of the workflow starting nodes using an LLM.
      *
      * @param variables Map of unstructured variables
-     * @param nodes List of available workflow nodes to consider for mapping
-     * @return InputMapperResult containing the selected node and variable bindings,
-     *         or null if no suitable mapping could be determined
+     * @param nodes List of starting workflow nodes
+     * @return InputMapperResult containing the found variable-to-port bindings,
+     *          or null if no suitable mapping could be determined
      */
     public InputMapperResult mapInput(Map<String, Object> variables, List<NodeMetamodel> nodes) {
         logger.info("Starting input mapping with LLM for {} variables and {} nodes", variables.size(), nodes.size());
+
 
         if (nodes.isEmpty()) {
             logger.warn("No nodes available for mapping");
@@ -64,8 +65,9 @@ public class InputMapperService extends LLMAbstractService {
 
         if (variables.isEmpty()) {
             logger.info("No variables provided, skipping mapping");
-            return new InputMapperResult(nodes.get(0), new ExecutionContext());
+            return new InputMapperResult(new ExecutionContext());
         }
+
 
         try {
             String nodesDescription = buildNodesDescription(nodes);
@@ -96,7 +98,7 @@ public class InputMapperService extends LLMAbstractService {
     }
 
     private String buildNodesDescription(List<NodeMetamodel> nodes) {
-        StringBuilder builder = new StringBuilder("<available_nodes_list>\n");
+        StringBuilder builder = new StringBuilder("<nodes_list>\n");
 
         nodes.forEach(node -> {
             String portsDescription = node.getInputPorts().stream()
@@ -113,7 +115,7 @@ public class InputMapperService extends LLMAbstractService {
                     .append("  ```\n\n");
         });
 
-        return builder.append("</available_nodes_list>").toString();
+        return builder.append("</nodes_list>").toString();
     }
 
     private String buildVariablesDescription(Map<String, Object> variables) {
@@ -125,20 +127,16 @@ public class InputMapperService extends LLMAbstractService {
     }
 
     private InputMapperResult processLLMResult(InputMapperLLMResult llmResult, List<NodeMetamodel> nodes) {
-        if (llmResult == null || !StringUtils.hasText(llmResult.getSelectedStartingNodeId())) {
-            logger.warn("No suitable node identified by LLM");
-            return null;
-        }
+        if (llmResult == null || llmResult.getBindings() == null || llmResult.getBindings().isEmpty()) {
+            logger.warn("LLM returned null result");
 
-        // Find the node by the ID provided by the LLM
-        NodeMetamodel startingNode = nodes.stream()
-                .filter(node -> node.getId().equals(llmResult.getSelectedStartingNodeId()))
-                .findFirst()
-                .orElse(null);
+            // check if the input ports of all the initial nodes are satisfied (i.e., no required ports)
+            if (nodes.stream().allMatch(node -> node.getInputPorts().stream().noneMatch(port -> port.getSchema().getRequired() != null && port.getSchema().getRequired()))) {
+                return new InputMapperResult(new ExecutionContext());
+            }
 
-        // Fallback if the LLM has returned a non-existing ID
-        if (startingNode == null) {
-            logger.error("LLM selected invalid node ID: {}", llmResult.getSelectedStartingNodeId());
+            logger.warn("No suitable variable-to-port can be determined for the provided nodes and variables");
+
             return null;
         }
 
@@ -147,12 +145,12 @@ public class InputMapperService extends LLMAbstractService {
         if (llmResult.getBindings() != null) context.putAll(llmResult.getBindings());
 
         // Final check to see if the LLM response is valid
-        if (!isGeneratedContextValid(startingNode, context)) {
-            logger.error("The LLM provided an input that do not satisfy the required ports of the  selected node ID: {}", llmResult.getSelectedStartingNodeId());
+        if (!isGeneratedContextValid(nodes, context)) {
+            logger.error("The LLM provided an input that do not satisfy the required ports of all the initial nodes");
             return null;
         }
 
-        return new InputMapperResult(startingNode, context);
+        return new InputMapperResult(context);
     }
     private void validateLlmConfiguration() {
         if (!StringUtils.hasText(provider) ||
@@ -173,20 +171,24 @@ public class InputMapperService extends LLMAbstractService {
     }
 
 
-
     /**
-     * Validates that all required ports for a node are satisfied by the provided bindings of the LLM
+     * Validates that all required ports of the nodes are satisfied by the generated bindings
+     * @param nodes List of nodes to validate against
+     * @param context ExecutionContext containing the generated bindings
      */
-    private boolean isGeneratedContextValid(NodeMetamodel node, ExecutionContext context) {
+    private boolean isGeneratedContextValid(List<NodeMetamodel> nodes, ExecutionContext context) {
         if (context == null) return false;
 
-        for (var port : node.getInputPorts())
-            if(
-                port.getSchema().getRequired() != null &&
-                port.getSchema().getRequired() &&
-                !port.getSchema().isValidValue(context.get(port.getKey()))
-            )
-                return false;
+        for (var node : nodes){
+            for (var port : node.getInputPorts())
+                if(
+                        port.getSchema().getRequired() != null &&
+                                port.getSchema().getRequired() &&
+                                !port.getSchema().isValidValue(context.get(port.getKey()))
+                )
+                    return false;
+        }
+
         return true;
     }
 
@@ -195,9 +197,6 @@ public class InputMapperService extends LLMAbstractService {
      */
     @Data
     private static class InputMapperLLMResult {
-        @JsonProperty(required = true)
-        String selectedStartingNodeId;
-
         @JsonProperty(required = true)
         Map<String, String> bindings;
     }
@@ -208,7 +207,6 @@ public class InputMapperService extends LLMAbstractService {
     @Data
     @AllArgsConstructor
     public static class InputMapperResult {
-        NodeMetamodel startingNode;
         ExecutionContext context;
     }
 
@@ -216,37 +214,45 @@ public class InputMapperService extends LLMAbstractService {
             """
             # ROLE
             You are an expert Input Mapping System for workflow orchestration. Your task is to:
-            1. Analyze user-provided variables
-            2. Match them to the most suitable workflow starting node
-            3. Generate precise variable-to-port mappings
-    
+            1. Analyze user-provided variables.
+            2. Match them to the inputs of ALL the workflow initial nodes.
+            3. Generate precise variable-to-port mappings that satisfy the required inputs of ALL initial nodes.
+            4. If any required input for any initial node cannot be satisfied, then no mapping should be provided.
+
             # INPUT FORMAT
             You will receive:
-            - User variables in <user_variables> section
-            - Available nodes in <available_nodes_list> section
-    
+            - User variables in <user_variables> section.
+            - Initial nodes in <nodes_list> section.
+
             # PROCESSING RULES
-            1. FIRST identify all nodes whose REQUIRED input ports can be fully satisfied by the user variables
-            2. THEN select the most appropriate starting node based on:
-               - Semantic matching of variable names/values to port descriptions
-               - Node purpose alignment with variable context
-               - Completeness of required port coverage
-            3. FINALLY create exact mappings between user variables and node input ports
-    
+            1. Analyze the input ports of ALL nodes in the <nodes_list> section.
+            2. For each initial node, identify its required input ports.
+            3. Determine if the user-provided variables can collectively satisfy ALL required input ports across ALL initial nodes.
+            4. If all required ports across all initial nodes can be satisfied, create a single set of bindings that maps port paths to the *actual values* of the corresponding user variables.
+            5. If any required port for any initial node cannot be satisfied by the user variables, you must NOT provide any bindings.
+
             # MAPPING REQUIREMENTS
-            - ONLY map variables that DIRECTLY correspond to port requirements
-            - Use dot notation for nested structures (e.g., "address.city")
-            - PRESERVE original variable values - DO NOT transform or invent data
-            - PRIORITIZE required ports over optional ones
-            - REJECT mapping if required ports cannot be satisfied
-    
+            - ONLY map variables that DIRECTLY correspond to port requirements.
+            - Use dot notation for nested structures (e.g., "address.city").
+            - PRESERVE original variable values - DO NOT transform or invent data.
+            - PRIORITIZE required ports over optional ones.
+
             # OUTPUT FORMAT
             Return JSON with:
-            - selectedStartingNodeId: The ID of the chosen node
-            - bindings: Map of port paths to variable values
-              Example: {"user_input.name": "customerName"}
-    
+            - bindings: A single map where keys are port paths (e.g., "input_param_a") and values are the *actual content* of the mapped user variables (e.g., "John Doe", "123 Main St"). This map must satisfy all initial nodes' required inputs in a shared context.
+
+            Example:
+            ```json
+            {
+              "bindings": {
+                "product_type": "iPhone 15 Pro",
+                "product_price": 999.99,
+                "customer_name": "John Doe",
+              }
+            }
+            ```
+
             # ERROR HANDLING
-            If no suitable node is found, return empty selectedStartingNodeId
+            If no suitable mappings are found or are possible (i.e., required inputs for all initial nodes cannot be satisfied), return an empty JSON object ({}).
             """;
 }

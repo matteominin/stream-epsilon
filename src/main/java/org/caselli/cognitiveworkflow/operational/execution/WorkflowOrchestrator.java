@@ -124,15 +124,8 @@ public class WorkflowOrchestrator {
 
         ExecutionContext context = inputMapping.getContext();
 
-        String startingNodeId = entryPointIDs.stream()
-                .filter(x -> Objects.equals(workflowInstance.getInstanceByWorkflowNodeId(x).getMetamodel().getId(), inputMapping.getStartingNode().getId()))
-                .findFirst()
-                .orElse(null);
-
-        logger.info("Starting workflow execution at node ID: {}", startingNodeId);
-
         logger.debug("Obtained workflow executor for instance: {}", workflowInstance.getId());
-        workflowExecutor.execute(workflowInstance, context, startingNodeId);
+        workflowExecutor.execute(workflowInstance, context);
 
         return context;
     }
