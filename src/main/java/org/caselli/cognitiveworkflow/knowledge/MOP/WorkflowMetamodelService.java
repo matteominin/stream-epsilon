@@ -3,6 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.MOP;
 import jakarta.annotation.Nonnull;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.WorkflowMetamodelUpdateEvent;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
 import org.caselli.cognitiveworkflow.knowledge.validation.ValidationResult;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -95,11 +97,51 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
 
         WorkflowMetamodel saved = repository.save(updatedData);
 
-        // Notify the Operational Level of the modification
+        // Notify the Operational Level of the modification TODO
         eventPublisher.publishEvent(new WorkflowMetamodelUpdateEvent(id, saved));
 
         return saved;
     }
+
+
+    /**
+     * Update the bindings of a specific edge within a workflow metamodel
+     * @param workflowId The ID of the workflow metamodel containing the edge
+     * @param edgeId The ID of the edge to update
+     * @param newBindings The new bindings to set for the edge
+     * @throws IllegalArgumentException if workflow or edge is not found, or if validation fails
+     */
+    @CacheEvict(value = "workflowMetamodels", key = "#workflowId")
+    public void updateEdgeBindings(String workflowId, String edgeId, Map<String, String> newBindings) {
+
+        System.out.println("Updating bindings for edge " + edgeId + " in workflow " + workflowId + " with new bindings: " + newBindings);
+
+        // Retrieve the workflow metamodel
+        WorkflowMetamodel workflow = repository.findById(workflowId)
+                .orElseThrow(() -> new IllegalArgumentException("WorkflowMetamodel with id " + workflowId + " does not exist."));
+
+        // Find the edge to update
+        WorkflowEdge targetEdge = workflow.getEdges().stream()
+                .filter(edge -> edgeId.equals(edge.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Edge with id " + edgeId + " not found in workflow " + workflowId));
+
+        // Update the bindings
+        targetEdge.setBindings(newBindings);
+
+        // Validate the updated workflow
+        ValidationResult validationResult = workflowMetamodelValidator.validate(workflow);
+        if (!validationResult.isValid()) throw new IllegalArgumentException("Updated workflow is not valid: " + validationResult.getErrors());
+
+        // Save the updated workflow
+        WorkflowMetamodel savedWorkflow = repository.save(workflow);
+
+        // Publish update event to notify the Operational Layer TODO
+        eventPublisher.publishEvent(new WorkflowMetamodelUpdateEvent(workflowId, savedWorkflow));
+
+        logger.info("Updated bindings for edge {} in workflow {}", edgeId, workflowId);
+    }
+
 
     /**
      * Delete a workflow metamodel by its ID
