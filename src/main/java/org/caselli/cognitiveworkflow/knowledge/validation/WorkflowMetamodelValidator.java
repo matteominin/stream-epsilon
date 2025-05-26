@@ -534,8 +534,6 @@ public class WorkflowMetamodelValidator {
     }
 
 
-
-
     /**
      * Performs compatibility checks for a single edge's explicit and implicit bindings.
      *

@@ -408,19 +408,69 @@ public class WorkflowExecutor {
                 logger.info("All required inputs for node '{}' are now satisfied after adaptation.", currentId);
 
                 // Save the adapted bindings for later use
-                logger.info("Saving the adapted bindings...");
-                for (Map.Entry<WorkflowEdge, Map<String, String>> entry : newBindingsPerEdge.entrySet()) {
-                    WorkflowEdge edge = entry.getKey();
-                    Map<String, String> bindings = entry.getValue();
+                try {
+                    logger.info("Saving the adapted bindings...");
+                    for (Map.Entry<WorkflowEdge, Map<String, String>> entry : newBindingsPerEdge.entrySet()) {
+                        WorkflowEdge edge = entry.getKey();
+                        Map<String, String> bindings = entry.getValue();
 
-                    // Merge the new bindings with the existing ones
-                    Map<String, String> existingBindings = edge.getBindings() != null ? edge.getBindings() : new HashMap<>();
-                    existingBindings.putAll(bindings);
+                        // Merge the new bindings with the existing ones
+                        Map<String, String> existingBindings = edge.getBindings() != null ? edge.getBindings() : new HashMap<>();
+                        existingBindings.putAll(bindings);
 
-                    // Update the edge bindings in the workflow metamodel
-                    this.workflowMetamodelService.updateEdgeBindings(workflowInstance.getMetamodel().getId(), edge.getId(), existingBindings);
+                        // Verify that each binding is valid
+                        for (Map.Entry<String, String> binding : existingBindings.entrySet()) {
+                            boolean valid = true;
 
-                    logger.info("Updated edge from {} to {} with new bindings: {}", edge.getSourceNodeId(), edge.getTargetNodeId(), bindings);
+                            String sourceKey = binding.getKey();
+                            String targetKey = binding.getValue();
+
+                            // Check that the source key is an output port of the source node
+                            NodeInstance sourceNode = workflowInstance.getInstanceByWorkflowNodeId(edge.getSourceNodeId());
+                            if (sourceNode == null || sourceNode.getMetamodel() == null || sourceNode.getMetamodel().getOutputPorts() == null)
+                                valid = false;
+                            else {
+                                Port sourcePort = sourceNode.getMetamodel().getOutputPorts().stream()
+                                        .filter(port -> port.getKey().equals(sourceKey))
+                                        .findFirst()
+                                        .orElse(null);
+
+                                if (sourcePort == null) valid = false;
+
+                                // Check that the target key is an input port of the target node
+                                NodeInstance targetNode = workflowInstance.getInstanceByWorkflowNodeId(edge.getTargetNodeId());
+                                if (targetNode == null || targetNode.getMetamodel() == null || targetNode.getMetamodel().getInputPorts() == null)
+                                    valid = false;
+                                else {
+                                    Port targetPort = targetNode.getMetamodel().getInputPorts().stream()
+                                            .filter(port -> port.getKey().equals(targetKey))
+                                            .findFirst()
+                                            .orElse(null);
+
+                                    if (targetPort == null) valid = false;
+                                }
+                            }
+
+                            // If the binding is not valid, log a warning and remove it from the existing bindings
+                            if(!valid) {
+                                logger.warn("Detected invalid binding: {} -> {}. Ignoring this binding.", sourceKey, targetKey);
+                                existingBindings.remove(binding.getKey());
+
+
+
+
+                                // TODO: bisogna gestire la dot notation
+                            }
+                        }
+
+                        // Update the edge bindings in the workflow metamodel
+                        this.workflowMetamodelService.updateEdgeBindings(workflowInstance.getMetamodel().getId(), edge.getId(), existingBindings);
+
+                        logger.info("Updated edge from {} to {} with new bindings: {}", edge.getSourceNodeId(), edge.getTargetNodeId(), bindings);
+                    }
+                }
+                catch (Exception e) {
+                    logger.error("Error saving adapted bindings for node '{}': {}", currentId, e.getMessage(), e);
                 }
             }
         }
