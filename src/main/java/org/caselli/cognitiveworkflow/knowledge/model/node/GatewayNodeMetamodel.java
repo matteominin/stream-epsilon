@@ -3,7 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.model.node;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.caselli.cognitiveworkflow.knowledge.model.node.port.VectorDbPort;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.StandardPort;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Collections;
 import java.util.List;
@@ -32,23 +32,23 @@ public class GatewayNodeMetamodel extends FlowNodeMetamodel {
         The input ports for this node.
         They are also the output ports as this is a transparent gateway.
      */
-    @NotNull private List<VectorDbPort> inputPorts = Collections.emptyList();
+    @NotNull private List<StandardPort> inputPorts = Collections.emptyList();
 
 
     @Override
     @NotNull
-    public List<VectorDbPort> getInputPorts() {
+    public List<StandardPort> getInputPorts() {
         return this.inputPorts;
     }
 
     @Override
     @NotNull
-    public List<VectorDbPort> getOutputPorts() {
+    public List<StandardPort> getOutputPorts() {
         // The output ports mirror the input ports
         return this.inputPorts;
     }
 
-    public void setInputPorts(List<VectorDbPort> inputPorts) {
+    public void setInputPorts(List<StandardPort> inputPorts) {
         // Use defensive copying
         this.inputPorts = inputPorts != null ? List.copyOf(inputPorts) : Collections.emptyList();
     }

@@ -30,7 +30,7 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
 
     @Override
     public void setMetamodel(NodeMetamodel metamodel) {
-        if (!(metamodel instanceof EmbeddingsNodeMetamodel)) throw new IllegalArgumentException("LlmNodeInstance requires LlmNodeMetamodel");
+        if (!(metamodel instanceof EmbeddingsNodeMetamodel)) throw new IllegalArgumentException("EmbeddingsNodeInstance requires EmbeddingsNodeMetamodel");
         super.setMetamodel(metamodel);
     }
 
