@@ -120,7 +120,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @return Returns the new Metamodel
      */
     @CacheEvict(value = "nodeMetamodels", allEntries = true)
-    public NodeMetamodel createNodeMetamodel(RestToolNodeMetamodel nodeMetamodel) throws BadRequestException {
+    public NodeMetamodel createNodeMetamodel(RestNodeMetamodel nodeMetamodel) throws BadRequestException {
         // Set correct types
         nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);
         nodeMetamodel.setToolType(ToolNodeMetamodel.ToolType.REST);

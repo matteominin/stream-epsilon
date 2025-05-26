@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.springframework.context.annotation.Scope;
@@ -31,25 +31,25 @@ import java.util.Map.Entry;
 @Getter
 @Component
 @Scope("prototype")
-public class RestToolNodeInstance extends ToolNodeInstance {
+public class RestNodeInstance extends ToolNodeInstance {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private RestTemplate restTemplate;
 
-    public RestToolNodeInstance() {
+    public RestNodeInstance() {
         this.restTemplate = new RestTemplate();
     }
 
     @Override
-    public RestToolNodeMetamodel getMetamodel() {
-        return (RestToolNodeMetamodel) super.getMetamodel();
+    public RestNodeMetamodel getMetamodel() {
+        return (RestNodeMetamodel) super.getMetamodel();
     }
 
     @Override
     public void setMetamodel(NodeMetamodel metamodel) {
-        if (!(metamodel instanceof RestToolNodeMetamodel)) {
-            throw new IllegalArgumentException("RestToolNodeInstance requires RestToolNodeMetamodel");
+        if (!(metamodel instanceof RestNodeMetamodel)) {
+            throw new IllegalArgumentException("RestNodeInstance requires RestNodeMetamodel");
         }
         super.setMetamodel(metamodel);
     }
@@ -59,9 +59,9 @@ public class RestToolNodeInstance extends ToolNodeInstance {
 
         logger.info("[Node {}]: Processing REST request.", getId());
 
-        RestToolNodeMetamodel metamodel = getMetamodel();
+        RestNodeMetamodel metamodel = getMetamodel();
         String serviceUri = metamodel.getUri();
-        RestToolNodeMetamodel.InvocationMethod invocationMethod = metamodel.getInvocationMethod();
+        RestNodeMetamodel.InvocationMethod invocationMethod = metamodel.getInvocationMethod();
 
         // PATH VARIABLES (e.g., /resource/{id})
         Map<String, String> pathVariables = getPathVariables(context);
@@ -87,9 +87,9 @@ public class RestToolNodeInstance extends ToolNodeInstance {
 
         // BODY
         Object body = null;
-        if (    invocationMethod == RestToolNodeMetamodel.InvocationMethod.POST ||
-                invocationMethod == RestToolNodeMetamodel.InvocationMethod.PUT ||
-                invocationMethod == RestToolNodeMetamodel.InvocationMethod.PATCH
+        if (    invocationMethod == RestNodeMetamodel.InvocationMethod.POST ||
+                invocationMethod == RestNodeMetamodel.InvocationMethod.PUT ||
+                invocationMethod == RestNodeMetamodel.InvocationMethod.PATCH
         )
             body = getBody(context);
 
@@ -113,17 +113,17 @@ public class RestToolNodeInstance extends ToolNodeInstance {
      * @param httpEntity The HTTP entity containing the request body and headers.
      * @return The response entity from the service.
      */
-    private ResponseEntity<String> executeRequest(String serviceUri, RestToolNodeMetamodel.InvocationMethod method, HttpEntity<?> httpEntity) {
+    private ResponseEntity<String> executeRequest(String serviceUri, RestNodeMetamodel.InvocationMethod method, HttpEntity<?> httpEntity) {
         HttpMethod httpMethod = convertToHttpMethod(method);
         return restTemplate.exchange(serviceUri, httpMethod, httpEntity, String.class);
     }
 
     /**
-     * Converts the RestToolNodeMetamodel.InvocationMethod to HttpMethod.
+     * Converts the RestNodeMetamodel.InvocationMethod to HttpMethod.
      * @param method The invocation method from the metamodel.
      * @return The corresponding HttpMethod.
      */
-    private HttpMethod convertToHttpMethod(RestToolNodeMetamodel.InvocationMethod method) {
+    private HttpMethod convertToHttpMethod(RestNodeMetamodel.InvocationMethod method) {
         return switch (method) {
             case GET -> HttpMethod.GET;
             case POST -> HttpMethod.POST;

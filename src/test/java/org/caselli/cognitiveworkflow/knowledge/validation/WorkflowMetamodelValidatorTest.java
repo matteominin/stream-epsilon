@@ -2,7 +2,7 @@ package org.caselli.cognitiveworkflow.knowledge.validation;
 
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
@@ -47,14 +47,14 @@ public class WorkflowMetamodelValidatorTest {
     }
 
     private NodeMetamodel createNode(String id, List<RestPort> inputPorts, List<RestPort> outputPorts) {
-        RestToolNodeMetamodel nodeMetamodel = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeMetamodel = new RestNodeMetamodel();
         nodeMetamodel.setId(id);
         nodeMetamodel.setName("name");
         nodeMetamodel.setDescription("description");
         nodeMetamodel.setUri("http://localhost:8080/service");
-        nodeMetamodel.setInvocationMethod(RestToolNodeMetamodel.InvocationMethod.POST);
+        nodeMetamodel.setInvocationMethod(RestNodeMetamodel.InvocationMethod.POST);
         nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);
-        nodeMetamodel.setToolType(RestToolNodeMetamodel.ToolType.REST);
+        nodeMetamodel.setToolType(RestNodeMetamodel.ToolType.REST);
         nodeMetamodel.setInputPorts(inputPorts);
         nodeMetamodel.setOutputPorts(outputPorts);
         return nodeMetamodel;

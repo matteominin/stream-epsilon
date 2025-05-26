@@ -40,8 +40,8 @@ public class NodeFactory {
     private Class<? extends NodeInstance> getNodeInstanceClass(NodeMetamodel metamodel) {
         if (metamodel instanceof LlmNodeMetamodel) {
             return LlmNodeInstance.class;
-        } else if (metamodel instanceof RestToolNodeMetamodel) {
-            return RestToolNodeInstance.class;
+        } else if (metamodel instanceof RestNodeMetamodel) {
+            return RestNodeInstance.class;
         }
         else if (metamodel instanceof EmbeddingsNodeMetamodel) {
             return EmbeddingsNodeInstance.class;

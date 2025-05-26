@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
@@ -9,7 +9,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.instances.NodeInstance;
-import org.caselli.cognitiveworkflow.operational.instances.RestToolNodeInstance;
+import org.caselli.cognitiveworkflow.operational.instances.RestNodeInstance;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -36,18 +36,18 @@ class WorkflowExecutorTest {
     }
 
     private NodeInstance createNodeInstanceA(String id, List<RestPort> inputPorts, List<RestPort> outputPorts) {
-        RestToolNodeMetamodel nodeMetamodel = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeMetamodel = new RestNodeMetamodel();
         nodeMetamodel.setId(id);
         nodeMetamodel.setName("name");
         nodeMetamodel.setDescription("description");
         nodeMetamodel.setUri("http://localhost:8080/service");
-        nodeMetamodel.setInvocationMethod(RestToolNodeMetamodel.InvocationMethod.POST);
+        nodeMetamodel.setInvocationMethod(RestNodeMetamodel.InvocationMethod.POST);
         nodeMetamodel.setType(NodeMetamodel.NodeType.TOOL);
-        nodeMetamodel.setToolType(RestToolNodeMetamodel.ToolType.REST);
+        nodeMetamodel.setToolType(RestNodeMetamodel.ToolType.REST);
         nodeMetamodel.setInputPorts(inputPorts);
         nodeMetamodel.setOutputPorts(outputPorts);
 
-        RestToolNodeInstance nodeInstance = mock(RestToolNodeInstance.class);
+        RestNodeInstance nodeInstance = mock(RestNodeInstance.class);
         when(nodeInstance.getMetamodel()).thenReturn(nodeMetamodel);
         when(nodeInstance.getId()).thenReturn(id);
 

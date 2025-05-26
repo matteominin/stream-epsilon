@@ -12,7 +12,7 @@ import jakarta.validation.constraints.NotNull;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "meta_nodes")
-public class RestToolNodeMetamodel extends ToolNodeMetamodel {
+public class RestNodeMetamodel extends ToolNodeMetamodel {
 
     /** Headers required for service invocation */
     private Map<String, String> headers;
@@ -20,7 +20,7 @@ public class RestToolNodeMetamodel extends ToolNodeMetamodel {
     /** Rest Method */
     @NotNull private InvocationMethod invocationMethod;
 
-    public RestToolNodeMetamodel() {
+    public RestNodeMetamodel() {
         super();
         this.setType(NodeType.TOOL);
         this.setToolType(ToolNodeMetamodel.ToolType.REST);

@@ -2,7 +2,7 @@ package org.caselli.cognitiveworkflow.knowledge.validation;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.ToolNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
@@ -39,8 +39,8 @@ public class NodeMetamodelValidator {
         validatePorts(node.getOutputPorts(), "output", result);
 
         // Validate specific node types
-        if (node instanceof RestToolNodeMetamodel) {
-            validateRestToolNode((RestToolNodeMetamodel) node, result);
+        if (node instanceof RestNodeMetamodel) {
+            validateRestToolNode((RestNodeMetamodel) node, result);
 
         } else if (node instanceof ToolNodeMetamodel) {
             validateToolNode((ToolNodeMetamodel) node, result);
@@ -195,7 +195,7 @@ public class NodeMetamodelValidator {
     /**
      * Validates a REST tool node metamodel
      */
-    private void validateRestToolNode(RestToolNodeMetamodel node, ValidationResult result) {
+    private void validateRestToolNode(RestNodeMetamodel node, ValidationResult result) {
         validateToolNode(node, result);
 
         if (node.getInvocationMethod() == null)
@@ -215,10 +215,10 @@ public class NodeMetamodelValidator {
 
     /**
      * Validates that URI template variables are mapped to input ports (e.g., /users/{userId})
-     * @param node RestToolNodeMetamodel to validate
+     * @param node RestNodeMetamodel to validate
      * @param result ValidationResult to store errors and warnings
      */
-    private void validateRestUriTemplateVariables(RestToolNodeMetamodel node, ValidationResult result) {
+    private void validateRestUriTemplateVariables(RestNodeMetamodel node, ValidationResult result) {
         String serviceUri = node.getUri();
         List<String> templateVars = extractTemplateVariables(serviceUri);
         List<String> pathVariablesPortKeys = node.getInputPorts().stream()

@@ -1,6 +1,6 @@
 package org.caselli.cognitiveworkflow.operational.LLM.services;
 
-import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.junit.jupiter.api.Tag;
@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Tag("it")
 @ActiveProfiles("test")
-@Tag("focus")
 public class InputMapperServiceIT {
 
     @Autowired
@@ -36,7 +35,7 @@ public class InputMapperServiceIT {
         RestPort source2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
@@ -71,7 +70,7 @@ public class InputMapperServiceIT {
         RestPort source_A_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_A_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER_A");
         nodeA.setDescription("Check if user is registered to our platform using legacy API");
@@ -122,7 +121,7 @@ public class InputMapperServiceIT {
         RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
         RestPort source5 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
@@ -164,7 +163,7 @@ public class InputMapperServiceIT {
         RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
@@ -204,7 +203,7 @@ public class InputMapperServiceIT {
         // Unsatisfied port:
         RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
@@ -224,7 +223,7 @@ public class InputMapperServiceIT {
         // Unsatisfied port:
         RestPort source_B_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeB = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeB = new RestNodeMetamodel();
         nodeB.setId(String.valueOf(UUID.randomUUID()));
         nodeB.setName("CHECK_USER_B");
         nodeB.setDescription("Check if user is registered to our platform using V2 API");
@@ -239,7 +238,7 @@ public class InputMapperServiceIT {
         RestPort source_C_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
 
-        RestToolNodeMetamodel nodeC = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeC = new RestNodeMetamodel();
         nodeC.setId(String.valueOf(UUID.randomUUID()));
         nodeC.setName("CHECK_USER_C");
         nodeC.setDescription("Check if user is registered to our platform using V1 API");
@@ -280,7 +279,7 @@ public class InputMapperServiceIT {
         // Unsatisfied port:
         RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
@@ -295,7 +294,7 @@ public class InputMapperServiceIT {
         // Unsatisfied port:
         RestPort source_B_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeB = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeB = new RestNodeMetamodel();
         nodeB.setId(String.valueOf(UUID.randomUUID()));
         nodeB.setName("CHECK_USER_B");
         nodeB.setDescription("Check if user is registered to our platform using V2 API");
@@ -310,7 +309,7 @@ public class InputMapperServiceIT {
         // Unsatisfied port:
         RestPort source_C_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeC = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeC = new RestNodeMetamodel();
         nodeC.setId(String.valueOf(UUID.randomUUID()));
         nodeC.setName("CHECK_USER_C");
         nodeC.setDescription("Check if user is registered to our platform using V1 API");
@@ -326,7 +325,7 @@ public class InputMapperServiceIT {
         // OPTIONAL Unsatisfied port:
         RestPort source_D_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
 
-        RestToolNodeMetamodel nodeD = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeD = new RestNodeMetamodel();
         nodeD.setId(String.valueOf(UUID.randomUUID()));
         nodeD.setName("CHECK_USER_D");
         nodeD.setDescription("Check if user is registered to our platform using V1 API");
@@ -380,7 +379,7 @@ public class InputMapperServiceIT {
         RestPort source_A_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_A_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER_A");
         nodeA.setDescription("Check if user is registered to our platform using legacy API");
@@ -394,7 +393,7 @@ public class InputMapperServiceIT {
         RestPort source_B_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_B_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeB = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeB = new RestNodeMetamodel();
         nodeB.setId(String.valueOf(UUID.randomUUID()));
         nodeB.setName("CHECK_USER_B");
         nodeB.setDescription("Check if user is registered to our platform using V2 API");
@@ -406,7 +405,7 @@ public class InputMapperServiceIT {
         RestPort source_C_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_C_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeC = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeC = new RestNodeMetamodel();
         nodeC.setId(String.valueOf(UUID.randomUUID()));
         nodeC.setName("CHECK_USER_C");
         nodeC.setDescription("Check if user is registered to our platform using V1 API");
@@ -465,7 +464,7 @@ public class InputMapperServiceIT {
         RestPort source2 = RestPort.builder().withKey("orderId").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("SEE_SHIPPING_INFO");
         nodeA.setDescription("Get user shipping order");
