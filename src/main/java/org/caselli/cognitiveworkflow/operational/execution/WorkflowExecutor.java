@@ -278,7 +278,6 @@ public class WorkflowExecutor {
 
     /**
      * Applies default values for output ports that weren't set during node processing.
-     *
      * @param node    the node instance that was just processed
      * @param context the execution context
      */

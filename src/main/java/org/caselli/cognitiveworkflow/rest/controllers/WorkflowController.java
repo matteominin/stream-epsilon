@@ -46,7 +46,6 @@ public class WorkflowController {
         return ResponseEntity.ok(context);
     }
 
-
     @Data
     public static class ExecuteDTO {
         @JsonProperty("request")

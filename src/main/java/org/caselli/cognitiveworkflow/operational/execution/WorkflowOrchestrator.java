@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -89,7 +88,7 @@ public class WorkflowOrchestrator {
 
         // EXECUTION
         var userVariables = intentRes.getUserVariables();
-        userVariables.put("COMPLETE_USER_REQUEST", request);
+        userVariables.put("COMPLETE_USER_REQUEST", request); // TODO: find better way
         logger.debug("Starting workflow with variables: {}", userVariables);
         var context = startWorkflow(workflowInstance, userVariables);
 
@@ -99,6 +98,12 @@ public class WorkflowOrchestrator {
         return extractOutputs(context, workflowInstance);
     }
 
+    /**
+     * Start the execution of a workflow. Maps unstructured variables to the input ports
+     * @param workflowInstance The instance of the workflow to execute
+     * @param variables The variables of the user
+     * @return Returns the final execution context
+     */
     private ExecutionContext startWorkflow(WorkflowInstance workflowInstance, Map<String,Object> variables) {
         logger.debug("Starting workflow instance: {}", workflowInstance.getId());
 
@@ -134,7 +139,12 @@ public class WorkflowOrchestrator {
         return context;
     }
 
-
+    /**
+     * Extract from the context the output ports of all the exit points of the workflow
+     * @param context The execution context
+     * @param workflowInstance The instance of the workflow
+     * @return Returns a map as a subset of the context limited to only the output of the exit points
+     */
     private Map<String, Object> extractOutputs(ExecutionContext context, WorkflowInstance workflowInstance){
 
         Map<String, Object> res = new HashMap<>();
