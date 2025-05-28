@@ -126,7 +126,7 @@ class WorkflowExecutorTest {
         }).when(nodeA).process(any(ExecutionContext.class));
 
         // MOCKING WorkflowMetamodelService behavior
-        doNothing().when(workflowMetamodelService).updateEdgeBindings(anyString(), anyString(), anyMap());
+        doNothing().when(workflowMetamodelService).updateMultipleEdgeBindings(anyString(), anyMap());
 
         // EXECUTE
         executor.execute(workflowInstance, context);
@@ -183,7 +183,7 @@ class WorkflowExecutorTest {
 
 
         // MOCKING WorkflowMetamodelService behavior
-        doNothing().when(workflowMetamodelService).updateEdgeBindings(anyString(), anyString(), anyMap());
+        doNothing().when(workflowMetamodelService).updateMultipleEdgeBindings(anyString(), anyMap());
 
         // EXECUTE
         executor.execute(workflowInstance, context);
@@ -249,7 +249,7 @@ class WorkflowExecutorTest {
                 .thenReturn(res);
 
         // MOCKING WorkflowMetamodelService behavior
-        doNothing().when(workflowMetamodelService).updateEdgeBindings(anyString(), anyString(), anyMap());
+        doNothing().when(workflowMetamodelService).updateMultipleEdgeBindings(anyString(), anyMap());
 
         // EXECUTE and assert that an Exception is thrown
         assertThrows(RuntimeException.class, () -> executor.execute(workflowInstance, context));

@@ -3,7 +3,6 @@ package org.caselli.cognitiveworkflow.operational.execution;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
-import org.caselli.cognitiveworkflow.knowledge.validation.WorkflowMetamodelValidator;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.services.PortAdapterService;
 import org.caselli.cognitiveworkflow.operational.instances.NodeInstance;
@@ -24,13 +23,11 @@ public class WorkflowExecutor {
     private static final Logger logger = LoggerFactory.getLogger(WorkflowExecutor.class);
 
     private final WorkflowMetamodelService workflowMetamodelService;
-    private final WorkflowMetamodelValidator workflowMetamodelValidator;
 
     private final PortAdapterService portAdapterService;
 
-    public WorkflowExecutor(WorkflowMetamodelService workflowMetamodelService, WorkflowMetamodelValidator workflowMetamodelValidator, PortAdapterService portAdapterService) {
+    public WorkflowExecutor(WorkflowMetamodelService workflowMetamodelService,  PortAdapterService portAdapterService) {
         this.workflowMetamodelService = workflowMetamodelService;
-        this.workflowMetamodelValidator = workflowMetamodelValidator;
         this.portAdapterService = portAdapterService;
     }
 
@@ -323,8 +320,6 @@ public class WorkflowExecutor {
     private boolean attemptPortAdaptation( WorkflowInstance workflowInstance, String currentId, ExecutionContext context, List<String> missingRequiredInputs) {
         NodeInstance node = workflowInstance.getInstanceByWorkflowNodeId(currentId);
 
-        logger.info("Node '{}' has missing required inputs: {}. Attempting to adapt edges.", currentId, missingRequiredInputs);
-
         // Map to store new bindings for each edge (in order to save them later)
         Map<WorkflowEdge, Map<String, String>> newBindingsPerEdge = new HashMap<>();
 
@@ -360,8 +355,6 @@ public class WorkflowExecutor {
             logger.error("No source ports available to adapt edges for node '{}'. Missing required inputs: {}", currentId, missingRequiredInputs);
             return false;
         }
-
-        logger.info("Starting port adaptation for node '{}'", currentId);
 
         // Call the port adaptor Service to adapt the edges
         var res = portAdapterService.adaptPorts(sourcePorts, targetPorts);
@@ -411,60 +404,54 @@ public class WorkflowExecutor {
         }
     }
 
+
     /**
      * Persists adapted port bindings to the workflow metamodel by merging them with existing bindings
-     * and ensuring compatibility through validation.
-     *
+     * and ensuring compatibility through validation. Updates all edges in a single batch operation
+     * through the MOP service.
      * @param workflowInstance The workflow instance containing the metamodel to update
      * @param currentId The ID of the target node (used for error logging context)
      * @param bindingsPerEdge A map where each key is a WorkflowEdge and each value is a map
      *                        of source-to-target port bindings to be added to that edge
      */
-    private void persistAdaptedBindings(WorkflowInstance workflowInstance, String currentId,     Map<WorkflowEdge, Map<String, String>> bindingsPerEdge) {
+    private void persistAdaptedBindings(WorkflowInstance workflowInstance, String currentId, Map<WorkflowEdge, Map<String, String>> bindingsPerEdge) {
 
         // Save the adapted bindings for later use
         try {
-            logger.info("Saving the adapted bindings...");
+            logger.info("Saving the adapted bindings for {} edges...", bindingsPerEdge.size());
+
+            // Prepare the batch update map: edgeId -> finalBindings
+            Map<String, Map<String, String>> edgeBindingsMap = new HashMap<>();
+
             for (Map.Entry<WorkflowEdge, Map<String, String>> entry : bindingsPerEdge.entrySet()) {
                 WorkflowEdge edge = entry.getKey();
-                var source =  workflowInstance.getInstanceByWorkflowNodeId(edge.getSourceNodeId());
-                var target =  workflowInstance.getInstanceByWorkflowNodeId(edge.getTargetNodeId());
-                if(source == null || target == null) continue;
+                var source = workflowInstance.getInstanceByWorkflowNodeId(edge.getSourceNodeId());
+                var target = workflowInstance.getInstanceByWorkflowNodeId(edge.getTargetNodeId());
+                if (source == null || target == null) continue;
 
                 // Merge the new bindings with the existing ones
                 Map<String, String> mergedBindings = edge.getBindings() != null ? new HashMap<>(edge.getBindings()) : new HashMap<>();
                 mergedBindings.putAll(entry.getValue());
 
-                // Filter the merged bindings to ensure all are valid and compatible.
-                // This step is crucial: the workflow validator requires all bindings to refer to
-                // existing and compatible ports. If any are invalid (either pre-existing, not only the newly generated),
-                // the validator will reject the workflow modification, preventing persistence.
-                var filteredBindings = workflowMetamodelValidator.filterCompatibleBindings(
-                    workflowInstance.getInstanceByWorkflowNodeId(edge.getSourceNodeId()).getMetamodel(),
-                    workflowInstance.getInstanceByWorkflowNodeId(edge.getTargetNodeId()).getMetamodel(),
-                    mergedBindings
+                // Add to batch update map if there are valid bindings
+                if (!mergedBindings.isEmpty()) edgeBindingsMap.put(edge.getId(), mergedBindings);
+            }
+
+            // Perform batch update through the MOP service
+            if (!edgeBindingsMap.isEmpty()) {
+                this.workflowMetamodelService.updateMultipleEdgeBindings(
+                        workflowInstance.getMetamodel().getId(),
+                        edgeBindingsMap
                 );
-
-                // Log filtered out bindings
-                Map<String, String> filteredOutBindings = new HashMap<>(mergedBindings);
-                filteredBindings.forEach(filteredOutBindings::remove);
-                if (!filteredOutBindings.isEmpty())
-                    logger.info("Filtered out incompatible bindings for edge from {} to {}: {}", edge.getSourceNodeId(), edge.getTargetNodeId(), filteredOutBindings);
-
-
-                // Persist the filtered, valid bindings to the edge in the workflow metamodel.
-                this.workflowMetamodelService.updateEdgeBindings(workflowInstance.getMetamodel().getId(), edge.getId(), filteredBindings);
-
-                // Log result
-                logger.info("Updated edge from {} to {} with new bindings: {}", edge.getSourceNodeId(), edge.getTargetNodeId(), filteredBindings);
+                logger.info("Successfully persisted adapted bindings for {} edges in workflow {}", edgeBindingsMap.size(), workflowInstance.getMetamodel().getId());
+            } else {
+                logger.info("No valid bindings to persist for node '{}'", currentId);
             }
         }
         catch (Exception e) {
             logger.error("Error saving adapted bindings for node '{}': {}", currentId, e.getMessage(), e);
         }
     }
-
-
 
     /**
      * Get a list of unsatisfied required inputs for a node instance.
