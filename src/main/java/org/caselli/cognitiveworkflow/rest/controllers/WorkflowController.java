@@ -6,7 +6,6 @@ import lombok.Data;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
-import org.caselli.cognitiveworkflow.operational.execution.WorkflowInstanceManager;
 import org.caselli.cognitiveworkflow.operational.execution.WorkflowOrchestrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +19,11 @@ import java.util.List;
 public class WorkflowController {
 
     private final WorkflowMetamodelService workflowMetamodelService;
-    private final WorkflowInstanceManager workflowInstanceManager;
     private final WorkflowOrchestrator workflowOrchestrator;
 
     @Autowired
-    public WorkflowController(WorkflowMetamodelService workflowService, WorkflowInstanceManager workflowInstanceManager, WorkflowOrchestrator workflowOrchestrator) {
+    public WorkflowController(WorkflowMetamodelService workflowService,  WorkflowOrchestrator workflowOrchestrator) {
         this.workflowMetamodelService = workflowService;
-        this.workflowInstanceManager = workflowInstanceManager;
         this.workflowOrchestrator = workflowOrchestrator;
     }
 
@@ -38,6 +35,13 @@ public class WorkflowController {
     @PostMapping
     public ResponseEntity<WorkflowMetamodel> createWorkflow(@Valid @RequestBody WorkflowMetamodel workflow) throws BadRequestException {
         return ResponseEntity.ok(workflowMetamodelService.createWorkflow(workflow));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<WorkflowMetamodel> updateWorkflow(
+            @PathVariable String id,
+            @Valid @RequestBody WorkflowMetamodel workflow)  {
+        return ResponseEntity.ok(workflowMetamodelService.updateWorkflow(id, workflow));
     }
 
     @PostMapping("/execute")
