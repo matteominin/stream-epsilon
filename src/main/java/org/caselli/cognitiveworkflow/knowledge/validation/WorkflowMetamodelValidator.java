@@ -76,51 +76,37 @@ public class WorkflowMetamodelValidator {
     }
 
 
+
     /**
-     * Public method to check if a single given edge's ports are compatible (implicit and explicit bindings).
-     * Returns {@code true} if the edge's port connections are valid
-     * @param edge The WorkflowEdge to validate.
-     * @param workflow The WorkflowMetamodel
-     * @return {@code true} if the edge's port compatibility is valid, {@code false} otherwise.
+     * Returns a new map of bindings, excluding any that are invalid or incompatible.
+     * This method iterates through the original bindings and only includes those
+     * where both the source and target port schemas can be resolved and are compatible.
+     *
+     * @param source The NodeMetamodel of the source node
+     * @param target The NodeMetamodel of the target node
+     * @param originalBindings The original map of bindings from the WorkflowEdge (sourceFullPath -> targetFullPath).
+     * @return A new Map containing only the valid and compatible bindings
      */
-    public boolean isEdgePortCompatible(WorkflowEdge edge, WorkflowMetamodel workflow) {
-        if (edge == null || workflow == null) return false;
+    public Map<String, String> filterCompatibleBindings(NodeMetamodel source, NodeMetamodel target, Map<String, String> originalBindings) {
+        if (originalBindings == null || originalBindings.isEmpty()) return Collections.emptyMap();
 
-        String sourceId = edge.getSourceNodeId();
-        String targetId = edge.getTargetNodeId();
+        Map<String, String> fixedBindings = new HashMap<>();
 
-        Map<String, NodeMetamodel> workflowNodeIdToMetamodel = new HashMap<>();
-        for (WorkflowNode wn : workflow.getNodes()) {
-            if (wn.getId() != null && !wn.getId().isEmpty() && wn.getNodeMetamodelId() != null && !wn.getNodeMetamodelId().isEmpty()) {
-                NodeMetamodel nmm = getNodeMetamodelById(wn.getNodeMetamodelId());
-                if (nmm != null) {
-                    workflowNodeIdToMetamodel.put(wn.getId(), nmm);
-                }
+        for (Map.Entry<String, String> binding : originalBindings.entrySet()) {
+            String sourceFullPath = binding.getKey();
+            String targetFullPath = binding.getValue();
+
+            PortSchema actualSourceSchema = Port.getResolvedSchemaForPort(source.getOutputPorts(), sourceFullPath);
+            PortSchema actualTargetSchema = Port.getResolvedSchemaForPort(target.getInputPorts(), targetFullPath);
+
+            if (actualTargetSchema != null && PortSchema.isCompatible(actualSourceSchema, actualTargetSchema)) {
+                fixedBindings.put(sourceFullPath, targetFullPath);
             }
         }
 
-        // Check if source and target IDs are valid and exist in the workflow's node metamodels
-        if (sourceId == null || targetId == null ||
-                !workflowNodeIdToMetamodel.containsKey(sourceId) ||
-                !workflowNodeIdToMetamodel.containsKey(targetId)) {
-            return false;
-        }
-
-        NodeMetamodel sourceNodeMetamodel = workflowNodeIdToMetamodel.get(sourceId);
-        NodeMetamodel targetNodeMetamodel = workflowNodeIdToMetamodel.get(targetId);
-
-        // Reuse the existing method to check compatibility
-        ValidationResult tempResult = new ValidationResult();
-        checkAndReportEdgePortCompatibility(edge, sourceNodeMetamodel, targetNodeMetamodel, tempResult);
-
-
-        // TODO: remove
-   System.out.println( "Edge Port Compatibility Check Result: warnngs list: " + tempResult.getWarnings() +
-                ", errors list: " + tempResult.getErrors() );
-
-        // Return true if there are no errors or warnings
-        return tempResult.getWarningCount() == 0 && tempResult.getErrorCount() == 0;
+        return fixedBindings;
     }
+
 
 
     /**
@@ -151,10 +137,7 @@ public class WorkflowMetamodelValidator {
                 }
             }
         }
-
-
     }
-
 
     /**
      * Validates that all nodes referenced in the workflow exist in the catalog
@@ -341,7 +324,6 @@ public class WorkflowMetamodelValidator {
             NodeMetamodel sourceNode = nodesById.get(sourceNodeId);
             if (sourceNode == null) continue;
 
-
             String portKey = edge.getCondition().getPort();
 
             // Check if the port exists in the source node's outputs
@@ -403,42 +385,6 @@ public class WorkflowMetamodelValidator {
             };
         } catch (NumberFormatException e) {
             return false;
-        }
-    }
-
-    /**
-     * Helper method to retrieve and resolve a PortSchema given a full path (e.g., "basePort.nestedField").
-     */
-    private PortSchema getResolvedSchemaForPort(List<? extends Port> ports, String fullPathKey) {
-        if (fullPathKey == null || fullPathKey.isEmpty() || ports == null || ports.isEmpty()) return null;
-
-        // Split into base port key and the rest of the path (if any)
-        // "port.field.sub" -> parts[0]="port", parts[1]="field.sub"
-        String[] parts = fullPathKey.split("\\.", 2);
-        String basePortKey = parts[0];
-        String nestedPath = (parts.length > 1 && parts[1] != null && !parts[1].isEmpty()) ? parts[1] : null;
-
-        if (basePortKey.isEmpty()) return null;
-
-        Optional<? extends Port> basePortOpt = ports.stream()
-                .filter(p -> p.getKey() != null && p.getKey().equals(basePortKey))
-                .findFirst();
-
-        if (basePortOpt.isEmpty()) return null;
-
-        Port basePort = basePortOpt.get();
-        PortSchema baseSchema = basePort.getSchema();
-
-        if (baseSchema == null) return null;
-
-        if (nestedPath != null) {
-            try {
-                return baseSchema.getSchemaByPath(nestedPath);
-            } catch (Exception e) {
-                return null;
-            }
-        } else {
-            return baseSchema;
         }
     }
 
@@ -563,8 +509,8 @@ public class WorkflowMetamodelValidator {
                 String sourceFullPath = binding.getKey();
                 String targetFullPath = binding.getValue();
 
-                PortSchema actualSourceSchema = getResolvedSchemaForPort(sourceNodeMetamodel.getOutputPorts(), sourceFullPath);
-                PortSchema actualTargetSchema = getResolvedSchemaForPort(targetNodeMetamodel.getInputPorts(), targetFullPath);
+                PortSchema actualSourceSchema = Port.getResolvedSchemaForPort(sourceNodeMetamodel.getOutputPorts(), sourceFullPath);
+                PortSchema actualTargetSchema = Port.getResolvedSchemaForPort(targetNodeMetamodel.getInputPorts(), targetFullPath);
 
                 if (actualSourceSchema != null && actualTargetSchema != null) {
                     if (!PortSchema.isCompatible(actualSourceSchema, actualTargetSchema)) {
