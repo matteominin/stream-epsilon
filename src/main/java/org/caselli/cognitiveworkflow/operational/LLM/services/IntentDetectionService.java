@@ -71,6 +71,9 @@ public class IntentDetectionService extends LLMAbstractService {
                         intent.getId(), intent.getName(), intent.getDescription()))
                 .collect(Collectors.joining("\n"));
 
+        if(intents.isEmpty()) logger.info("No similar intents found");
+        else logger.info("Found similar intents: " + intentsOutput);
+
         // Create system prompt using template
         Map<String, Object> model = Map.of("availableIntents", intentsOutput);
         SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(SYSTEM_INSTRUCTIONS_TEMPLATE);

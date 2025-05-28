@@ -81,7 +81,7 @@ public class WorkflowOrchestrator {
         WorkflowInstance workflowInstance = routingManager.routeWorkflowRequest(intentId);
         if (workflowInstance == null) {
             logger.error("No workflow available to handle intent: {}", intentId);
-            throw new RuntimeException("No workflow available to handle intent: " + "intentId");
+            throw new RuntimeException("No workflow available to handle intent: " + intentId);
         }
         logger.info("Successfully routed to workflow instance: {}", workflowInstance.getId());
 
