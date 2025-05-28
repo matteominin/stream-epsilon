@@ -3,6 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.MOP;
 import jakarta.annotation.Nonnull;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.WorkflowMetamodelUpdateEvent;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.WorkflowMetamodelCatalog;
 import org.caselli.cognitiveworkflow.knowledge.validation.ValidationResult;
@@ -14,13 +15,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class WorkflowMetamodelService implements ApplicationListener<ApplicationReadyEvent> {
@@ -30,12 +27,21 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
     private final WorkflowMetamodelCatalog repository;
     private final ApplicationEventPublisher eventPublisher;
     final private  WorkflowMetamodelValidator workflowMetamodelValidator;
+    final private NodeMetamodelService nodeMetamodelService;
 
-    public WorkflowMetamodelService(WorkflowMetamodelCatalog repository, ApplicationEventPublisher eventPublisher, WorkflowMetamodelValidator workflowMetamodelValidator) {
+    public WorkflowMetamodelService(WorkflowMetamodelCatalog repository, ApplicationEventPublisher eventPublisher, WorkflowMetamodelValidator workflowMetamodelValidator, NodeMetamodelService nodeMetamodelService) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
         this.workflowMetamodelValidator = workflowMetamodelValidator;
+        this.nodeMetamodelService = nodeMetamodelService;
     }
+
+    @Override
+    public void onApplicationEvent(@Nonnull ApplicationReadyEvent event) {
+        // Only for demo purposes. Not required in production.
+        this.validateAllCatalog();
+    }
+
 
     /**
      * Get all the Workflows metamodel in the MongoDB collection
@@ -95,11 +101,12 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
 
         WorkflowMetamodel saved = repository.save(updatedData);
 
-        // Notify the Operational Level of the modification
+        // Notify the Operational Level of the modification TODO
         eventPublisher.publishEvent(new WorkflowMetamodelUpdateEvent(id, saved));
 
         return saved;
     }
+
 
     /**
      * Delete a workflow metamodel by its ID
@@ -123,17 +130,71 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
         return repository.findByHandledIntents_IntentId(intentId, n);
     }
 
-    @Override
-    public void onApplicationEvent(@Nonnull ApplicationReadyEvent event) {
-        // Only for demo purposes. Not required in production.
-        this.validateAllCatalog();
+
+
+    /**
+     * Update the bindings of multiple edges within a workflow metamodel in a single operation
+     * @param workflowId The ID of the workflow metamodel containing the edges
+     * @param edgeBindingsMap A map where keys are edge IDs and values are the new bindings for each edge
+     * @throws IllegalArgumentException if workflow or any edge is not found, or if validation fails
+     */
+    @CacheEvict(value = "workflowMetamodels", key = "#workflowId")
+    public void updateMultipleEdgeBindings(String workflowId, Map<String, Map<String, String>> edgeBindingsMap) {
+
+        logger.info("Updating bindings for {} edges in workflow {}", edgeBindingsMap.size(), workflowId);
+
+        // Retrieve the workflow metamodel
+        WorkflowMetamodel workflow = repository.findById(workflowId)
+                .orElseThrow(() -> new IllegalArgumentException("WorkflowMetamodel with id " + workflowId + " does not exist."));
+
+        // Update bindings for each edge
+        boolean hasChanges = false;
+        for (Map.Entry<String, Map<String, String>> entry : edgeBindingsMap.entrySet()) {
+            String edgeId = entry.getKey();
+            Map<String, String> newBindings = entry.getValue();
+
+            // Find the edge to update
+            WorkflowEdge targetEdge = workflow.getEdges().stream()
+                    .filter(edge -> edgeId.equals(edge.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Edge with id " + edgeId + " not found in workflow " + workflowId));
+
+
+            // Update the bindings with filtered ones
+            targetEdge.setBindings(newBindings);
+            hasChanges = true;
+
+            logger.info("Updated bindings for edge {} with: {}", edgeId, newBindings);
+        }
+
+        if (!hasChanges) {
+            logger.info("No edge bindings to update for workflow {}", workflowId);
+            return;
+        }
+
+        // Remove the bindings that are not compatible
+        filterOutIncompatibleEdges(workflow);
+
+
+        // Validate the updated workflow
+        ValidationResult validationResult = workflowMetamodelValidator.validate(workflow);
+        if (!validationResult.isValid()) throw new IllegalArgumentException("Updated workflow is not valid: " + validationResult.getErrors());
+
+        // Save the updated workflow
+        WorkflowMetamodel savedWorkflow = repository.save(workflow);
+
+        // Publish update event to notify the Operational Layer
+        eventPublisher.publishEvent(new WorkflowMetamodelUpdateEvent(workflowId, savedWorkflow));
+
+        logger.info("Successfully updated bindings for {} edges in workflow {}", edgeBindingsMap.size(), workflowId);
     }
+
 
     /**
      * Validates all workflow metamodels in the MongoDB repository.
      * Prints the validation results to the logs.
      */
-    public void validateAllCatalog() {
+    private void validateAllCatalog() {
         logger.info("-------------------------------------------------");
         logger.info("Starting validation of Workflow Metamodels on Startup...");
 
@@ -187,5 +248,117 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
         logger.info(" - Total warnings across all workflows: {}", totalWarnings);
         logger.info(" - Total errors across all workflows: {}", totalErrors);
         logger.info("-------------------------------------------------");
+    }
+
+
+
+    /**
+     * Filters out incompatible edges in the workflow metamodel.
+     * This method ensures that edges have valid source and target nodes and that all edge bindings refer to existing and compatible ports
+     * between source and target nodes. Edges with invalid nodes are removed entirely.
+     * @param metamodel The workflow metamodel containing edges to filter
+     */
+    private void filterOutIncompatibleEdges(WorkflowMetamodel metamodel) {
+        logger.info("Filtering incompatible edges and bindings for workflow {}", metamodel.getId());
+
+        int totalFilteredBindings = 0;
+        int totalRemovedEdges = 0;
+        Iterator<WorkflowEdge> edgeIterator = metamodel.getEdges().iterator();
+
+        while (edgeIterator.hasNext()) {
+            WorkflowEdge edge = edgeIterator.next();
+
+            try {
+                // Get source and target nodes for filtering
+                String sourceNodeId = edge.getSourceNodeId();
+                String targetNodeId = edge.getTargetNodeId();
+
+                // Find source node in workflow
+                var sourceWorkflowNode = metamodel.getNodes().stream()
+                        .filter(node -> sourceNodeId.equals(node.getId()))
+                        .findFirst();
+
+                if (sourceWorkflowNode.isEmpty()) {
+                    logger.warn("Removing edge {} - source node with id {} not found in workflow {}",
+                            edge.getId(), sourceNodeId, metamodel.getId());
+                    edgeIterator.remove();
+                    totalRemovedEdges++;
+                    continue;
+                }
+
+                // Find target node in workflow
+                var targetWorkflowNode = metamodel.getNodes().stream()
+                        .filter(node -> targetNodeId.equals(node.getId()))
+                        .findFirst();
+
+                if (targetWorkflowNode.isEmpty()) {
+                    logger.warn("Removing edge {} - target node with id {} not found in workflow {}",
+                            edge.getId(), targetNodeId, metamodel.getId());
+                    edgeIterator.remove();
+                    totalRemovedEdges++;
+                    continue;
+                }
+
+                // Get node metamodel IDs
+                String sourceNodeMetamodelId = sourceWorkflowNode.get().getNodeMetamodelId();
+                String targetNodeMetamodelId = targetWorkflowNode.get().getNodeMetamodelId();
+
+                // Retrieve node metamodels from service
+                var sourceNodeMetamodel = this.nodeMetamodelService.getNodeById(sourceNodeMetamodelId);
+                var targetNodeMetamodel = this.nodeMetamodelService.getNodeById(targetNodeMetamodelId);
+
+                // Check if node metamodels exist
+                if (sourceNodeMetamodel.isEmpty()) {
+                    logger.warn("Removing edge {} - source node metamodel with id {} not found",
+                            edge.getId(), sourceNodeMetamodelId);
+                    edgeIterator.remove();
+                    totalRemovedEdges++;
+                    continue;
+                }
+
+                if (targetNodeMetamodel.isEmpty()) {
+                    logger.warn("Removing edge {} - target node metamodel with id {} not found",
+                            edge.getId(), targetNodeMetamodelId);
+                    edgeIterator.remove();
+                    totalRemovedEdges++;
+                    continue;
+                }
+
+                // Process edge bindings if they exist
+                if (edge.getBindings() != null && !edge.getBindings().isEmpty()) {
+                    // Get current bindings
+                    Map<String, String> currentBindings = new HashMap<>(edge.getBindings());
+
+                    // Filter bindings to ensure compatibility
+                    var filteredBindings = workflowMetamodelValidator.filterCompatibleBindings(
+                            sourceNodeMetamodel.get(),
+                            targetNodeMetamodel.get(),
+                            currentBindings
+                    );
+
+                    // Log filtered out bindings
+                    Map<String, String> filteredOutBindings = new HashMap<>(currentBindings);
+                    filteredBindings.forEach(filteredOutBindings::remove);
+
+                    if (!filteredOutBindings.isEmpty()) {
+                        totalFilteredBindings += filteredOutBindings.size();
+                        logger.info("Filtered out {} incompatible bindings for edge {} (from {} to {}): {}",
+                                filteredOutBindings.size(), edge.getId(), sourceNodeId, targetNodeId, filteredOutBindings);
+                    }
+
+                    // Update the edge with filtered bindings
+                    edge.setBindings(filteredBindings);
+                }
+
+            } catch (Exception e) {
+                logger.error("Error processing edge {} in workflow {} - removing edge: {}",
+                        edge.getId(), metamodel.getId(), e.getMessage());
+                edgeIterator.remove();
+                totalRemovedEdges++;
+            }
+        }
+
+        logger.info("Completed filtering for workflow {}. Edges removed: {}, Bindings filtered: {}",
+                metamodel.getId(), totalRemovedEdges, totalFilteredBindings);
     }
 }

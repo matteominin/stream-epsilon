@@ -9,7 +9,6 @@ import org.caselli.cognitiveworkflow.operational.LLM.services.IntentDetectionSer
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,14 +17,14 @@ import java.util.stream.Collectors;
 public class WorkflowOrchestrator {
 
     private final Logger logger = LoggerFactory.getLogger(WorkflowOrchestrator.class);
-    private final ObjectProvider<WorkflowExecutor> executorProvider;
+    private final WorkflowExecutor workflowExecutor;
     private final InputMapperService inputMapperService;
     private final IntentDetectionService intentDetectionService;
     private final RoutingManager routingManager;
     private final IntentMetamodelService intentMetamodelService;
 
-    public WorkflowOrchestrator(ObjectProvider<WorkflowExecutor> executorProvider, InputMapperService inputMapperService, IntentDetectionService intentDetectionService, RoutingManager routingManager, IntentMetamodelService intentMetamodelService) {
-        this.executorProvider = executorProvider;
+    public WorkflowOrchestrator(WorkflowExecutor workflowExecutor, InputMapperService inputMapperService, IntentDetectionService intentDetectionService, RoutingManager routingManager, IntentMetamodelService intentMetamodelService) {
+        this.workflowExecutor = workflowExecutor;
         this.inputMapperService = inputMapperService;
         this.intentDetectionService = intentDetectionService;
         this.routingManager = routingManager;
@@ -125,16 +124,8 @@ public class WorkflowOrchestrator {
 
         ExecutionContext context = inputMapping.getContext();
 
-        String startingNodeId = entryPointIDs.stream()
-                .filter(x -> Objects.equals(workflowInstance.getInstanceByWorkflowNodeId(x).getMetamodel().getId(), inputMapping.getStartingNode().getId()))
-                .findFirst()
-                .orElse(null);
-
-        logger.info("Starting workflow execution at node ID: {}", startingNodeId);
-
-        WorkflowExecutor executor = executorProvider.getObject(workflowInstance);
         logger.debug("Obtained workflow executor for instance: {}", workflowInstance.getId());
-        executor.execute(context, startingNodeId);
+        workflowExecutor.execute(workflowInstance, context);
 
         return context;
     }

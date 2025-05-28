@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -82,4 +84,45 @@ public class Port {
             throw new RuntimeException("Failed to serialize Port to JSON", e);
         }
     }
+
+
+    /**
+     * Helper method to retrieve and resolve a PortSchema given a full path (e.g., "basePort.nestedField").
+     * @param ports Available ports to search in
+     * @param fullPathKey The dot-notation path to the port field
+     * @return Return the schema of the port field corresponding to the nested path
+     */
+    public static PortSchema getResolvedSchemaForPort(List<? extends Port> ports, String fullPathKey) {
+        if (fullPathKey == null || fullPathKey.isEmpty() || ports == null || ports.isEmpty()) return null;
+
+        // Split into base port key and the rest of the path (if any)
+        // "port.field.sub" -> parts[0]="port", parts[1]="field.sub"
+        String[] parts = fullPathKey.split("\\.", 2);
+        String basePortKey = parts[0];
+        String nestedPath = (parts.length > 1 && parts[1] != null && !parts[1].isEmpty()) ? parts[1] : null;
+
+        if (basePortKey.isEmpty()) return null;
+
+        Optional<? extends Port> basePortOpt = ports.stream()
+                .filter(p -> p.getKey() != null && p.getKey().equals(basePortKey))
+                .findFirst();
+
+        if (basePortOpt.isEmpty()) return null;
+
+        Port basePort = basePortOpt.get();
+        PortSchema baseSchema = basePort.getSchema();
+
+        if (baseSchema == null) return null;
+
+        if (nestedPath != null) {
+            try {
+                return baseSchema.getSchemaByPath(nestedPath);
+            } catch (Exception e) {
+                return null;
+            }
+        } else {
+            return baseSchema;
+        }
+    }
+
 }

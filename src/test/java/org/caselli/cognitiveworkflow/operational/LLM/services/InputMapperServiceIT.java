@@ -1,8 +1,9 @@
 package org.caselli.cognitiveworkflow.operational.LLM.services;
 
-import org.caselli.cognitiveworkflow.knowledge.model.node.RestToolNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,27 +17,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Tag("it")
-@ActiveProfiles("test")
 @Tag("focus")
+@ActiveProfiles("test")
 public class InputMapperServiceIT {
 
     @Autowired
     private InputMapperService inputMapperService;
 
-
-
     /**
-     * Test the Input Mapper with simple mapping and only 1 available node
-     * Should select the only available node
+     * Test the Input Mapper with simple mapping and only 1 starting node
      */
     @Test
+    @DisplayName("Test with only one node")
     public void shouldWorkWithOnlyOneNode() {
         // NODE 1
         RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
@@ -51,10 +50,10 @@ public class InputMapperServiceIT {
 
         var res = inputMapperService.mapInput(variables,List.of(nodeA));
 
+        System.out.println("Context result:"+res);
+
         assertNotNull(res);
-        assertNotNull(res.getStartingNode());
-        assertEquals(res.getStartingNode().getId(), nodeA.getId());
-        assertEquals(res.getContext().get("user_name"),variables.get("name"));
+        assertEquals(res.getContext().get("user_name"), variables.get("name"));
         assertEquals(res.getContext().get("user_phone"),variables.get("number"));
         assertEquals(res.getContext().get("user_email"),variables.get("email"));
     }
@@ -65,13 +64,14 @@ public class InputMapperServiceIT {
      * The service should discard excess variables not required in input
      */
     @Test
+    @DisplayName("Test with excess variables not required in input")
     public void shouldDiscardExcessVariables() {
         // NODE A
         RestPort source_A_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_A_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_A_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER_A");
         nodeA.setDescription("Check if user is registered to our platform using legacy API");
@@ -95,10 +95,6 @@ public class InputMapperServiceIT {
 
         // ASSERTIONS
         assertNotNull(res);
-        assertNotNull(res.getStartingNode());
-        assertEquals(nodeA.getId(), res.getStartingNode().getId());
-        assertEquals(nodeA.getName(), res.getStartingNode().getName());
-
         // Verify mapped input variables
         Map<String, Object> mappedInputs = res.getContext();
         assertNotNull(mappedInputs);
@@ -110,9 +106,10 @@ public class InputMapperServiceIT {
 
     /**
      * Test the Input Mapper should work even if an option port field is missing in the variables
-     * Should select the only available node without trying to invent the content of the optional missing variable
+     * Should not try to invent the content of the optional missing variable
      */
     @Test
+    @DisplayName("Test with optional fields not satisfied")
     public void shouldWorkWithOnlyOnNodeEvenWithoutAllOptionalFieldsSatisfied() {
         // NODE 1
         RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
@@ -122,7 +119,7 @@ public class InputMapperServiceIT {
         RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
         RestPort source5 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
@@ -139,10 +136,6 @@ public class InputMapperServiceIT {
 
         // ASSERTIONS
         assertNotNull(res);
-        assertNotNull(res.getStartingNode());
-        assertEquals(nodeA.getId(), res.getStartingNode().getId());
-        assertEquals(nodeA.getName(), res.getStartingNode().getName());
-
         Map<String, Object> mappedInputs = res.getContext();
         assertNotNull(mappedInputs);
         assertEquals(3, mappedInputs.size());
@@ -153,10 +146,11 @@ public class InputMapperServiceIT {
 
 
     /**
-     * Test the Input Mapper with simple mapping and only one unsatisfiable node as input
-     * Should should not select any nodes.
+     * Test the Input Mapper with simple mapping and only one unsatisfiable starting node
+     * Should produce a null result
      */
     @Test
+    @DisplayName("Test with only one unsatisfiable node")
     public void shouldFailWithOnlyOneWrongNode() {
         // NODE 1
         RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
@@ -164,7 +158,7 @@ public class InputMapperServiceIT {
         RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
@@ -192,9 +186,10 @@ public class InputMapperServiceIT {
      *   <li>Node C has a variable (user_social_security_number) that is not among the provided variables</li>
      * </ul>
      *
-     * Service should select no nodes.
+     *  Should return null as all nodes have unsatisfied required ports
      */
     @Test
+    @DisplayName("Test with multiple unsatisfiable nodes")
     public void shouldFailWithMultipleWrongNodes() {
 
         // NODE A
@@ -204,7 +199,7 @@ public class InputMapperServiceIT {
         // Unsatisfied port:
         RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
@@ -224,7 +219,7 @@ public class InputMapperServiceIT {
         // Unsatisfied port:
         RestPort source_B_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeB = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeB = new RestNodeMetamodel();
         nodeB.setId(String.valueOf(UUID.randomUUID()));
         nodeB.setName("CHECK_USER_B");
         nodeB.setDescription("Check if user is registered to our platform using V2 API");
@@ -239,7 +234,7 @@ public class InputMapperServiceIT {
         RestPort source_C_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
 
-        RestToolNodeMetamodel nodeC = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeC = new RestNodeMetamodel();
         nodeC.setId(String.valueOf(UUID.randomUUID()));
         nodeC.setName("CHECK_USER_C");
         nodeC.setDescription("Check if user is registered to our platform using V1 API");
@@ -259,58 +254,52 @@ public class InputMapperServiceIT {
 
 
     /**
-     * Test the Input Mapper with simple mapping and multiple unsatisfiable nodes except one.
-     * The only satisfied node, however, have some optional fields that cannot be satisfied
+     * Test the Input Mapper with simple mapping and multiple satisfiable nodes except one.
      *
      * <ul>
-     *   <li>Node A has a variable (user_id) that is not among the provided variables</li>
-     *   <li>Node B has a variable (user_password) that is not among the provided variables</li>
-     *   <li>Node C has a variable (user_social_security_number) that is not among the provided variables</li>
-     *   <li>Node D has a variable (user_social_security_number) that is not among the provided variables but is optional</li>
+     *   <li>Node A is satisfiable</li>
+     *   <li>Node B is satisfiable</li>
+     *   <li>Node C has a variable (user_social_security_number) that is not among the provided variables but is optional</li>
+     *   <li>Node D has a variable (user_social_security_number) that is not among the provided variables and is required</li>
      * </ul>
      *
-     * Service should select Node D
+     * Service should return null as node D cannot be satisfied
      */
     @Test
-    public void shouldWorkWithMultipleWrongNodesAndOneWithoutAllTheOptionalFields() {
+    @DisplayName("Test with multiple satisfiable nodes and one unsatisfiable node")
+    public void shouldFailWithMultipleSatisfiableAndOneUnsatisfiableNode() {
         // NODE 1
         RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        // Unsatisfied port:
-        RestPort source4 = RestPort.builder().withKey("user_id").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("CHECK_USER");
         nodeA.setDescription("Check if user is registered to our platform");
-        nodeA.setInputPorts(List.of(source1, source2, source3, source4));
+        nodeA.setInputPorts(List.of(source1, source2, source3));
         nodeA.setOutputPorts(List.of());
-
 
         // NODE B
         RestPort source_B_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_B_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        // Unsatisfied port:
-        RestPort source_B_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_3 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeB = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeB = new RestNodeMetamodel();
         nodeB.setId(String.valueOf(UUID.randomUUID()));
         nodeB.setName("CHECK_USER_B");
         nodeB.setDescription("Check if user is registered to our platform using V2 API");
-        nodeB.setInputPorts(List.of(source_B_1, source_B_2, source_B_3, source_B_4));
+        nodeB.setInputPorts(List.of(source_B_1, source_B_2, source_B_3));
         nodeB.setOutputPorts(List.of());
 
         // NODE C
-
         RestPort source_C_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_C_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_C_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // Unsatisfied port:
         RestPort source_C_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
-        RestToolNodeMetamodel nodeC = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeC = new RestNodeMetamodel();
         nodeC.setId(String.valueOf(UUID.randomUUID()));
         nodeC.setName("CHECK_USER_C");
         nodeC.setDescription("Check if user is registered to our platform using V1 API");
@@ -319,14 +308,13 @@ public class InputMapperServiceIT {
 
 
         // NODE D
-
         RestPort source_D_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_D_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         RestPort source_D_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
         // OPTIONAL Unsatisfied port:
         RestPort source_D_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
 
-        RestToolNodeMetamodel nodeD = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeD = new RestNodeMetamodel();
         nodeD.setId(String.valueOf(UUID.randomUUID()));
         nodeD.setName("CHECK_USER_D");
         nodeD.setDescription("Check if user is registered to our platform using V1 API");
@@ -334,6 +322,87 @@ public class InputMapperServiceIT {
         nodeD.setOutputPorts(List.of());
 
 
+        Map<String, Object> variables = Map.of(
+                "name", "Niccolò",
+                "number", "+393527624",
+                "email", "caselli@gmail.com",
+                "user_password", "password123"
+        );
+
+        var res = inputMapperService.mapInput(variables,List.of(nodeA, nodeB, nodeC, nodeD));
+
+        // ASSERTIONS
+        assertNull(res);
+    }
+
+
+    /**
+     * Test the Input Mapper with simple mapping and multiple satisfiable nodes
+     *
+     * <ul>
+     *   <li>Node A is satisfiable: it has all required variables satisfied</li>
+     *   <li>Node B is satisfiable: it has all required variables satisfied</li>
+     *   <li>Node C is satisfiable: it has a variable (user_social_security_number) that is not among the provided variables but is optional</li>
+     *   <li>Node D satisfiable: it has a variable (user_social_security_number) that is not among the provided variables but is optional</li>
+     * </ul>
+     *
+     * Service should work as all nodes have all their required ports satisfied
+     */
+    @Test
+    @DisplayName("Test with multiple satisfiable nodes")
+    public void shouldWorkWithMultipleSatisfiableNodes() {
+        // NODE 1
+        RestPort source1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
+        nodeA.setId(String.valueOf(UUID.randomUUID()));
+        nodeA.setName("CHECK_USER");
+        nodeA.setDescription("Check if user is registered to our platform");
+        nodeA.setInputPorts(List.of(source1, source2, source3));
+        nodeA.setOutputPorts(List.of());
+
+        // NODE B
+        RestPort source_B_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_B_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+
+        RestNodeMetamodel nodeB = new RestNodeMetamodel();
+        nodeB.setId(String.valueOf(UUID.randomUUID()));
+        nodeB.setName("CHECK_USER_B");
+        nodeB.setDescription("Check if user is registered to our platform using V2 API");
+        nodeB.setInputPorts(List.of(source_B_1, source_B_2, source_B_3));
+        nodeB.setOutputPorts(List.of());
+
+        // NODE C
+        RestPort source_C_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_C_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        // Unsatisfied OPTIONAL port:
+        RestPort source_C_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
+
+        RestNodeMetamodel nodeC = new RestNodeMetamodel();
+        nodeC.setId(String.valueOf(UUID.randomUUID()));
+        nodeC.setName("CHECK_USER_C");
+        nodeC.setDescription("Check if user is registered to our platform using V1 API");
+        nodeC.setInputPorts(List.of(source_C_1, source_C_2,source_C_3,source_C_4));
+        nodeC.setOutputPorts(List.of());
+
+
+        // NODE D
+        RestPort source_D_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_D_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        RestPort source_D_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+        // OPTIONAL Unsatisfied port:
+        RestPort source_D_4 = RestPort.builder().withKey("user_social_security_number").withSchema(PortSchema.builder().stringSchema().withRequired(false).build()).build();
+
+        RestNodeMetamodel nodeD = new RestNodeMetamodel();
+        nodeD.setId(String.valueOf(UUID.randomUUID()));
+        nodeD.setName("CHECK_USER_D");
+        nodeD.setDescription("Check if user is registered to our platform using V1 API");
+        nodeD.setInputPorts(List.of(source_D_1, source_D_2,source_D_3,source_D_4));
+        nodeD.setOutputPorts(List.of());
 
 
         Map<String, Object> variables = Map.of(
@@ -346,10 +415,6 @@ public class InputMapperServiceIT {
 
         // ASSERTIONS
         assertNotNull(res);
-        assertNotNull(res.getStartingNode());
-        assertEquals(nodeD.getId(), res.getStartingNode().getId());
-        assertEquals(nodeD.getName(), res.getStartingNode().getName());
-
         Map<String, Object> mappedInputs = res.getContext();
         assertNotNull(mappedInputs);
         assertEquals(3, mappedInputs.size());
@@ -360,91 +425,11 @@ public class InputMapperServiceIT {
 
 
     /**
-     * Tests that the Input Mapper correctly selects the node with all required inputs satisfied.
-     *
-     * <ul>
-     *   <li>Node A has all variables satisfied</li>
-     *   <li>Node B has a variable (password) that is not among the provided variables</li>
-     *   <li>Node C could also be selected as all its variables are satisfied, but it has an unused
-     *       provided variable (phone_number). The mapper should prefer Node A in this case.</li>
-     * </ul>
-     *
-     * The mapper should select either Node A or C as they are the only ones with all inputs satisfied,
-     * with preference given to Node A since it doesn't have unused input variables.
+     * Test the Input Mapper with a nested mapping and only 1 starting node
+     * Should map successfully the nested structure
      */
     @Test
-    public void shouldWorkWithMultipleNodeAndOnlyOneValid() {
-        // NODE A
-
-        RestPort source_A_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_A_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_A_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
-        nodeA.setId(String.valueOf(UUID.randomUUID()));
-        nodeA.setName("CHECK_USER_A");
-        nodeA.setDescription("Check if user is registered to our platform using legacy API");
-        nodeA.setInputPorts(List.of(source_A_1, source_A_2, source_A_3));
-        nodeA.setOutputPorts(List.of());
-
-        // NODE B
-
-        RestPort source_B_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_3 = RestPort.builder().withKey("user_phone").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_B_4 = RestPort.builder().withKey("user_password").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-
-        RestToolNodeMetamodel nodeB = new RestToolNodeMetamodel();
-        nodeB.setId(String.valueOf(UUID.randomUUID()));
-        nodeB.setName("CHECK_USER_B");
-        nodeB.setDescription("Check if user is registered to our platform using V2 API");
-        nodeB.setInputPorts(List.of(source_B_1, source_B_2, source_B_3, source_B_4));
-        nodeB.setOutputPorts(List.of());
-
-        // NODE C
-
-        RestPort source_C_1 = RestPort.builder().withKey("user_name").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-        RestPort source_C_2 = RestPort.builder().withKey("user_email").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-
-        RestToolNodeMetamodel nodeC = new RestToolNodeMetamodel();
-        nodeC.setId(String.valueOf(UUID.randomUUID()));
-        nodeC.setName("CHECK_USER_C");
-        nodeC.setDescription("Check if user is registered to our platform using V1 API");
-        nodeC.setInputPorts(List.of(source_C_1, source_C_2));
-        nodeC.setOutputPorts(List.of());
-
-        // VARIABLES
-
-        Map<String, Object> variables = Map.of(
-                "name", "Niccolò",
-                "number", "+393527624",
-                "email", "caselli@gmail.com"
-        );
-
-
-        // MAPPER
-        var res = inputMapperService.mapInput(variables,List.of(nodeB, nodeA, nodeC));
-
-        // ASSERTIONS
-        assertNotNull(res);
-        assertNotNull(res.getStartingNode());
-        assertEquals(nodeA.getId(), res.getStartingNode().getId());
-        assertEquals(nodeA.getName(), res.getStartingNode().getName());
-
-        // Verify mapped input variables
-        Map<String, Object> mappedInputs = res.getContext();
-        assertNotNull(mappedInputs);
-        assertEquals(3, mappedInputs.size());
-        assertTrue(mappedInputs.containsKey("user_name"));
-        assertTrue(mappedInputs.containsKey("user_email"));
-        assertTrue(mappedInputs.containsKey("user_phone"));
-    }
-
-    /**
-     * Test the Input Mapper with a nested mapping and only 1 available node
-     * Should select the only available node
-     */
-    @Test
+    @DisplayName("Test with only one node with nested structure")
     public void shouldWorkWithOnlyOneNestedNode() {
         // NODE 1
         RestPort source1 = RestPort.builder()
@@ -465,7 +450,7 @@ public class InputMapperServiceIT {
         RestPort source2 = RestPort.builder().withKey("orderId").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
 
 
-        RestToolNodeMetamodel nodeA = new RestToolNodeMetamodel();
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
         nodeA.setName("SEE_SHIPPING_INFO");
         nodeA.setDescription("Get user shipping order");
@@ -486,12 +471,9 @@ public class InputMapperServiceIT {
         System.out.println("Context result: ");
         res.context.printContext();
 
-        assertNotNull(res.getStartingNode());
-        assertEquals(res.getStartingNode().getId(), nodeA.getId());
         assertEquals(res.getContext().get("user.id"), variables.get("id_of_the_user"));
         assertEquals(res.getContext().get("user.userDetails.email"), variables.get("email"));
         assertEquals(res.getContext().get("user.userDetails.phone_number"),variables.get("number"));
         assertEquals(res.getContext().get("orderId"), variables.get("order_id"));
     }
-
 }

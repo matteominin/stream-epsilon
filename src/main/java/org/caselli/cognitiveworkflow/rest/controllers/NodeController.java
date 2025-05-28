@@ -49,8 +49,8 @@ public class NodeController {
      * Create a new REST Tool node metamodel
      */
     @PostMapping("/rest-tool")
-    public ResponseEntity<NodeMetamodel> createRestToolNodeMetamodel(@Valid @RequestBody RestToolNodeMetamodel restToolNodeMetamodel) throws BadRequestException {
-        var result = nodeMetamodelService.createNodeMetamodel(restToolNodeMetamodel);
+    public ResponseEntity<NodeMetamodel> createRestToolNodeMetamodel(@Valid @RequestBody RestNodeMetamodel restNodeMetamodel) throws BadRequestException {
+        var result = nodeMetamodelService.createNodeMetamodel(restNodeMetamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
@@ -106,7 +106,7 @@ public class NodeController {
     @PutMapping("/rest-tool/{id}")
     public ResponseEntity<NodeMetamodel> updateRestToolNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody RestToolNodeMetamodel metamodel) {
+            @Valid @RequestBody RestNodeMetamodel metamodel) {
 
         return validateAndUpdateNode(
                 id,

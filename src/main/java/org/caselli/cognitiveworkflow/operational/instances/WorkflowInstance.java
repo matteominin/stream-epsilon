@@ -91,7 +91,7 @@ public class WorkflowInstance {
     // TODO
     @EventListener
     public void onMetaNodeUpdated(WorkflowMetamodelUpdateEvent event) {
-        if (event.getMetamodelId().equals(this.metamodel.getId())) {
+        if (this.metamodel != null && event.getMetamodelId().equals(this.metamodel.getId())) {
             this.metamodel = event.getUpdatedMetamodel();
             refreshNodeMaps();
             // TODO
