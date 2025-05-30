@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class VectorDbPort extends Port {
-    private VectorSearchPortRole role;
+    private VectorDbPortRole role;
 
     public static VectorPortBuilder builder() {
         return new VectorPortBuilder();
@@ -15,7 +15,7 @@ public class VectorDbPort extends Port {
     /**
      * Roles that Vector Database Ports can have.
      */
-    public enum VectorSearchPortRole {
+    public enum VectorDbPortRole {
         INPUT_VECTOR,
         RESULTS,
         FIRST_RESULT
@@ -25,9 +25,9 @@ public class VectorDbPort extends Port {
      * Vector Port builder
      */
     public static class VectorPortBuilder extends AbstractPortBuilder<VectorDbPort, VectorPortBuilder> {
-        private VectorDbPort.VectorSearchPortRole role;
+        private VectorDbPortRole role;
 
-        public VectorPortBuilder withRole(VectorDbPort.VectorSearchPortRole role) {
+        public VectorPortBuilder withRole(VectorDbPortRole role) {
             this.role = role;
             return this;
         }

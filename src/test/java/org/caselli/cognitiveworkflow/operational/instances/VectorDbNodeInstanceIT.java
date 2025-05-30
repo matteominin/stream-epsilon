@@ -69,7 +69,7 @@ class VectorDbNodeInstanceIT {
         metamodel.setInputPorts(List.of(
                 VectorDbPort.builder()
                         .withKey("input")
-                        .withRole(VectorDbPort.VectorSearchPortRole.INPUT_VECTOR)
+                        .withRole(VectorDbPort.VectorDbPortRole.INPUT_VECTOR)
                         .withSchema(PortSchema.builder().arraySchema(PortSchema.builder().floatSchema().build()).build())
                         .build()
         ));
@@ -95,12 +95,12 @@ class VectorDbNodeInstanceIT {
         metamodel.setOutputPorts(List.of(
                 VectorDbPort.builder()
                         .withKey("all")
-                        .withRole(VectorDbPort.VectorSearchPortRole.RESULTS)
+                        .withRole(VectorDbPort.VectorDbPortRole.RESULTS)
                         .withSchema(PortSchema.builder().arraySchema(PortSchema.builder().stringSchema().build()).build())
                         .build(),
                 VectorDbPort.builder()
                         .withKey("first")
-                        .withRole(VectorDbPort.VectorSearchPortRole.FIRST_RESULT)
+                        .withRole(VectorDbPort.VectorDbPortRole.FIRST_RESULT)
                         .withSchema(PortSchema.builder().stringSchema().build())
                         .build()
         ));
@@ -128,13 +128,13 @@ class VectorDbNodeInstanceIT {
         metamodel.setOutputPorts(List.of(
                 VectorDbPort.builder()
                         .withKey("all")
-                        .withRole(VectorDbPort.VectorSearchPortRole.RESULTS)
+                        .withRole(VectorDbPort.VectorDbPortRole.RESULTS)
                         .withSchema(PortSchema.builder().arraySchema(itemSchema).build())
                         .build(),
 
                 VectorDbPort.builder()
                         .withKey("first")
-                        .withRole(VectorDbPort.VectorSearchPortRole.FIRST_RESULT)
+                        .withRole(VectorDbPort.VectorDbPortRole.FIRST_RESULT)
                         .withSchema(itemSchema)
                         .build()
         ));
@@ -167,7 +167,7 @@ class VectorDbNodeInstanceIT {
         metamodel.setOutputPorts(List.of(
                 VectorDbPort.builder()
                         .withKey("all-array-int")
-                        .withRole(VectorDbPort.VectorSearchPortRole.RESULTS)
+                        .withRole(VectorDbPort.VectorDbPortRole.RESULTS)
                         .withSchema(PortSchema.builder().arraySchema(
                                 PortSchema.builder().intSchema().build()
                         ).build())
@@ -175,7 +175,7 @@ class VectorDbNodeInstanceIT {
 
                 VectorDbPort.builder()
                         .withKey("all-array-of-array")
-                        .withRole(VectorDbPort.VectorSearchPortRole.RESULTS)
+                        .withRole(VectorDbPort.VectorDbPortRole.RESULTS)
                         .withSchema(PortSchema.builder().arraySchema(
                                 PortSchema.builder().arraySchema(
                                         PortSchema.builder().intSchema().build()

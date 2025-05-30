@@ -137,7 +137,7 @@ public class VectorDbNodeInstance extends ToolNodeInstance {
         List<VectorDbPort> inputPorts = getMetamodel().getInputPorts();
 
         for (VectorDbPort inputPort : inputPorts) {
-            if (inputPort.getRole() == VectorDbPort.VectorSearchPortRole.INPUT_VECTOR) {
+            if (inputPort.getRole() == VectorDbPort.VectorDbPortRole.INPUT_VECTOR) {
                 Object vectorValue = context.get(inputPort.getKey());
                 if (vectorValue != null) {
                     if (vectorValue instanceof List<?>) {
@@ -270,7 +270,7 @@ public class VectorDbNodeInstance extends ToolNodeInstance {
 
         for (VectorDbPort outputPort : outputPorts) {
             Object valueToSet = null;
-            VectorDbPort.VectorSearchPortRole role = outputPort.getRole();
+            VectorDbPort.VectorDbPortRole role = outputPort.getRole();
             PortSchema portSchema = outputPort.getSchema();
 
             if (role == null) {

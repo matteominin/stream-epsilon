@@ -147,14 +147,14 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
 
         metamodel.setInputPorts(List.of(
                 VectorDbPort.builder().withKey("vector")
-                        .withRole(VectorDbPort.VectorSearchPortRole.INPUT_VECTOR)
+                        .withRole(VectorDbPort.VectorDbPortRole.INPUT_VECTOR)
                         .withSchema(PortSchema.builder().arraySchema(PortSchema.builder().floatSchema().build()).withRequired(true).build())
                         .build()
         ));
 
         metamodel.setOutputPorts(List.of(
                 VectorDbPort.builder().withKey("results")
-                        .withRole(VectorDbPort.VectorSearchPortRole.RESULTS)
+                        .withRole(VectorDbPort.VectorDbPortRole.RESULTS)
                         .withSchema(PortSchema.builder().arraySchema(
                                 PortSchema.builder().objectSchema(Map.of(
                                         "plot", PortSchema.builder().stringSchema().build(),
