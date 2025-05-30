@@ -23,6 +23,7 @@ public class WorkflowInstance {
     @Setter
     private String id;
 
+
     // Metamodel
     private WorkflowMetamodel metamodel;
 
@@ -87,19 +88,20 @@ public class WorkflowInstance {
     }
 
 
-
-    // TODO
+    /**
+     * Listens for updates to the workflow metamodel and refreshes the node maps accordingly.
+     * @param event The event containing the updated metamodel
+     */
     @EventListener
     public void onMetaNodeUpdated(WorkflowMetamodelUpdateEvent event) {
-        if (this.metamodel != null && event.getMetamodelId().equals(this.metamodel.getId())) {
-            this.metamodel = event.getUpdatedMetamodel();
+        if (this.metamodel != null && event.metamodelId().equals(this.metamodel.getId())) {
+            this.metamodel = event.updatedMetamodel();
             refreshNodeMaps();
             // TODO
             // updating the metadata is not sufficient: we have to check what have changed.
             // The DAG structure may have changed
         }
     }
-
 
     /**
      * Gets a node instance by its ID

@@ -23,8 +23,8 @@ public abstract class NodeInstance {
 
     @EventListener
     public void onMetaNodeUpdated(NodeMetamodelUpdateEvent event) {
-        if (this.metamodel != null && event.getMetamodelId().equals(this.metamodel.getId())) {
-            this.metamodel = event.getUpdatedMetamodel();
+        if (this.metamodel != null && event.metamodelId().equals(this.metamodel.getId())) {
+            this.metamodel = event.updatedMetamodel();
         }
     }
 }

@@ -101,7 +101,7 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
 
         WorkflowMetamodel saved = repository.save(updatedData);
 
-        // Notify the Operational Level of the modification TODO
+        // Notify the Operational Level of the modification
         eventPublisher.publishEvent(new WorkflowMetamodelUpdateEvent(id, saved));
 
         return saved;
