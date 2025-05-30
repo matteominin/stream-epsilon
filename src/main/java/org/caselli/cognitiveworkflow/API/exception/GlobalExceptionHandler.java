@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.rest.exception;
+package org.caselli.cognitiveworkflow.API.exception;
 
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;

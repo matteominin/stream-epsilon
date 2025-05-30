@@ -41,7 +41,7 @@ public class LlmNodeInstanceIT {
         var options = new LlmNodeMetamodel.LlmModelOptions();
         options.setTemperature(0.4);
         options.setMaxTokens(400);
-        metamodel.setDefaultParameters(options);
+        metamodel.setParameters(options);
 
         llmNodeInstance.setMetamodel(metamodel);
         llmNodeInstance.setId("test-llm-node");

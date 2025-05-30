@@ -178,12 +178,13 @@ public class LlmNodeInstance extends AiNodeInstance {
                 throw new IllegalArgumentException("LlmNodeInstance " + getId() + " initialization failed: model name is not specified in the metamodel.");
             }
 
-            var config = metamodel.getDefaultParameters();
+            var config = metamodel.getParameters();
             this.chatClient = llmModelFactory.createChatClient(metamodel.getProvider(), metamodel.getModelName(), null, config);
 
             logger.info("[Node {}]: Created ChatClient for provider {} and model {}", getId(), metamodel.getProvider(), metamodel.getModelName());
             if (config != null) logger.info("[Node {}]: LLM Parameters - Temperature: {}, TopP: {}, MaxTokens: {}", getId(), config.getTemperature(), config.getTopP(), config.getMaxTokens());
         }
+
         return chatClient;
     }
 

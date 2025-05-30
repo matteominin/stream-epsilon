@@ -176,11 +176,11 @@ public class VectorDbNodeInstance extends ToolNodeInstance {
     }
 
     /**
-     * Determines the search parameters to use by combining default parameters with any overrides (TODO)
+     * Get Search parameters from the metamodel
      * @return VectorSearchConfig with the appropriate parameters
      */
     private VectorDbNodeMetamodel.VectorSearchConfig determineSearchParameters() {
-        VectorDbNodeMetamodel.VectorSearchConfig config = getMetamodel().getDefaultParameters();
+        VectorDbNodeMetamodel.VectorSearchConfig config = getMetamodel().getParameters();
         if (config == null) config = new VectorDbNodeMetamodel.VectorSearchConfig();
 
         // Look for parameter overrides in the context

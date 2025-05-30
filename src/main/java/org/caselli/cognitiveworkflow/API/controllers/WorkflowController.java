@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.rest.controllers;
+package org.caselli.cognitiveworkflow.API.controllers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;

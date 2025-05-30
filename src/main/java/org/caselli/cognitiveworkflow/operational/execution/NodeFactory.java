@@ -21,12 +21,7 @@ public class NodeFactory {
         Object bean = context.getBean(clazz);
         NodeInstance node = (NodeInstance) bean;
 
-
         node.setId(metamodel.getId());
-
-        // TODO: inject config
-        //mapper.updateValue(node, metamodel.getConfig());
-
 
         // Set the metamodel
         node.setMetamodel(metamodel);

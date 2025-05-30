@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.rest.controllers;
+package org.caselli.cognitiveworkflow.API.controllers;
 
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;

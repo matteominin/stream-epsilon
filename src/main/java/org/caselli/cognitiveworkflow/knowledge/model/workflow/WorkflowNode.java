@@ -5,7 +5,6 @@ import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -20,9 +19,6 @@ public class WorkflowNode {
     /** The ID of the metamodel of the node*/
     @NotNull
     private String nodeMetamodelId;
-
-    /** TODO */
-    private Map<String, Object> configurationOverrides;
 
     /* Specific version of the metamodel */
     @NotNull

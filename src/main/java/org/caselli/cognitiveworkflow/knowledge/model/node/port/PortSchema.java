@@ -37,13 +37,9 @@ public class PortSchema {
     /**
      * Whether the port is required or not.
      * NOTE: This is only for input ports, as output ports are always required.
-     * TODO:gestire diversamente
      * */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean required;
-
-
-
 
     /**
      * Converts a PortSchema to JSON string representation.

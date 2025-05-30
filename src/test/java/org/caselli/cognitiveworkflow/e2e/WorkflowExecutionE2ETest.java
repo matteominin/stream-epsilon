@@ -133,7 +133,7 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
         var options = new LlmNodeMetamodel.LlmModelOptions();
         options.setTemperature(0.4);
         options.setMaxTokens(500);
-        metamodel.setDefaultParameters(options);
+        metamodel.setParameters(options);
 
         return metamodel;
     }

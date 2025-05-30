@@ -39,8 +39,8 @@ public class VectorDbNodeMetamodel extends ToolNodeMetamodel {
     /** Field containing vector embeddings */
     @NotNull private String vectorField;
 
-    /** Default parameters for the LLM call (can be overridden at instance level TODO) */
-    private VectorSearchConfig defaultParameters;
+    /** Parameters for the LLM call */
+    private VectorSearchConfig parameters;
 
     public VectorDbNodeMetamodel() {
         super();

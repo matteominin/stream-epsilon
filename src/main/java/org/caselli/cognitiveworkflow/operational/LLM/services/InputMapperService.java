@@ -86,9 +86,8 @@ public class InputMapperService extends LLMAbstractService {
                     .call()
                     .entity(InputMapperLLMResult.class);
 
-            // TODO: remove
-            System.out.println(prompt.getContents());
-            System.out.println(result);
+            // System.out.println(prompt.getContents());
+            //System.out.println(result);
 
             return processLLMResult(result, nodes);
         } catch (Exception e) {

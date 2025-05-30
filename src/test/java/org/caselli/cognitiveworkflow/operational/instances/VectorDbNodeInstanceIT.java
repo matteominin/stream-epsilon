@@ -64,7 +64,7 @@ class VectorDbNodeInstanceIT {
         var config = new VectorDbNodeMetamodel.VectorSearchConfig();
         config.setLimit(limit);
         config.setThreshold(0.1); // low threshold in order to get all the matching (>3) results and test if the limit works
-        metamodel.setDefaultParameters(config);
+        metamodel.setParameters(config);
 
         metamodel.setInputPorts(List.of(
                 VectorDbPort.builder()

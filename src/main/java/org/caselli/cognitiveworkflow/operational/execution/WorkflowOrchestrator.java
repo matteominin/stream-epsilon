@@ -87,7 +87,7 @@ public class WorkflowOrchestrator {
 
         // EXECUTION
         var userVariables = intentRes.getUserVariables();
-        userVariables.put("COMPLETE_USER_REQUEST", request); // TODO: find better way
+        userVariables.put("COMPLETE_USER_REQUEST", request);
         logger.debug("Starting workflow with variables: {}", userVariables);
         var context = startWorkflow(workflowInstance, userVariables);
 
