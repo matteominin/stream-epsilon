@@ -26,4 +26,18 @@ public interface WorkflowMetamodelCatalog extends MongoRepository<WorkflowMetamo
             "{ \"$limit\": ?1 }"
     })
     List<WorkflowMetamodel> findByHandledIntents_IntentId(String intentId, int n);
+
+
+
+    /**
+     * Finds all workflow metamodels that reference the specified intent
+     * This is used when deleting intents to clean up references.
+     *
+     * @param intentId The ID of the intent to search for
+     * @return A list of workflow metamodels that handle the intent
+     */
+    @Aggregation(pipeline = {
+            "{ \"$match\": { \"handledIntents.intentId\": ?0 } }"
+    })
+    List<WorkflowMetamodel> findAllByHandledIntents_IntentId(String intentId);
 }

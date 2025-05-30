@@ -20,13 +20,15 @@ public class IntentMetamodelService {
 
     private final IntentMetamodelCatalog repository;
     private final IntentSearchService intentSearchService;
+    private final WorkflowMetamodelService workflowMetamodelService;
 
     private final EmbeddingService embeddingService;
 
-    public IntentMetamodelService(IntentMetamodelCatalog repository, EmbeddingService embeddingService, IntentSearchService intentSearchService) {
+    public IntentMetamodelService(IntentMetamodelCatalog repository, EmbeddingService embeddingService, IntentSearchService intentSearchService, WorkflowMetamodelService workflowMetamodelService) {
         this.repository = repository;
         this.embeddingService = embeddingService;
         this.intentSearchService = intentSearchService;
+        this.workflowMetamodelService = workflowMetamodelService;
     }
 
     @PostConstruct
@@ -105,9 +107,11 @@ public class IntentMetamodelService {
      */
     @CacheEvict(value = "intentMetamodels", allEntries = true)
     public void deleteById(String id) {
-        repository.deleteById(id);
+        // Remove the intent from all workflows
+        workflowMetamodelService.removeIntentFromAllWorkflows(id);
 
-        // TODO: handle deletion of intents that are referenced by workflows
+        // Delete the intent from the repository
+        repository.deleteById(id);
     }
 
 

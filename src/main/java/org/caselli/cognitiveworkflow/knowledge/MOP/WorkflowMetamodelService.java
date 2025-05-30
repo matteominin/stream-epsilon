@@ -191,6 +191,80 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
 
 
     /**
+     * Remove an intent from all workflows that reference it
+     * This method is called when an intent is being deleted
+     * @param intentId The intent ID to remove from all workflows
+     */
+    public void removeIntentFromAllWorkflows(String intentId) {
+        logger.info("Removing intent {} from all referencing workflows", intentId);
+
+        // Find all workflows that reference this intent
+        List<WorkflowMetamodel> referencingWorkflows = findWorkflowsReferencingIntent(intentId);
+
+        if (referencingWorkflows.isEmpty()) {
+            logger.info("No workflows reference intent {}, nothing to update", intentId);
+            return;
+        }
+
+        logger.info("Found {} workflow(s) referencing intent {}. Removing references.",
+                referencingWorkflows.size(), intentId);
+
+        int successCount = 0;
+        int failureCount = 0;
+
+        for (WorkflowMetamodel workflow : referencingWorkflows) {
+            try {
+                removeIntentFromWorkflow(workflow, intentId);
+                successCount++;
+            } catch (Exception e) {
+                failureCount++;
+                logger.error("Failed to remove intent {} from workflow {}: {}", intentId, workflow.getId(), e.getMessage());
+            }
+        }
+
+        logger.info("Completed intent {} removal: {} successful, {} failed", intentId, successCount, failureCount);
+
+        if (failureCount > 0)
+            throw new RuntimeException(String.format("Failed to remove intent %s from %d out of %d workflows", intentId, failureCount, referencingWorkflows.size()));
+    }
+
+    /**
+     * Find all workflows that reference the given intent ID
+     * @param intentId The intent ID to search for
+     * @return List of workflows that reference this intent
+     */
+    private List<WorkflowMetamodel> findWorkflowsReferencingIntent(String intentId) {
+        // Use the existing repository method but without limit to get all matching workflows
+        // This leverages the existing MongoDB aggregation pipeline but removes the enabled filter
+        // We need to update all workflows regardless of their enabled status
+        return repository.findAllByHandledIntents_IntentId(intentId);
+    }
+
+    /**
+     * Remove intent reference from a single workflow
+     * @param workflow The workflow to update
+     * @param intentId The intent ID to remove
+     */
+    private void removeIntentFromWorkflow(WorkflowMetamodel workflow, String intentId) {
+        // Remove the intent from the handledIntents list
+        if (workflow.getHandledIntents() != null) {
+            List<WorkflowMetamodel.WorkflowIntentCapability> updatedIntents =
+                    workflow.getHandledIntents().stream()
+                            .filter(intent -> !intentId.equals(intent.getIntentId()))
+                            .collect(java.util.stream.Collectors.toList());
+
+            workflow.setHandledIntents(updatedIntents);
+
+            // Use the existing update method to ensure proper validation and caching
+            updateWorkflow(workflow.getId(), workflow);
+
+            logger.info("Removed intent {} reference from workflow {}", intentId, workflow.getId());
+        }
+    }
+
+
+
+    /**
      * Validates all workflow metamodels in the MongoDB repository.
      * Prints the validation results to the logs.
      */
