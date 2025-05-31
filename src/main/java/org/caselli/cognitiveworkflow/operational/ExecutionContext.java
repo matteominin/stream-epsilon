@@ -214,7 +214,7 @@ public class ExecutionContext extends HashMap<String, Object> {
             if (i < keys.length - 1) {
                 Object nextLevel = getFromContainer(currentContainer, currentKey, isMap);
 
-                if (nextLevel == null || (!isContainer(nextLevel))) {
+                if ((!isContainer(nextLevel))) {
                     // Determine what type of container to create based on the next key
                     String nextKey = keys[i + 1];
                     boolean createList = isNumeric(nextKey);

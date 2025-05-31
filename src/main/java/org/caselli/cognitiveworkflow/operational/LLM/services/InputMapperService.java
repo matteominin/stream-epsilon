@@ -80,14 +80,18 @@ public class InputMapperService extends LLMAbstractService {
             ));
 
 
+            // TODO: remove this debug line in production
+            System.out.println("Prompt: " + prompt.getContents());
+
+
             // Call the LLM
             InputMapperLLMResult result = getChatClient()
                     .prompt(prompt)
                     .call()
                     .entity(InputMapperLLMResult.class);
 
-            // System.out.println(prompt.getContents());
-            //System.out.println(result);
+
+            logger.info("LLM returned {} bindings", result != null && result.getBindings() != null ? result.getBindings().size() : 0);
 
             return processLLMResult(result, nodes);
         } catch (Exception e) {
@@ -228,7 +232,9 @@ public class InputMapperService extends LLMAbstractService {
             2. For each initial node, identify its required input ports.
             3. Determine if the user-provided variables can collectively satisfy ALL required input ports across ALL initial nodes.
             4. If all required ports across all initial nodes can be satisfied, create a single set of bindings that maps port paths to the *actual values* of the corresponding user variables.
-            5. If any required port for any initial node cannot be satisfied by the user variables, you must NOT provide any bindings.
+            5. If a required input port expects an array and relevant user variables exist, consider aggregating such variables into the array.
+            6. If any required port for any initial node cannot be satisfied by the user variables, you must NOT provide any bindings.
+
 
             # MAPPING REQUIREMENTS
             - ONLY map variables that DIRECTLY correspond to port requirements.
@@ -238,7 +244,7 @@ public class InputMapperService extends LLMAbstractService {
 
             # OUTPUT FORMAT
             Return JSON with:
-            - bindings: A single map where keys are port paths (e.g., "input_param_a") and values are the *actual content* of the mapped user variables (e.g., "John Doe", "123 Main St"). This map must satisfy all initial nodes' required inputs in a shared context.
+            - bindings: A single map where keys are string port paths (e.g., "input_param_a") and values are the *actual content* of the mapped user variables (e.g., "John Doe", "123 Main St"). This map must satisfy all initial nodes' required inputs in a shared context.
 
             Example:
             ```json
@@ -249,6 +255,27 @@ public class InputMapperService extends LLMAbstractService {
                 "customer_name": "John Doe",
               }
             }
+            
+           To map nested objects you can use dot notation:
+            ```json
+            {
+              "bindings": {
+                "customer.address.city": "New York",
+                "customer.address.zip": "10001"
+              }
+            }
+            
+            While to map arrays you can use array dot notation:
+            ```json
+            {
+              "bindings": {
+                "customer.addresses.0.city": "New York",
+                "customer.addresses.1.city": "Los Angeles"
+              }
+            }
+            
+            It is vital that keys are strings (eventually with dot notation for nested structures) and values are primitive types (not JSON objects or arrays).
+            
             ```
 
             # ERROR HANDLING

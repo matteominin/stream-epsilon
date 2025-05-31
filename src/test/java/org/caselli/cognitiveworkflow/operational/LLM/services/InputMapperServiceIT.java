@@ -477,6 +477,7 @@ public class InputMapperServiceIT {
     }
 
 
+
     /**
      * Test the Input Mapper with a list of maps and only 1 starting node
      * Should map successfully the nested structure
@@ -484,6 +485,60 @@ public class InputMapperServiceIT {
      */
     @Test
     @Tag("focus")
+    @DisplayName("Test with only one node with a list mapping")
+    public void shouldWorkWithOnlyOneNode_list() {
+
+        RestPort source1 = RestPort.builder()
+                .withKey("technical_requirements")
+                .withSchema(PortSchema.builder()
+                        .withRequired(true)
+                        .arraySchema(
+                                PortSchema.builder()
+                                        .stringSchema()
+                                        .withRequired(true)
+                                        .build()
+                        )
+                        .build()).build();
+
+
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
+        nodeA.setId(String.valueOf(UUID.randomUUID()));
+        nodeA.setName("");
+        nodeA.setDescription("Start the AI4NE or NE4AI workflow with a list of requirements");
+        nodeA.setInputPorts(List.of(source1));
+        nodeA.setOutputPorts(List.of());
+
+        Map<String, Object> variables = Map.of(
+                "COMPLETE_USER_REQUEST", "I want to set a real-time connection with my friend Mario",
+                "RESOLUTION", "4K",
+                "LATENCY", "Low",
+                "TARGET", "Mario"
+        );
+
+        var res = inputMapperService.mapInput(variables, List.of(nodeA));
+
+        assertNotNull(res);
+
+        System.out.println("Context result: ");
+        res.context.printContext();
+        assertInstanceOf(List.class, res.getContext().get("technical_requirements"));
+
+        @SuppressWarnings("unchecked")
+        List<String> technical_requirements = (List<String>) res.getContext().get("technical_requirements");
+        assertNotNull(technical_requirements);
+        assertEquals(2, technical_requirements.size());
+
+
+    }
+
+
+    /**
+     * Test the Input Mapper with a list of maps and only 1 starting node
+     * Should map successfully the nested structure
+     * For AI4NE & NE4AI
+     */
+    @Test
+   // @Tag("focus")
     @DisplayName("Test with only one node with nested structure")
     public void shouldWorkWithOnlyOneNode_listOfMaps() {
         // NODE 1
