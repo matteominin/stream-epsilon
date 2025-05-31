@@ -185,7 +185,7 @@ class IntentDetectionServiceIT {
         assertNull(result);
     }
 
-    @Tag("focus")
+
     @Test
     void shouldMapVariablesCorrectlyForAI4NE(){
         String userRequest = "I want to establish a Real-time translation connection to Marco with 4k resolution and low latency";
@@ -193,7 +193,7 @@ class IntentDetectionServiceIT {
         mockIntent = new IntentMetamodel();
         mockIntent.setId("1");
         mockIntent.setName("ROUTE_SERVICE_REQUEST");
-        mockIntent.setDescription("Route user requests across different nodes (or cloud resources) according to user ``intent'' and hardware availability,  relying on specialized AI modules to optimize networking decisions. Supporting different request types.");
+        mockIntent.setDescription("Route user requests across different nodes (or cloud resources) according to user ``intent'' and hardware availability,  relying on specialized AI modules to optimize networking decisions. Supporting different request types like streaming, real-time translation, IoT, etc.");
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(List.of(mockIntent));
 
         var result = intentDetectionService.detect(userRequest);
@@ -209,10 +209,7 @@ class IntentDetectionServiceIT {
 
         // Check if the variables contain the expected values
         List<String> target = List.of("Marco", "4k", "low");
-        assertTrue(result.getUserVariables().values().stream()
-                .anyMatch(value -> target.stream().anyMatch(t -> value.toString().toLowerCase().contains(t.toLowerCase()))));
-
-
+        assertTrue(result.getUserVariables().values().stream().anyMatch(value -> target.stream().anyMatch(t -> value.toString().toLowerCase().contains(t.toLowerCase()))));
 
     }
 }

@@ -231,7 +231,7 @@ public class IntentDetectionService extends LLMAbstractService {
                     
                     ## Remember:
                     - If you don't find a strong match in the Available Intents, you MUST propose a new intent with a descriptive name.
-                    - Always prioritize matching to existing intents when appropriate.
+                    - *Always prioritize* matching to EXISTING intents when appropriate.
                     - Think step by step before giving the final answer. Only output the final JSON.
             """;
 }
