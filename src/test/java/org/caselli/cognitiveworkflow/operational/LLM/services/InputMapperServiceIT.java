@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Tag("it")
-@Tag("focus")
 @ActiveProfiles("test")
 public class InputMapperServiceIT {
 
@@ -430,7 +429,7 @@ public class InputMapperServiceIT {
      */
     @Test
     @DisplayName("Test with only one node with nested structure")
-    public void shouldWorkWithOnlyOneNestedNode() {
+    public void shouldWorkWithOnlyOneNode_nestedMap() {
         // NODE 1
         RestPort source1 = RestPort.builder()
                     .withKey("user")
@@ -475,5 +474,58 @@ public class InputMapperServiceIT {
         assertEquals(res.getContext().get("user.userDetails.email"), variables.get("email"));
         assertEquals(res.getContext().get("user.userDetails.phone_number"),variables.get("number"));
         assertEquals(res.getContext().get("orderId"), variables.get("order_id"));
+    }
+
+
+    /**
+     * Test the Input Mapper with a list of maps and only 1 starting node
+     * Should map successfully the nested structure
+     * For AI4NE & NE4AI
+     */
+    @Test
+    @Tag("focus")
+    @DisplayName("Test with only one node with nested structure")
+    public void shouldWorkWithOnlyOneNode_listOfMaps() {
+        // NODE 1
+        RestPort source1 = RestPort.builder()
+                .withKey("requirements")
+                .withSchema(PortSchema.builder()
+                        .arraySchema(
+                            PortSchema.builder()
+                            /*    .objectSchema(Map.of(
+                                        "value", PortSchema.builder().stringSchema().withRequired(true).build(),
+                                        "key", PortSchema.builder().stringSchema().withRequired(false).build()
+                                ))*/
+                                .stringSchema()
+                                .withRequired(true)
+                                .build()
+                        )
+                        .build()).build();
+
+        RestPort source2 = RestPort.builder().withKey("service_type").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
+
+
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
+        nodeA.setId(String.valueOf(UUID.randomUUID()));
+        nodeA.setName("Starting gateway");
+        nodeA.setDescription("Start the AI4NE or NE4AI workflow with a list of requirements");
+        nodeA.setInputPorts(List.of(source1, source2));
+        nodeA.setOutputPorts(List.of());
+
+        Map<String, Object> variables = Map.of(
+                "COMPLETE_USER_REQUEST", "I want to set a real-time connection with my firend Mario",
+                "RESOLUTION", "4K",
+                "LATENCY", "Low",
+                "TARGET", "Mario"
+        );
+
+        var res = inputMapperService.mapInput(variables, List.of(nodeA));
+
+        assertNotNull(res);
+
+        System.out.println("Context result: ");
+        res.context.printContext();
+
+
     }
 }

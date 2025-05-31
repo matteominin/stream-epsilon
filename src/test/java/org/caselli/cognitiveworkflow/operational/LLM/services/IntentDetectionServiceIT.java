@@ -48,7 +48,7 @@ class IntentDetectionServiceIT {
 
     private static List<IntentMetamodel> mockIntentMetamodels;
     private static IntentMetamodel bookFightMockIntent;
-    private static IntentMetamodel bookHotelMockIntent;
+    private static IntentMetamodel mockIntent;
 
     @BeforeAll()
     static void setUp() {
@@ -60,11 +60,12 @@ class IntentDetectionServiceIT {
         bookFightMockIntent.setDescription("Book a flight to a destination");
         mockIntentMetamodels.add(bookFightMockIntent);
 
-        bookHotelMockIntent = new IntentMetamodel();
-        bookHotelMockIntent.setId("2");
-        bookHotelMockIntent.setName("BOOK_HOTEL");
-        bookHotelMockIntent.setDescription("Book a hotel in a destination");
-        mockIntentMetamodels.add(bookHotelMockIntent);
+        mockIntent = new IntentMetamodel();
+        mockIntent.setId("2");
+        mockIntent.setName("BOOK_HOTEL");
+        mockIntent.setDescription("Book a hotel in a destination");
+        mockIntentMetamodels.add(mockIntent);
+
     }
 
 
@@ -182,5 +183,36 @@ class IntentDetectionServiceIT {
         var result = intentDetectionService.detect(userRequest);
 
         assertNull(result);
+    }
+
+    @Tag("focus")
+    @Test
+    void shouldMapVariablesCorrectlyForAI4NE(){
+        String userRequest = "I want to establish a Real-time translation connection to Marco with 4k resolution and low latency";
+
+        mockIntent = new IntentMetamodel();
+        mockIntent.setId("1");
+        mockIntent.setName("ROUTE_SERVICE_REQUEST");
+        mockIntent.setDescription("Route user requests across different nodes (or cloud resources) according to user ``intent'' and hardware availability,  relying on specialized AI modules to optimize networking decisions. Supporting different request types.");
+        when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(List.of(mockIntent));
+
+        var result = intentDetectionService.detect(userRequest);
+        System.out.println(result);
+
+        assertNotNull(result);
+        assertFalse(result.isNew());
+        assertEquals(mockIntent.getId(), result.getIntentId());
+        assertEquals(result.getIntentName(), mockIntent.getName());
+
+        // 3 variables at least should be present in the result
+        assertTrue(result.getUserVariables().size() >= 3);
+
+        // Check if the variables contain the expected values
+        List<String> target = List.of("Marco", "4k", "low");
+        assertTrue(result.getUserVariables().values().stream()
+                .anyMatch(value -> target.stream().anyMatch(t -> value.toString().toLowerCase().contains(t.toLowerCase()))));
+
+
+
     }
 }

@@ -118,7 +118,7 @@ public class WorkflowOrchestrator {
         logger.debug("Input mapping result: {}", inputMapping);
 
         if(inputMapping == null) {
-            logger.error("Workflow failed to start: no starting node can be found for variables: {}", variables);
+            logger.error("Workflow failed to start: variables ({}) not sufficient for entry points.", variables);
             throw new RuntimeException("Workflow Failed to start: no starting node can be found.");
         }
 

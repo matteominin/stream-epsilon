@@ -46,7 +46,13 @@ public class WorkflowController {
 
     @PostMapping("/execute")
     public ResponseEntity<Object> execute(@RequestBody ExecuteDTO request) {
+        long startTime = System.nanoTime();
         var context = workflowOrchestrator.orchestrateWorkflowExecution(request.request);
+        long endTime = System.nanoTime();
+        long duration = endTime - startTime;
+        System.out.println("Execution time: " + duration + " nanoseconds");
+
+
         return ResponseEntity.ok(context);
     }
 

@@ -221,7 +221,8 @@ public class IntentDetectionService extends LLMAbstractService {
     
                     5. **Extract Variables** \s
                        Identify important variables needed to fulfill the request. Use descriptive UPPERCASE_WITH_UNDERSCORES names for variables. \s
-                       Example for "translate this text to Spanish": `TARGET_LANGUAGE: "Spanish"`, `SOURCE_TEXT: "this text"` (if the text was provided directly).
+                       - Example for "translate this text to Spanish": `TARGET_LANGUAGE: "Spanish"`, `SOURCE_TEXT: "this text"` (if the text was provided directly).
+                       - Example for "I want to buy a pizza for this evening at 8pm": `FOOD_ITEM: "pizza"`, `TIME: "this evening at 8pm"`.
     
                     6. **Assign a Confidence Score** \s
                        Reflect how confident you are in the determined intent (0.0 for very unsure, 1.0 for very sure).
