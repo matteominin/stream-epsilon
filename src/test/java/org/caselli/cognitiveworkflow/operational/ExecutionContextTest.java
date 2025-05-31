@@ -296,4 +296,49 @@ class ExecutionContextTest {
         assertEquals("Root Default", context.getOrDefault("", "Root Default"));
         assertEquals("Dot Default", context.getOrDefault(".", "Dot Default"));
     }
+
+    @Test
+    void testPutAndReadDotNotationArrayOfObjects(){
+        context.put("user.details.0.name", "Alice");
+        context.put("user.details.0.surname", "Smith");
+        context.put("user.details.1.name", "Bob");
+        context.put("user.details.1.surname", "Johnson");
+
+        System.out.println("Context: " + context);
+
+        assertEquals("Alice", context.get("user.details.0.name"));
+        assertEquals("Bob", context.get("user.details.1.name"));
+        assertEquals("Smith", context.get("user.details.0.surname"));
+        assertEquals("Johnson", context.get("user.details.1.surname"));
+
+        // Verify that the array structure is maintained
+        Object userDetails = context.get("user.details");
+        assertInstanceOf(List.class, userDetails);
+        List<?> detailsList = (List<?>) userDetails;
+        assertEquals(2, detailsList.size());
+        assertEquals("Alice", ((Map<?, ?>) detailsList.get(0)).get("name"));
+        assertEquals("Bob", ((Map<?, ?>) detailsList.get(1)).get("name"));
+        assertEquals("Smith", ((Map<?, ?>) detailsList.get(0)).get("surname"));
+        assertEquals("Johnson", ((Map<?, ?>) detailsList.get(1)).get("surname"));
+    }
+
+
+    @Test
+    void testPutAndReadDotNotationArrayOfStrings(){
+        context.put("user.details.0", "Alice");
+        context.put("user.details.1", "Bob");
+
+        System.out.println("Context: " + context);
+
+        assertEquals("Alice", context.get("user.details.0"));
+        assertEquals("Bob", context.get("user.details.1"));
+
+        // Verify that the array structure is maintained
+        Object userDetails = context.get("user.details");
+        assertInstanceOf(List.class, userDetails);
+        List<?> detailsList = (List<?>) userDetails;
+        assertEquals(2, detailsList.size());
+        assertEquals("Alice", detailsList.get(0));
+        assertEquals("Bob", detailsList.get(1));
+    }
 }

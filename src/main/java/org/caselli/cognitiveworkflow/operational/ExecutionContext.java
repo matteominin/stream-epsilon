@@ -1,21 +1,21 @@
 package org.caselli.cognitiveworkflow.operational;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * ExecutionContext extends HashMap to provide enhanced put and get operations
- * that support dot notation for accessing and manipulating nested Map structures.
+ * that support dot notation for accessing and manipulating nested Map structures
+ * and List/array elements using numeric indices.
  */
 public class ExecutionContext extends HashMap<String, Object> {
 
     /**
      * Put a value in the context.
      * The value is placed at the specified nested path within the context.
-     * Intermediate Maps are created if they do not exist along the path.
-     * If an intermediate key maps to a non-Map value, that value is overwritten
-     * with a new HashMap to continue the path.
-     * @param key The key, potentially using dot notation (e.g., "data.user.name").
+     * Intermediate Maps and Lists are created if they do not exist along the path.
+     * If an intermediate key maps to a non-Map/non-List value, that value is overwritten
+     * with a new HashMap or ArrayList to continue the path.
+     * @param key The key, potentially using dot notation (e.g., "data.users.0.name").
      * @param value The value to associate with the key.
      * @return Always returns null.
      */
@@ -27,9 +27,9 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Overrides the standard get method to support dot notation keys.
+     * Overrides the standard get method to support dot notation keys with array indices.
      * Retrieves the value located at the specified nested path within the context.
-     * @param key The key to retrieve, potentially using dot notation (e.g., "data.user.name").
+     * @param key The key to retrieve, potentially using dot notation (e.g., "data.users.0.name").
      * @return The value found at the specified path.
      */
     @Override
@@ -58,8 +58,8 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Overrides the standard containsKey method to support dot notation keys.
-     * @param key The key to check, potentially using dot notation (e.g., "data.user.name").
+     * Overrides the standard containsKey method to support dot notation keys with array indices.
+     * @param key The key to check, potentially using dot notation (e.g., "data.users.0.name").
      * @return If a value found at the specified path.
      */
     @Override
@@ -75,9 +75,9 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Overrides the standard remove method to support dot notation keys.
+     * Overrides the standard remove method to support dot notation keys with array indices.
      * Removes the mapping for the specified key from this map if present.
-     * @param key The key to be removed, potentially using dot notation (e.g., "data.user.name").
+     * @param key The key to be removed, potentially using dot notation (e.g., "data.users.0.name").
      * @return The previous value associated with the key, or null if there was no mapping.
      */
     @Override
@@ -88,18 +88,18 @@ public class ExecutionContext extends HashMap<String, Object> {
 
         if (keys.length == 1) return super.remove(keyStr);
 
-        // For nested keys we have to navigate to the parent map
-        Map<String, Object> parentMap = navigateToParentMap(keys);
-        if (parentMap == null) return null;
+        // For nested keys we have to navigate to the parent container
+        NavigationResult parentResult = navigateToParentContainer(keys);
+        if (parentResult == null) return null;
 
-        // Remove the key from the parent map
+        // Remove the key from the parent container
         String lastKey = keys[keys.length - 1];
-        return parentMap.remove(lastKey);
+        return removeFromContainer(parentResult.container, lastKey);
     }
 
     /**
-     * Overrides the standard getOrDefault method to support dot notation keys.
-     * @param key The key to retrieve, potentially using dot notation (e.g., "data.user.name").
+     * Overrides the standard getOrDefault method to support dot notation keys with array indices.
+     * @param key The key to retrieve, potentially using dot notation (e.g., "data.users.0.name").
      * @param defaultValue The default value to return if the key is not found.
      * @return The value found at the specified path, or the defaultValue if no mapping exists.
      */
@@ -119,63 +119,75 @@ public class ExecutionContext extends HashMap<String, Object> {
         printContext(this, 0);
     }
 
-
     /**
-     * Helper: navigates to the parent map for the given key path.
-     * Example: with a path like "user.profile.name" the method navigates to the "profile" map.
-     * @param keys Array of keys representing the path. Example [user, profile, name]
-     * @return The parent map containing the last key, or null if path doesn't exist
+     * Helper class to hold navigation results
      */
-    private Map<String, Object> navigateToParentMap(String[] keys) {
-        Map<String, Object> currentMap = this;
+    private static class NavigationResult {
+        Object container;
+        boolean isMap;
 
-        for (int i = 0; i < keys.length - 1; i++) {
-            Object nextLevel;
-
-            if (currentMap == this) nextLevel = super.get(keys[i]); // user super to avoid infinite recursions
-            else nextLevel = currentMap.get(keys[i]);
-
-            if (!(nextLevel instanceof Map)) return null;
-
-            //noinspection unchecked
-            currentMap = (Map<String, Object>) nextLevel;
+        NavigationResult(Object container, boolean isMap) {
+            this.container = container;
+            this.isMap = isMap;
         }
-
-        return currentMap;
     }
 
+    /**
+     * Helper: navigates to the parent container for the given key path.
+     * Example: with a path like "user.profiles.0.name" the method navigates to the list at "profiles.0".
+     * @param keys Array of keys representing the path. Example [user, profiles, 0, name]
+     * @return NavigationResult containing the parent container, or null if path doesn't exist
+     */
+    private NavigationResult navigateToParentContainer(String[] keys) {
+        Object currentContainer = this;
+        boolean isMap = true;
+
+        for (int i = 0; i < keys.length - 1; i++) {
+            String currentKey = keys[i];
+            Object nextLevel = getFromContainer(currentContainer, currentKey, isMap);
+
+            if (nextLevel == null) return null;
+
+            if (nextLevel instanceof Map) {
+                currentContainer = nextLevel;
+                isMap = true;
+            } else if (nextLevel instanceof List) {
+                currentContainer = nextLevel;
+                isMap = false;
+            } else {
+                return null;
+            }
+        }
+
+        return new NavigationResult(currentContainer, isMap);
+    }
 
     /**
-     * Helper method to get a value from the context using a key which may use dot notation.
+     * Helper method to get a value from the context using a key which may use dot notation with array indices.
      * @param key The key in dot notation
      * @return The retrieved value
      */
     private Object getByDotNotation(String key) {
         String[] keys = key.split("\\.");
-        Map<String, Object> currentMap = this; // Start traversal from the current instance
+        Object currentContainer = this;
+        boolean isMap = true;
 
         for (int i = 0; i < keys.length; i++) {
             String currentKey = keys[i];
-            if (currentMap == null)
-                return null; // Should theoretically not be reached if starting with 'this'
+            if (currentContainer == null) return null;
 
-
-            Object currentValue;
-            // Use super.get() when currentMap is 'this' to avoid infinite recursion
-            if (currentMap == this) {
-                currentValue = super.get(currentKey);
-            } else {
-                // For nested maps we can use regular get()
-                currentValue = currentMap.get(currentKey);
-            }
+            Object currentValue = getFromContainer(currentContainer, currentKey, isMap);
 
             if (i < keys.length - 1) {
-                // If it's an intermediate key, the value must be a Map to continue the path
+                // If it's an intermediate key, the value must be a Map or List to continue the path
                 if (currentValue instanceof Map) {
-                    //noinspection unchecked
-                    currentMap = (Map<String, Object>) currentValue;
+                    currentContainer = currentValue;
+                    isMap = true;
+                } else if (currentValue instanceof List) {
+                    currentContainer = currentValue;
+                    isMap = false;
                 } else {
-                    // Path is broken because an intermediate key leads to a non-Map value
+                    // Path is broken because an intermediate key doesn't lead to a container
                     return null;
                 }
             } else {
@@ -186,76 +198,194 @@ public class ExecutionContext extends HashMap<String, Object> {
         return null;
     }
 
-
     /**
-     * Helper method to put a value in the context using a key which may use dot notation.
+     * Helper method to put a value in the context using a key which may use dot notation with array indices.
      * @param key The key in dot notation
      * @param value The value to insert
      */
     private void putByDotNotation(String key, Object value) {
         String[] keys = key.split("\\.");
-        Map<String, Object> currentMap = this; // Start traversal from the current instance
+        Object currentContainer = this;
+        boolean isMap = true;
 
         for (int i = 0; i < keys.length; i++) {
             String currentKey = keys[i];
 
             if (i < keys.length - 1) {
-                Object nextLevel;
+                Object nextLevel = getFromContainer(currentContainer, currentKey, isMap);
 
-                // Use super.get() when currentMap is 'this' to break recursion
-                if (currentMap == this) {
-                    nextLevel = super.get(currentKey);
-                } else {
-                    // For nested maps we can use regular get()
-                    nextLevel = currentMap.get(currentKey);
+                if (nextLevel == null || (!isContainer(nextLevel))) {
+                    // Determine what type of container to create based on the next key
+                    String nextKey = keys[i + 1];
+                    boolean createList = isNumeric(nextKey);
+
+                    nextLevel = createList ? new ArrayList<>() : new HashMap<String, Object>();
+                    putInContainer(currentContainer, currentKey, nextLevel, isMap);
                 }
 
-                if (!(nextLevel instanceof Map)) {
-                    nextLevel = new HashMap<String, Object>();
-                    if (currentMap == this) {
-                        super.put(currentKey, nextLevel);
-                    } else {
-                        currentMap.put(currentKey, nextLevel);
-                    }
-                }
-
-                //noinspection unchecked
-                currentMap = (Map<String, Object>) nextLevel;
-
+                // Update current container reference
+                currentContainer = nextLevel;
+                isMap = nextLevel instanceof Map;
             } else {
-                if (currentMap == this) {
-                    super.put(currentKey, value);
-                } else {
-                    currentMap.put(currentKey, value);
-                }
+                // Final key - put the value
+                putInContainer(currentContainer, currentKey, value, isMap);
             }
         }
     }
 
     /**
-     * An helper method to print a map with indentation (for debug purposes)
-     * @param map The map to print
+     * Helper method to get a value from either a Map or List container
+     */
+    private Object getFromContainer(Object container, String key, boolean isMap) {
+        if (isMap) {
+            if (container == this) {
+                return super.get(key); // Avoid recursion
+            } else {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> map = (Map<String, Object>) container;
+                return map.get(key);
+            }
+        } else {
+            // List access
+            if (!isNumeric(key)) return null;
+
+            @SuppressWarnings("unchecked")
+            List<Object> list = (List<Object>) container;
+            int index = Integer.parseInt(key);
+
+            if (index < 0 || index >= list.size()) return null;
+            return list.get(index);
+        }
+    }
+
+    /**
+     * Helper method to put a value into either a Map or List container
+     */
+    private void putInContainer(Object container, String key, Object value, boolean isMap) {
+        if (isMap) {
+            if (container == this) {
+                super.put(key, value); // Avoid recursion
+            } else {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> map = (Map<String, Object>) container;
+                map.put(key, value);
+            }
+        } else {
+            // List access
+            if (!isNumeric(key)) return;
+
+            @SuppressWarnings("unchecked")
+            List<Object> list = (List<Object>) container;
+            int index = Integer.parseInt(key);
+
+            // Expand list if necessary
+            while (list.size() <= index) {
+                list.add(null);
+            }
+
+            list.set(index, value);
+        }
+    }
+
+    /**
+     * Helper method to remove a value from either a Map or List container
+     */
+    private Object removeFromContainer(Object container, String key) {
+        if (container instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = (Map<String, Object>) container;
+            return map.remove(key);
+        } else if (container instanceof List) {
+            if (!isNumeric(key)) return null;
+
+            @SuppressWarnings("unchecked")
+            List<Object> list = (List<Object>) container;
+            int index = Integer.parseInt(key);
+
+            if (index < 0 || index >= list.size()) return null;
+            return list.remove(index);
+        }
+        return null;
+    }
+
+    /**
+     * Check if a string represents a valid numeric index
+     */
+    private boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) return false;
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Check if an object is a container (Map or List)
+     */
+    private boolean isContainer(Object obj) {
+        return obj instanceof Map || obj instanceof List;
+    }
+
+    /**
+     * An helper method to print a container with indentation (for debug purposes)
+     * @param container The container to print (Map or List)
      * @param indentLevel The level of indentation
      */
-    private void printContext(Map<String, Object> map, int indentLevel) {
-        if (map == null || map.isEmpty()) {
+    private void printContext(Object container, int indentLevel) {
+        if (container == null) {
             indent(indentLevel);
-            System.out.println("{}");
+            System.out.println("null");
             return;
         }
 
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            indent(indentLevel);
-            System.out.print(entry.getKey() + ": ");
+        if (container instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = (Map<String, Object>) container;
 
-            if (entry.getValue() instanceof Map) {
-                System.out.println("{");
-                //noinspection unchecked
-                printContext((Map<String, Object>) entry.getValue(), indentLevel + 1);
+            if (map.isEmpty()) {
                 indent(indentLevel);
-                System.out.println("}");
-            } else {
-                System.out.println(toString(entry.getValue()));
+                System.out.println("{}");
+                return;
+            }
+
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                indent(indentLevel);
+                System.out.print(entry.getKey() + ": ");
+
+                if (isContainer(entry.getValue())) {
+                    System.out.println(entry.getValue() instanceof Map ? "{" : "[");
+                    printContext(entry.getValue(), indentLevel + 1);
+                    indent(indentLevel);
+                    System.out.println(entry.getValue() instanceof Map ? "}" : "]");
+                } else {
+                    System.out.println(toString(entry.getValue()));
+                }
+            }
+        } else if (container instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<Object> list = (List<Object>) container;
+
+            if (list.isEmpty()) {
+                indent(indentLevel);
+                System.out.println("[]");
+                return;
+            }
+
+            for (int i = 0; i < list.size(); i++) {
+                indent(indentLevel);
+                System.out.print("[" + i + "]: ");
+
+                Object value = list.get(i);
+                if (isContainer(value)) {
+                    System.out.println(value instanceof Map ? "{" : "[");
+                    printContext(value, indentLevel + 1);
+                    indent(indentLevel);
+                    System.out.println(value instanceof Map ? "}" : "]");
+                } else {
+                    System.out.println(toString(value));
+                }
             }
         }
     }
