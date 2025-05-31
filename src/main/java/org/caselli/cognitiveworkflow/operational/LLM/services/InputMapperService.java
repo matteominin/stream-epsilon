@@ -91,7 +91,7 @@ public class InputMapperService extends LLMAbstractService {
                     .entity(InputMapperLLMResult.class);
 
 
-            logger.info("LLM returned {} bindings", result != null && result.getBindings() != null ? result.getBindings().size() : 0);
+            logger.info("LLM returned {}", result != null ? result.getBindings() : "null");
 
             return processLLMResult(result, nodes);
         } catch (Exception e) {
@@ -217,46 +217,47 @@ public class InputMapperService extends LLMAbstractService {
             """
             # ROLE
             You are an expert Input Mapping System for workflow orchestration. Your task is to:
-            1. Analyze user-provided variables.
-            2. Match them to the inputs of ALL the workflow initial nodes.
-            3. Generate precise variable-to-port mappings that satisfy the required inputs of ALL initial nodes.
-            4. If any required input for any initial node cannot be satisfied, then no mapping should be provided.
-
+            1. Analyze user-provided variables and initial node inputs.
+            2. Create precise variable-to-port mappings for ALL required inputs of ALL initial nodes.
+            3. If any required input for any initial node cannot be satisfied by the user variables, provide no mappings.
+    
             # INPUT FORMAT
             You will receive:
-            - User variables in <user_variables> section.
-            - Initial nodes in <nodes_list> section.
-
+            - User variables in the <user_variables> section.
+            - Initial nodes in the <nodes_list> section.
+    
             # PROCESSING RULES
-            1. Analyze the input ports of ALL nodes in the <nodes_list> section.
-            2. For each initial node, identify its required input ports.
-            3. Determine if the user-provided variables can collectively satisfy ALL required input ports across ALL initial nodes.
-            4. If all required ports across all initial nodes can be satisfied, create a single set of bindings that maps port paths to the *actual values* of the corresponding user variables.
-            5. If a required input port expects an array and relevant user variables exist, consider aggregating such variables into the array.
-            6. If any required port for any initial node cannot be satisfied by the user variables, you must NOT provide any bindings.
-
-
+            1. Examine the input ports of ALL nodes in the <nodes_list> section.
+            2. Identify all *required* input ports for each initial node.
+            3. Determine if the user-provided variables can *collectively satisfy every single required input port* across *all* initial nodes.
+            4. If, and only if, all required ports across all initial nodes can be satisfied, then generate a single set of bindings.
+            5. Aggregation: If a required input port expects an array and multiple user variables semantically represent individual elements of that array, you may combine these relevant user variables into a single array mapping
+    
+    
             # MAPPING REQUIREMENTS
-            - ONLY map variables that DIRECTLY correspond to port requirements.
-            - Use dot notation for nested structures (e.g., "address.city").
-            - PRESERVE original variable values - DO NOT transform or invent data.
-            - PRIORITIZE required ports over optional ones.
-
+            - **Direct Correspondence:** ONLY map variables that DIRECTLY correspond to port requirements.
+            - **Dot Notation:** Use dot notation for nested structures (e.g., "address.city").
+            - **Array Dot Notation:** For array inputs, map individual elements using array dot notation (e.g., "items.0", "items.1"). The value mapped must be the actual content.
+            - **Preserve Values:** PRESERVE original variable values; DO NOT transform, invent, or combine data into new forms unless explicitly by dot notation for nested/array structures.
+            - **Prioritize Required:** prioritize required ports over optional ones. However if optional ports can be satisfied, we MUST include them in the mapping, otherwise the user variables will not be used.
+    
             # OUTPUT FORMAT
-            Return JSON with:
-            - bindings: A single map where keys are string port paths (e.g., "input_param_a") and values are the *actual content* of the mapped user variables (e.g., "John Doe", "123 Main St"). This map must satisfy all initial nodes' required inputs in a shared context.
-
-            Example:
+            Return JSON with a 'bindings' map:
+            - `bindings`: A single map where keys are string port paths (e.g., "input_param_a", "customer.address.city", "items.0") and values are the *actual content* of the mapped user variables (e.g., "John Doe", "New York", "first_item_value").
+            - Keys must be strings (using dot notation for nested objects and array elements).
+            - Values must be primitive types (strings, numbers, booleans - not JSON objects or arrays).
+    
+            Example for general mapping:
             ```json
             {
               "bindings": {
                 "product_type": "iPhone 15 Pro",
                 "product_price": 999.99,
-                "customer_name": "John Doe",
+                "customer_name": "John Doe"
               }
             }
-            
-           To map nested objects you can use dot notation:
+            ```
+            Example for nested objects:
             ```json
             {
               "bindings": {
@@ -264,21 +265,19 @@ public class InputMapperService extends LLMAbstractService {
                 "customer.address.zip": "10001"
               }
             }
-            
-            While to map arrays you can use array dot notation:
+            ```
+            Example for mapping array elements:
             ```json
             {
               "bindings": {
-                "customer.addresses.0.city": "New York",
-                "customer.addresses.1.city": "Los Angeles"
+                "requirements.0": "real-time connection",
+                "requirements.1": "low latency",
+                "requirements.2": "4K resolution"
               }
             }
-            
-            It is vital that keys are strings (eventually with dot notation for nested structures) and values are primitive types (not JSON objects or arrays).
-            
             ```
-
+    
             # ERROR HANDLING
-            If no suitable mappings are found or are possible (i.e., required inputs for all initial nodes cannot be satisfied), return an empty JSON object ({}).
+            If no suitable mappings are found (i.e., not all required inputs can be satisfied), return an empty JSON object: `{}`.
             """;
 }

@@ -63,7 +63,7 @@ port-adapter:
 
 input-mapper:
   llm:
-    provider: openai
-    api-key: ${OPENAI_API_KEY}
-    model: gpt-4o
-    temperature: 0.4
+    provider: anthropic
+    api-key: ${ANTHROPIC_API_KEY}
+    model: claude-3-5-sonnet-20240620
+    temperature: 0.3

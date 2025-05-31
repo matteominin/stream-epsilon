@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("focus")
 @SpringBootTest
 @Tag("it")
 @ActiveProfiles("test")
@@ -476,15 +477,12 @@ public class InputMapperServiceIT {
         assertEquals(res.getContext().get("orderId"), variables.get("order_id"));
     }
 
-
-
     /**
      * Test the Input Mapper with a list of maps and only 1 starting node
      * Should map successfully the nested structure
      * For AI4NE & NE4AI
      */
     @Test
-    @Tag("focus")
     @DisplayName("Test with only one node with a list mapping")
     public void shouldWorkWithOnlyOneNode_list() {
 
@@ -526,7 +524,9 @@ public class InputMapperServiceIT {
         @SuppressWarnings("unchecked")
         List<String> technical_requirements = (List<String>) res.getContext().get("technical_requirements");
         assertNotNull(technical_requirements);
-        assertEquals(2, technical_requirements.size());
+        // check that among the requirements there is "4K" and "Low Latency" (case insensitive) or include them
+        assertTrue(technical_requirements.stream().anyMatch(req -> req.toLowerCase().contains("4k")));
+        assertTrue(technical_requirements.stream().anyMatch(req -> req.toLowerCase().contains("low")));
 
 
     }
@@ -538,27 +538,24 @@ public class InputMapperServiceIT {
      * For AI4NE & NE4AI
      */
     @Test
-   // @Tag("focus")
     @DisplayName("Test with only one node with nested structure")
     public void shouldWorkWithOnlyOneNode_listOfMaps() {
         // NODE 1
         RestPort source1 = RestPort.builder()
-                .withKey("requirements")
+                .withKey("technical_requirements")
                 .withSchema(PortSchema.builder()
                         .arraySchema(
                             PortSchema.builder()
-                            /*    .objectSchema(Map.of(
+                                .objectSchema(Map.of(
                                         "value", PortSchema.builder().stringSchema().withRequired(true).build(),
                                         "key", PortSchema.builder().stringSchema().withRequired(false).build()
-                                ))*/
-                                .stringSchema()
+                                ))
                                 .withRequired(true)
                                 .build()
                         )
                         .build()).build();
 
         RestPort source2 = RestPort.builder().withKey("service_type").withSchema(PortSchema.builder().stringSchema().withRequired(true).build()).build();
-
 
         RestNodeMetamodel nodeA = new RestNodeMetamodel();
         nodeA.setId(String.valueOf(UUID.randomUUID()));
@@ -568,7 +565,7 @@ public class InputMapperServiceIT {
         nodeA.setOutputPorts(List.of());
 
         Map<String, Object> variables = Map.of(
-                "COMPLETE_USER_REQUEST", "I want to set a real-time connection with my firend Mario",
+                "COMPLETE_USER_REQUEST", "I want to set a real-time connection with my friend Mario",
                 "RESOLUTION", "4K",
                 "LATENCY", "Low",
                 "TARGET", "Mario"
@@ -581,6 +578,12 @@ public class InputMapperServiceIT {
         System.out.println("Context result: ");
         res.context.printContext();
 
-
+        assertInstanceOf(List.class, res.getContext().get("technical_requirements"));
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> technical_requirements = (List<Map<String, String>>) res.getContext().get("technical_requirements");
+        assertNotNull(technical_requirements);
+        // check that among the requirements there is "4K" and "Low Latency" (case insensitive) or include them
+        assertTrue(technical_requirements.stream().anyMatch(req -> req.get("value").toLowerCase().contains("4k")));
+        assertTrue(technical_requirements.stream().anyMatch(req -> req.get("value").toLowerCase().contains("low")));
     }
 }
