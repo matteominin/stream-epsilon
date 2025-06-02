@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.springframework.context.annotation.Scope;
@@ -333,12 +334,8 @@ public class RestNodeInstance extends ToolNodeInstance {
         HttpHeaders responseHeaders = response.getHeaders();
         int responseStatus = response.getStatusCode().value();
 
-        // Check if body parsing is needed (i.e., if there's any RES_BODY_FIELD port)
-        boolean needsBodyParsing = outputPorts.stream()
-                .anyMatch(port -> port.getRole() == RestPort.RestPortRole.RES_BODY_FIELD);
-
         Map<String, Object> parsedResponseBody = null;
-        if (needsBodyParsing && responseBody != null && !responseBody.trim().isEmpty()) {
+        if (responseBody != null && !responseBody.trim().isEmpty()) {
             try {
                 // Parse the body as a JSON
                 parsedResponseBody = objectMapper.readValue(responseBody, new TypeReference<>() {});
@@ -347,16 +344,23 @@ public class RestNodeInstance extends ToolNodeInstance {
                 logger.warn("[Node {}]: Could not parse response body for field extraction: {}", getId(), e.getMessage());
                 parsedResponseBody = null;
             }
-        } else if (needsBodyParsing && (responseBody == null || responseBody.trim().isEmpty())) {
-            logger.debug("[Node {}]: Body parsing needed but response body is null or empty.", getId());
         }
 
+
         for (RestPort outputPort : outputPorts) {
+            if(outputPort == null || outputPort.getRole() == null) continue;
+
             Object valueToSet = null;
             switch (outputPort.getRole()) {
                 case RES_FULL_BODY:
-                    valueToSet = responseBody;
+                    if(outputPort.getSchema().getType() == PortType.OBJECT && parsedResponseBody != null ){
+                        valueToSet = parsedResponseBody;
+                        logger.debug("[Node {}]: Handling RES_FULL_BODY for port '{}' with parsed body.", getId(), outputPort.getKey());
+                    }
+                    else valueToSet = responseBody;
+
                     logger.debug("[Node {}]: Handling RES_FULL_BODY for port '{}'.", getId(), outputPort.getKey());
+
                     break;
                 case RES_STATUS:
                     valueToSet = responseStatus;
