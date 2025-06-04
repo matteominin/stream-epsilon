@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Tag("it")
+@Tag("focus")
 @ActiveProfiles("test")
 public class InputMapperServiceIT {
 
@@ -585,5 +586,53 @@ public class InputMapperServiceIT {
         // check that among the requirements there is "4K" and "Low Latency" (case insensitive) or include them
         assertTrue(technical_requirements.stream().anyMatch(req -> req.get("value").toLowerCase().contains("4k")));
         assertTrue(technical_requirements.stream().anyMatch(req -> req.get("value").toLowerCase().contains("low")));
+    }
+
+
+
+    /**
+     * Test the Input Mapper when no variables are provided but they can be extracted from the text input
+     */
+    @Test
+    @DisplayName("Test with only one node with a list mapping")
+    public void shouldWorkWithNoVariablesButTextRequest() {
+
+        RestPort source1 = RestPort.builder()
+                .withKey("technical_requirements")
+                .withSchema(PortSchema.builder()
+                        .withRequired(true)
+                        .arraySchema(
+                                PortSchema.builder()
+                                        .stringSchema()
+                                        .withRequired(true)
+                                        .build()
+                        )
+                        .build()).build();
+
+
+        RestNodeMetamodel nodeA = new RestNodeMetamodel();
+        nodeA.setId(String.valueOf(UUID.randomUUID()));
+        nodeA.setName("");
+        nodeA.setDescription("Start the AI4NE or NE4AI workflow with a list of requirements");
+        nodeA.setInputPorts(List.of(source1));
+        nodeA.setOutputPorts(List.of());
+
+        Map<String, Object> variables = Map.of(); // <---- empty
+
+        String request = "I want to a 4k streaming with no more latency the 10ms";
+
+        var res = inputMapperService.mapInput(variables, List.of(nodeA), request);
+
+        assertNotNull(res);
+
+        System.out.println("Context result: ");
+        res.context.printContext();
+        assertInstanceOf(List.class, res.getContext().get("technical_requirements"));
+
+        @SuppressWarnings("unchecked")
+        List<String> technical_requirements = (List<String>) res.getContext().get("technical_requirements");
+        assertNotNull(technical_requirements);
+        assertTrue(technical_requirements.stream().anyMatch(req -> req.toLowerCase().contains("4k")));
+        assertTrue(technical_requirements.stream().anyMatch(req -> req.toLowerCase().contains("10ms")));
     }
 }
