@@ -18,9 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
 
 /**
  * LLM-based service for mapping input variables to workflow nodes.
@@ -255,7 +253,7 @@ public class InputMapperService extends LLMAbstractService {
                     - Verify that extracted information can satisfy EVERY required port
                     - If ANY required port cannot be populated with available data, STOP and return {}
                                 
-                    ## Step 4: Data Transformation (ALLOWED)
+                    ## Step 4: Data Transformation
                     You MAY transform available data through:
                     - **String manipulation**: Extract substrings, split text, parse numbers from strings
                     - **Format conversion**: Convert dates, numbers, boolean representations
@@ -263,7 +261,7 @@ public class InputMapperService extends LLMAbstractService {
                     - **Data structuring**: Organize flat data into nested objects or arrays
                     - **Type casting**: Convert strings to numbers, booleans, etc.
                                 
-                    ## Step 5: Data Population (NOT ALLOWED)
+                    ## Step 5: Data Population
                     You MUST NOT:
                     - Generate missing values
                     - Make assumptions about unstated information
@@ -306,19 +304,5 @@ public class InputMapperService extends LLMAbstractService {
                     2. All values come from available user data (no invention)
                     3. All transformations are valid and lossless
                     4. All port types match expected schemas
-                                
-                    If ANY check fails, return empty bindings: `{"bindings": {}}`
-                                
-                    # EXAMPLES OF VALID TRANSFORMATIONS
-                    - User variable "full_name: Mario Rossi" → `"first_name": "Mario"`, `"last_name": "Rossi"`
-                    - User text "I need 5 items" → `"quantity": 5`
-                    - User variable "price_eur: 100" → `"price_usd": 110` (if EUR/USD rate is known)
-                    - User variables "item1: apple", "item2: banana" → `"fruits.0": "apple"`, `"fruits.1": "banana"`
-                                
-                    # EXAMPLES OF FORBIDDEN ACTIONS
-                    - User provides "name: Mario" but port needs "email" → DON'T invent email
-                    - User provides partial address but port needs complete address → DON'T fill missing parts
-                    - User provides product name but port needs price → DON'T generate price
-                    - Missing required data → DON'T use placeholders like "TBD" or "unknown"
                     """;
 }

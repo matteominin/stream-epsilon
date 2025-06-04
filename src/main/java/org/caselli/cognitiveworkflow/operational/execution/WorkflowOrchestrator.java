@@ -87,9 +87,8 @@ public class WorkflowOrchestrator {
 
         // EXECUTION
         var userVariables = intentRes.getUserVariables();
-        userVariables.put("COMPLETE_USER_REQUEST", request);
-        logger.debug("Starting workflow with variables: {}", userVariables);
-        var context = startWorkflow(workflowInstance, userVariables);
+        logger.info("Starting workflow with variables: {}", userVariables);
+        var context = startWorkflow(workflowInstance, userVariables, request);
 
 
         logger.debug("Workflow execution completed for request: {}", request);
@@ -103,7 +102,7 @@ public class WorkflowOrchestrator {
      * @param variables The variables of the user
      * @return Returns the final execution context
      */
-    private ExecutionContext startWorkflow(WorkflowInstance workflowInstance, Map<String,Object> variables) {
+    private ExecutionContext startWorkflow(WorkflowInstance workflowInstance, Map<String,Object> variables, String userRequest) {
         logger.debug("Starting workflow instance: {}", workflowInstance.getId());
 
         // Get the entry points of the workflow
@@ -114,7 +113,7 @@ public class WorkflowOrchestrator {
                 .map(id -> workflowInstance.getInstanceByWorkflowNodeId(id).getMetamodel())
                 .collect(Collectors.toList());
 
-        var inputMapping = inputMapperService.mapInput(variables, entryPointMetamodels);
+        var inputMapping = inputMapperService.mapInput(variables, entryPointMetamodels, userRequest);
         logger.debug("Input mapping result: {}", inputMapping);
 
         if(inputMapping == null) {
