@@ -3,6 +3,7 @@ package org.caselli.cognitiveworkflow.API.controllers;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.*;
+import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -90,7 +91,7 @@ public class NodeController {
     @PutMapping("/vector-db/{id}")
     public ResponseEntity<NodeMetamodel> updateVectorDbNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody VectorDbNodeMetamodel metamodel) {
+            @Valid @RequestBody VectorDbNodeMetamodel metamodel) throws  BadRequestException {
 
         return validateAndUpdateNode(
                 id,
@@ -106,7 +107,7 @@ public class NodeController {
     @PutMapping("/rest-tool/{id}")
     public ResponseEntity<NodeMetamodel> updateRestToolNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody RestNodeMetamodel metamodel) {
+            @Valid @RequestBody RestNodeMetamodel metamodel)  throws  BadRequestException {
 
         return validateAndUpdateNode(
                 id,
@@ -122,7 +123,7 @@ public class NodeController {
     @PutMapping("/llm/{id}")
     public ResponseEntity<NodeMetamodel> updateLlmNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody LlmNodeMetamodel metamodel) {
+            @Valid @RequestBody LlmNodeMetamodel metamodel)  throws  BadRequestException {
 
         return validateAndUpdateNode(
                 id,
@@ -139,7 +140,7 @@ public class NodeController {
     @PutMapping("/embeddings/{id}")
     public ResponseEntity<NodeMetamodel> updateEmbeddingsNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody EmbeddingsNodeMetamodel metamodel) {
+            @Valid @RequestBody EmbeddingsNodeMetamodel metamodel)  throws  BadRequestException {
 
         return validateAndUpdateNode(
                 id,
@@ -156,7 +157,7 @@ public class NodeController {
     @PutMapping("/gateway/{id}")
     public ResponseEntity<NodeMetamodel> updateGatewayNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody GatewayNodeMetamodel metamodel) {
+            @Valid @RequestBody GatewayNodeMetamodel metamodel)  throws  BadRequestException {
 
         return validateAndUpdateNode(
                 id,
@@ -169,26 +170,34 @@ public class NodeController {
 
     /**
      * Helper method to validate and update node metamodels
-     * @param id The ID of the node to update
+     * @param familyId The ID of the node family to update
      * @param metamodel The new node metamodel data
      * @param validationPredicate Predicate to validate node type
      * @return ResponseEntity with the updated node or appropriate error status
      */
     private <T extends NodeMetamodel> ResponseEntity<NodeMetamodel> validateAndUpdateNode(
-            String id,
+            String familyId,
             T metamodel,
-            Predicate<NodeMetamodel> validationPredicate) {
+            Predicate<NodeMetamodel> validationPredicate) throws BadRequestException {
 
         // Check if node exists
-        Optional<NodeMetamodel> existing = nodeMetamodelService.getNodeById(id);
+        Optional<NodeMetamodel> existing = nodeMetamodelService.getLatestVersionByFamilyId(familyId);
         if (existing.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
         // Validate node type
         if (!validationPredicate.test(existing.get())) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
-        // Update node
-        metamodel.setId(id);
-        NodeMetamodel result = nodeMetamodelService.updateNode(id, metamodel);
+
+        // Check if the version is valid
+        if (Version.isGreaterThan(metamodel.getVersion(), existing.get().getVersion())) {
+            throw new BadRequestException(
+                    String.format("Invalid version: %s cannot be greater than existing version %s",
+                            metamodel.getVersion(),
+                            existing.get().getVersion())
+            );
+        }
+
+        NodeMetamodel result = nodeMetamodelService.updateNode(familyId, metamodel);
         return ResponseEntity.ok(result);
     }
 }

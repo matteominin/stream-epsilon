@@ -68,6 +68,19 @@ public class Version {
         return newVersion;
     }
 
+    /**
+     * Checks if first version is greater than second version
+     */
+    public static boolean isGreaterThan(Version v1, Version v2) {
+        if (v1 == null || v2 == null) return false;
+
+        if (v1.major != v2.major) return v1.major > v2.major;
+        if (v1.minor != v2.minor) return v1.minor > v2.minor;
+        return v1.patch > v2.patch;
+    }
+
+
+
     public enum ChangeType {
             MAJOR,
             MINOR,

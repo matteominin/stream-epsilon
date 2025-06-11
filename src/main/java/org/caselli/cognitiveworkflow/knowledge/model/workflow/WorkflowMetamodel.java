@@ -110,4 +110,63 @@ public class WorkflowMetamodel {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Detects if the nodes of a workflow have changed between two metamodel versions.
+     * This method compares the structure and content of nodes to determine if there are breaking changes.
+     * @param oldMetamodel The previous version of the workflow metamodel
+     * @param newMetamodel The updated version of the workflow metamodel
+     * @return true if nodes have changed in a way that affects workflow structure, false otherwise
+     */
+    public static boolean haveNodesChanged(WorkflowMetamodel oldMetamodel, WorkflowMetamodel newMetamodel) {
+        // Null safety checks
+        if (oldMetamodel == null || newMetamodel == null) {
+            return true;
+        }
+
+        List<WorkflowNode> oldNodes = oldMetamodel.getNodes();
+        List<WorkflowNode> newNodes = newMetamodel.getNodes();
+
+        // Handle null node lists
+        if (oldNodes == null && newNodes == null) return false;
+        if (oldNodes == null || newNodes == null) return true;
+
+        // Check if the number of nodes changed
+        if (oldNodes.size() != newNodes.size()) return true;
+
+
+        Map<String, WorkflowNode> oldNodeMap = oldNodes.stream()
+                .filter(node -> node.getId() != null)
+                .collect(Collectors.toMap(WorkflowNode::getId, node -> node));
+
+        Map<String, WorkflowNode> newNodeMap = newNodes.stream()
+                .filter(node -> node.getId() != null)
+                .collect(Collectors.toMap(WorkflowNode::getId, node -> node));
+
+
+        if (!oldNodeMap.keySet().equals(newNodeMap.keySet())) return true;
+
+        // Check each node for changes in content
+        for (String nodeId : oldNodeMap.keySet()) {
+            WorkflowNode oldNode = oldNodeMap.get(nodeId);
+            WorkflowNode newNode = newNodeMap.get(nodeId);
+
+            if (hasNodeChanged(oldNode, newNode)) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Compares two individual WorkflowNode instances to detect changes.
+     * @param oldNode The old version of the node
+     * @param newNode The new version of the node
+     * @return true if the node has changed, false otherwise
+     */
+    private static boolean hasNodeChanged(WorkflowNode oldNode, WorkflowNode newNode) {
+        if (oldNode == null && newNode == null) return false;
+        if (oldNode == null || newNode == null) return true;
+
+        // Compare node metamodel ID
+        return !Objects.equals(oldNode.getNodeMetamodelId(), newNode.getNodeMetamodelId());
+    }
 }

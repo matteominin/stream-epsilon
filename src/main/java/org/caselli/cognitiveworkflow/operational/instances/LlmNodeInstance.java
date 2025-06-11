@@ -189,9 +189,6 @@ public class LlmNodeInstance extends AiNodeInstance {
     }
 
 
-
-
-
     /**
      * Converts a Java object to a JSON string.
      *
@@ -205,5 +202,14 @@ public class LlmNodeInstance extends AiNodeInstance {
             logger.warn("Error converting object to JSON string: " + e.getMessage());
             return null;
         }
+    }
+
+
+    @Override
+    public void handleRefreshNode(){
+        // Delete the current model
+        this.chatClient = null;
+        // Build the new model
+        getChatClient();
     }
 }

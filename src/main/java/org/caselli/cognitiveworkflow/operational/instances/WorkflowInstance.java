@@ -21,6 +21,8 @@ public class WorkflowInstance {
     @Setter
     private String id;
 
+    /** If the workflow is deprecated. If it is, when the last execution finishes it will be re-instanced **/
+    @Setter @Getter private boolean isDeprecated;
 
     // Metamodel
     private WorkflowMetamodel metamodel;
@@ -119,7 +121,7 @@ public class WorkflowInstance {
      * Refreshes the internal lookup maps for quick access to node instances and workflow nodes by their IDs.
      * This method is called automatically whenever the workflow structure changes or when the instance is initialized.
      */
-    private void refreshNodeMaps() {
+    public void refreshNodeMaps() {
         // Clear existing maps to prevent stale data
         nodeInstancesMap.clear();
         workflowNodesMap.clear();

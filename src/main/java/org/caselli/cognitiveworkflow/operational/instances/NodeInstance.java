@@ -14,6 +14,9 @@ import org.springframework.context.event.EventListener;
 public abstract class NodeInstance {
     private String id;
 
+    /** If the node is deprecated. If it is, when the last execution finishes it will be re-instanced **/
+    private boolean isDeprecated;
+
     // Metamodel
     private NodeMetamodel metamodel;
 
@@ -26,5 +29,13 @@ public abstract class NodeInstance {
         if (this.metamodel != null && event.metamodelId().equals(this.metamodel.getId())) {
             this.metamodel = event.updatedMetamodel();
         }
+    }
+
+
+    /**
+     * Method to handle the refresh of the node
+     */
+    public void handleRefreshNode(){
+        // To override
     }
 }

@@ -378,8 +378,8 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
                 String targetNodeMetamodelId = targetWorkflowNode.get().getNodeMetamodelId();
 
                 // Retrieve node metamodels from service
-                var sourceNodeMetamodel = this.nodeMetamodelService.getNodeById(sourceNodeMetamodelId);
-                var targetNodeMetamodel = this.nodeMetamodelService.getNodeById(targetNodeMetamodelId);
+                var sourceNodeMetamodel = this.nodeMetamodelService.getById(sourceNodeMetamodelId);
+                var targetNodeMetamodel = this.nodeMetamodelService.getById(targetNodeMetamodelId);
 
                 // Check if node metamodels exist
                 if (sourceNodeMetamodel.isEmpty()) {

@@ -16,10 +16,9 @@ import java.util.stream.Collectors;
 @Service
 public class WorkflowInstanceManager {
 
-    private final Logger logger = LoggerFactory.getLogger(WorkflowFactory.class);
+    private final Logger logger = LoggerFactory.getLogger(WorkflowInstanceManager.class);
 
     private final ConcurrentHashMap<String, AtomicInteger> runningWorkflows = new ConcurrentHashMap<>();
-
 
     private final WorkflowsRegistry workflowsRegistry;
     private final WorkflowFactory workflowFactory;
@@ -39,7 +38,21 @@ public class WorkflowInstanceManager {
     public WorkflowInstance getOrCreate(WorkflowMetamodel workflowMetamodel) {
         // Check if the instance already exists
         var existing = workflowsRegistry.get(workflowMetamodel.getId());
-        if(existing.isPresent()) return existing.get();
+        if(existing.isPresent()) {
+            // There is an instance in the registry
+
+            // If the instance is not deprecated
+            if(!existing.get().isDeprecated()) return existing.get();
+
+
+            // If it is deprecated but it is in execution
+            if(isRunning(existing.get().getId())) return existing.get();
+
+            // The existing node is deprecated and it is not in execution
+            // Therefore, we can safely remove it from the registry
+            workflowsRegistry.remove(workflowMetamodel.getId());
+            // Then we can proceed as it was not found
+        }
 
         // Instantiate the new workflow
         WorkflowInstance instance = workflowFactory.createInstance(workflowMetamodel);
@@ -73,7 +86,6 @@ public class WorkflowInstanceManager {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * Mark a workflow as in execution
      * @param workflowId Workflow ID
@@ -85,7 +97,6 @@ public class WorkflowInstanceManager {
             return count;
         });
     }
-
 
     /**
      * Mark a workflow as no longer in execution
@@ -108,8 +119,6 @@ public class WorkflowInstanceManager {
         return runningWorkflows.containsKey(workflowId);
     }
 
-
-
     /**
      * Listens for updates to the workflow metamodel and refreshes the node maps accordingly.
      * @param event The event containing the updated metamodel
@@ -122,19 +131,29 @@ public class WorkflowInstanceManager {
         var instance = this.workflowsRegistry.get(id);
         if(instance.isPresent()){
 
-            this.logger.info("Operation layer received metamodel update event: updating workflow instance for workflow {}", instance.get());
+            this.logger.info("Operation layer received metamodel update event: updating workflow instance for workflow {}", instance.get().getId());
 
             // Check the type of the update
+            var isBreaking = false;
+            // The update is braking if there is a version bump of the major version
+            if(event.updatedMetamodel().getVersion().getMajor() - instance.get().getMetamodel().getVersion().getMajor() > 0) isBreaking = true;
+            // The update is breaking if the nodes if the workflows were changed
+            else if(WorkflowMetamodel.haveNodesChanged(event.updatedMetamodel(), instance.get().getMetamodel())) isBreaking = true;
 
 
+            // If the workflow is running or the update is breaking, no hot-swapping
+            if(isRunning(id) || isBreaking){
+                // Re-Installation
+                // We mark it as deprecated, when the last execution of this workflow finishes, it will be deleted
+                // from the registry (forcing its update)
+                instance.get().setDeprecated(true);
 
-            // Check if the workflow is running
-            if(isRunning(id)){
-                // NO UPDATE
-
-
-            } else{
-                // UPDATE
+            } else {
+                // HOT-SWAP
+                // Directly update the metamodel
+                instance.get().setMetamodel(event.updatedMetamodel());
+                // Refresh the node maps
+                instance.get().refreshNodeMaps();
             }
         }
     }

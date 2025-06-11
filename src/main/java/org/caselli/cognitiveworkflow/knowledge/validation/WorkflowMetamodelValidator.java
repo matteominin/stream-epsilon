@@ -34,7 +34,7 @@ public class WorkflowMetamodelValidator {
      * @return The NodeMetamodel if found, null otherwise
      */
     private NodeMetamodel getNodeMetamodelById(String nodeId) {
-        Optional<NodeMetamodel> res = nodeMetamodelService.getNodeById(nodeId);
+        Optional<NodeMetamodel> res = nodeMetamodelService.getById(nodeId);
         return res.orElse(null);
     }
 
