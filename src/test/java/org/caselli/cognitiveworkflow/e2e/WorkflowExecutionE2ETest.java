@@ -254,22 +254,18 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
 
         WorkflowNode node1 = new WorkflowNode();
         node1.setNodeMetamodelId(nodeMetamodel1.getId());
-        node1.setVersion(version);
         node1.setId("1");
 
         WorkflowNode node2 = new WorkflowNode();
         node2.setNodeMetamodelId(nodeMetamodel2.getId());
-        node2.setVersion(version);
         node2.setId("2");
 
         WorkflowNode node3 = new WorkflowNode();
         node3.setNodeMetamodelId(nodeMetamodel3.getId());
-        node3.setVersion(version);
         node3.setId("3");
 
         WorkflowNode node4 = new WorkflowNode();
         node4.setNodeMetamodelId(nodeMetamodel4.getId());
-        node4.setVersion(version);
         node4.setId("4");
 
         metamodel.setNodes(List.of(node1, node2, node3, node4));
