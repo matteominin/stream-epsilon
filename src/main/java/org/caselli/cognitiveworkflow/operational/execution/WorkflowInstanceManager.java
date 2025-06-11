@@ -1,14 +1,24 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
+import org.caselli.cognitiveworkflow.knowledge.MOP.event.WorkflowMetamodelUpdateEvent;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
 import org.caselli.cognitiveworkflow.operational.registry.WorkflowsRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
 public class WorkflowInstanceManager {
+
+    private final Logger logger = LoggerFactory.getLogger(WorkflowFactory.class);
+
+    private final ConcurrentHashMap<String, AtomicInteger> runningWorkflows = new ConcurrentHashMap<>();
 
 
     private final WorkflowsRegistry workflowsRegistry;
@@ -63,4 +73,69 @@ public class WorkflowInstanceManager {
                 .collect(Collectors.toList());
     }
 
+
+    /**
+     * Mark a workflow as in execution
+     * @param workflowId Workflow ID
+     */
+    public void markRunning(String workflowId) {
+        runningWorkflows.compute(workflowId, (id, count) -> {
+            if (count == null) return new AtomicInteger(1);
+            count.incrementAndGet();
+            return count;
+        });
+    }
+
+
+    /**
+     * Mark a workflow as no longer in execution
+     * @param workflowId Workflow ID
+     */
+    public void markFinished(String workflowId) {
+        runningWorkflows.computeIfPresent(workflowId, (id, count) -> {
+            int newVal = count.decrementAndGet();
+            if (newVal <= 0) return null;
+            return count;
+        });
+    }
+
+    /**
+     * Check if a workflow in in execution
+     * @param workflowId Id of the workflow
+     * @return Returns true if there is at least one instance of the workflow that is being executed
+     */
+    public boolean isRunning(String workflowId) {
+        return runningWorkflows.containsKey(workflowId);
+    }
+
+
+
+    /**
+     * Listens for updates to the workflow metamodel and refreshes the node maps accordingly.
+     * @param event The event containing the updated metamodel
+     */
+    @EventListener
+    public void onMetaNodeUpdated(WorkflowMetamodelUpdateEvent event) {
+        var id = event.metamodelId();
+
+        // Search for the instance of the metamodel
+        var instance = this.workflowsRegistry.get(id);
+        if(instance.isPresent()){
+
+            this.logger.info("Operation layer received metamodel update event: updating workflow instance for workflow {}", instance.get());
+
+            // Check the type of the update
+
+
+
+            // Check if the workflow is running
+            if(isRunning(id)){
+                // NO UPDATE
+
+
+            } else{
+                // UPDATE
+            }
+        }
+    }
 }
