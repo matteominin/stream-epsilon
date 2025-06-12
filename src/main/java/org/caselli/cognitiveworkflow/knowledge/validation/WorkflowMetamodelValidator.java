@@ -115,9 +115,6 @@ public class WorkflowMetamodelValidator {
      * @param result Validation result
      */
     private void validateBasicProperties(WorkflowMetamodel workflow, ValidationResult result) {
-        if (workflow.getId() == null || workflow.getId().isEmpty())
-            result.addError("Workflow ID cannot be null or empty", "workflow.id");
-
 
         if (workflow.getName() == null || workflow.getName().isEmpty())
             result.addError("Workflow name cannot be null or empty", "workflow.name");

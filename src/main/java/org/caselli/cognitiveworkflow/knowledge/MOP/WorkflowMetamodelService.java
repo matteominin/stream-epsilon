@@ -94,6 +94,10 @@ public class WorkflowMetamodelService implements ApplicationListener<Application
         // Check if the documents exists
         repository.findById(id).orElseThrow(() -> new IllegalArgumentException("WorkflowMetamodel with id " + id + " does not exist."));
 
+        // Make sure that the id is present
+        updatedData.setId(id);
+
+
         // Validate the workflow
         var res = workflowMetamodelValidator.validate(updatedData);
         if(!res.isValid()) throw new IllegalArgumentException("WorkflowMetamodel is not valid: " + res.getErrors());

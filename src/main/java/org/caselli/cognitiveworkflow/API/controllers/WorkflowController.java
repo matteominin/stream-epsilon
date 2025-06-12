@@ -5,13 +5,17 @@ import jakarta.validation.Valid;
 import lombok.Data;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
+import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.execution.WorkflowOrchestrator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
 
 @Validated
 @RestController
@@ -40,8 +44,24 @@ public class WorkflowController {
     @PutMapping("/{id}")
     public ResponseEntity<WorkflowMetamodel> updateWorkflow(
             @PathVariable String id,
-            @Valid @RequestBody WorkflowMetamodel workflow)  {
-        return ResponseEntity.ok(workflowMetamodelService.updateWorkflow(id, workflow));
+            @Valid @RequestBody WorkflowMetamodel metamodel) throws BadRequestException {
+
+
+        // Check that the workflow exists
+        var existing = workflowMetamodelService.getWorkflowById(id);
+        if (existing.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+
+        // Check if the version is valid
+        if (!Version.isValidVersionBump(existing.get().getVersion(), metamodel.getVersion())) {
+            throw new BadRequestException(
+                    String.format("Invalid version bump: the new version %s is not compatible with the existing version %s",
+                            metamodel.getVersion(),
+                            existing.get().getVersion())
+            );
+        }
+
+        return ResponseEntity.ok(workflowMetamodelService.updateWorkflow(id, metamodel));
     }
 
     @PostMapping("/execute")
