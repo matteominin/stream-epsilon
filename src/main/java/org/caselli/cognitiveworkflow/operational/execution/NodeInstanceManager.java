@@ -54,6 +54,8 @@ public class NodeInstanceManager {
             if(isRunning(existing.get().getId())) return existing.get();
 
             // The existing node is deprecated and it is not in execution
+            this.logger.info("A node instance for bode {} was found but is deprecated: deleting it", nodeMetamodel.getId());
+
             // Therefore, we can safely remove it from the registry
             nodesRegistry.remove(nodeMetamodel.getId());
             // Then we can proceed as it was not found
@@ -138,12 +140,17 @@ public class NodeInstanceManager {
 
             // If the node is running then we cannot hot swap NOW, but we re-create the whole node LATER
             if(isRunning(id)){
+
                 // Re-Installation
+                this.logger.info("Node instance {} had a breaking change update: no hot-swap, marking it as deprecated", instance.get().getId());
+
                 // We mark it as deprecated, when the last execution of this node finishes, it will be deleted
                 // from the registry (forcing its update)
                 instance.get().setDeprecated(true);
 
             } else{
+                this.logger.info("Hot-swapping node instance {} metamodel", instance.get().getId());
+
                 // HOT-SWAP
                 // Directly update the metamodel
                 instance.get().setMetamodel(event.updatedMetamodel());
@@ -151,5 +158,7 @@ public class NodeInstanceManager {
                 instance.get().handleRefreshNode();
             }
         }
+        else  this.logger.info("Operation layer received metamodel update event but no instance has the updated metamodel");
+
     }
 }

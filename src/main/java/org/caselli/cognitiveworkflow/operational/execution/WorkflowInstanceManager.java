@@ -49,6 +49,7 @@ public class WorkflowInstanceManager {
             if(isRunning(existing.get().getId())) return existing.get();
 
             // The existing node is deprecated and it is not in execution
+            this.logger.info("A workflow instance for workflow {} was found but is deprecated: deleting it", workflowMetamodel.getId());
             // Therefore, we can safely remove it from the registry
             workflowsRegistry.remove(workflowMetamodel.getId());
             // Then we can proceed as it was not found
@@ -143,6 +144,10 @@ public class WorkflowInstanceManager {
 
             // If the workflow is running or the update is breaking, no hot-swapping
             if(isRunning(id) || isBreaking){
+
+                if(isBreaking) this.logger.info("Workflow instance {} is already running: no hot-swap, marking it as deprecated", instance.get().getId());
+                else this.logger.info("Workflow instance {} had a breaking change update: no hot-swap, marking it as deprecated", instance.get().getId());
+
                 // Re-Installation
                 // We mark it as deprecated, when the last execution of this workflow finishes, it will be deleted
                 // from the registry (forcing its update)
@@ -150,11 +155,15 @@ public class WorkflowInstanceManager {
 
             } else {
                 // HOT-SWAP
+
+                this.logger.info("Hot-swapping workflow instance {} metamodel", instance.get().getId());
+
                 // Directly update the metamodel
                 instance.get().setMetamodel(event.updatedMetamodel());
                 // Refresh the node maps
                 instance.get().refreshNodeMaps();
             }
         }
+        else this.logger.info("Operation layer received metamodel update event but no instance has the updated metamodel");
     }
 }
