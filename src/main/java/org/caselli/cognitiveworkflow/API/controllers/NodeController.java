@@ -189,9 +189,9 @@ public class NodeController {
 
 
         // Check if the version is valid
-        if (Version.isGreaterThan(metamodel.getVersion(), existing.get().getVersion())) {
+        if (!Version.isValidVersionBump(existing.get().getVersion(), metamodel.getVersion())) {
             throw new BadRequestException(
-                    String.format("Invalid version: %s cannot be greater than existing version %s",
+                    String.format("Invalid version bump: the new version %s is not compatible with the existing version %s",
                             metamodel.getVersion(),
                             existing.get().getVersion())
             );

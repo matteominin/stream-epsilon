@@ -116,7 +116,6 @@ public class WorkflowInstance {
         return this.nodeInstancesMap.get(workflowNode.getNodeMetamodelId());
     }
 
-
     /**
      * Refreshes the internal lookup maps for quick access to node instances and workflow nodes by their IDs.
      * This method is called automatically whenever the workflow structure changes or when the instance is initialized.

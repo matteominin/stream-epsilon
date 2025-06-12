@@ -102,7 +102,12 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
 
             // 1) Update the model
             updatedData.setId(oldVersionDoc.getId());
-            updatedData.setId(oldVersionDoc.getFamilyId());
+            updatedData.setFamilyId(oldVersionDoc.getFamilyId());
+
+            updatedData.setUpdatedAt(LocalDateTime.now()); // Set the updated date
+            updatedData.setIsLatest(true); // Set the node as the latest of its family
+
+
 
             NodeMetamodel saved = repository.save(updatedData);
 
@@ -211,7 +216,10 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      */
     private NodeMetamodel createBaseNodeMetamodel(NodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // Ignore the pre-existing ID
-        nodeMetamodel.setCreatedAt(LocalDateTime.now());
+        nodeMetamodel.setFamilyId(UUID.randomUUID().toString()); // Ignore the pre-existing Family Id
+        nodeMetamodel.setCreatedAt(LocalDateTime.now()); // Set the created date
+        nodeMetamodel.setUpdatedAt(LocalDateTime.now()); // Set the updated date
+        nodeMetamodel.setIsLatest(true); // Set the node as the latest of its family
         // Validate
         var res = nodeMetamodelValidator.validate(nodeMetamodel);
         if(!res.isValid()) throw new BadRequestException("NodeMetamodel is not valid: " + res.getErrors());
