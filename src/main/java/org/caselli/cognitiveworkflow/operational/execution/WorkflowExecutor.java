@@ -162,7 +162,7 @@ public class WorkflowExecutor {
                     }
 
                     // Evaluate the edge condition with tracking
-                    boolean pass = evaluateEdgeCondition(edge, context, executionResult);
+                    boolean pass = evaluateEdgeCondition(edge, context);
 
                     if (pass) {
                         // Apply bindings with tracking
@@ -224,10 +224,9 @@ public class WorkflowExecutor {
      * Evaluates the condition on an edge to determine if execution should proceed.
      * @param edge The edge
      * @param context The current context
-     * @param executionResult The execution result for observaiility
      * @return true if the condition passes or there is no condition, false otherwise
      */
-    private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context, WorkflowObservabilityReport executionResult) {
+    private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context) {
         WorkflowEdge.Condition cond = edge.getCondition();
         if (cond == null) return true;
 

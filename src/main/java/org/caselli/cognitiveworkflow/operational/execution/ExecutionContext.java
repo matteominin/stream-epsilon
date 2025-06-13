@@ -1,5 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
+import lombok.NoArgsConstructor;
+
 import java.util.*;
 
 /**
@@ -7,7 +9,9 @@ import java.util.*;
  * that support dot notation for accessing and manipulating nested Map structures
  * and List/array elements using numeric indices.
  */
+@NoArgsConstructor
 public class ExecutionContext extends HashMap<String, Object> {
+
 
     /**
      * Put a value in the context.
@@ -110,6 +114,74 @@ public class ExecutionContext extends HashMap<String, Object> {
         Object value = getByDotNotation((String) key);
         return value != null ? value : defaultValue;
     }
+
+
+
+    /**
+     * Copy constructor that creates a deep copy of another ExecutionContext.
+     * This ensures that nested Maps and Lists are also copied, preventing
+     * shared references between the original and copied contexts.
+     * @param other The ExecutionContext to copy from
+     */
+    public ExecutionContext(ExecutionContext other) {
+        super();
+        if (other != null) deepCopyFrom(other);
+    }
+
+    /**
+     * Helper method to perform deep copy of the context structure.
+     * Recursively copies all nested Maps and Lists to ensure complete isolation.
+     *
+     * @param source The source context to copy from
+     */
+    private void deepCopyFrom(ExecutionContext source) {
+        for (Map.Entry<String, Object> entry : source.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            super.put(key, deepCopyValue(value));
+        }
+    }
+
+    /**
+     * Recursively creates deep copies of nested structures (Maps and Lists).
+     * @param value The value to copy
+     * @return A deep copy of the value
+     */
+    private Object deepCopyValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> sourceMap = (Map<String, Object>) value;
+            Map<String, Object> copiedMap = new HashMap<>();
+
+            for (Map.Entry<String, Object> entry : sourceMap.entrySet()) {
+                copiedMap.put(entry.getKey(), deepCopyValue(entry.getValue()));
+            }
+
+            return copiedMap;
+        }
+
+        if (value instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<Object> sourceList = (List<Object>) value;
+            List<Object> copiedList = new ArrayList<>();
+
+            for (Object item : sourceList) {
+                copiedList.add(deepCopyValue(item));
+            }
+
+            return copiedList;
+        }
+        return value;
+    }
+
+
+
+
+
 
     /**
      * Prints the entire context structure in a readable format with indentation

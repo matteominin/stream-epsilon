@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.caselli.cognitiveworkflow.operational.utils.Pair;
 
 @Service
 public class WorkflowOrchestrator {
@@ -58,12 +59,12 @@ public class WorkflowOrchestrator {
         ExecutionContext initialContext = runInputMapper(workflowInstance, intentRes.getUserVariables(), request);
 
         // EXECUTION
-        ExecutionContext finalContext = runWorkflow(workflowInstance, initialContext);
+        var executionRes = runWorkflow(workflowInstance, initialContext);
 
 
         logger.debug("Workflow execution completed for request: {}", request);
 
-        var output = extractOutputs(finalContext, workflowInstance);
+        var output = extractOutputs(executionRes.first(), workflowInstance);
         result.setOutput(output);
 
         return result;
@@ -168,10 +169,11 @@ public class WorkflowOrchestrator {
      * @param context The initial execution context
      * @return Returns the final execution context
      */
-    private ExecutionContext runWorkflow(WorkflowInstance workflowInstance, ExecutionContext context) {
+    private Pair<ExecutionContext, WorkflowObservabilityReport> runWorkflow(WorkflowInstance workflowInstance, ExecutionContext context) {
         logger.debug("Obtained workflow executor for instance: {}", workflowInstance.getId());
-        workflowExecutor.execute(workflowInstance, context);
-        return context;
+        ExecutionContext clonedContext = new ExecutionContext(context);
+        var ob = workflowExecutor.execute(workflowInstance, context);
+        return new Pair<>(clonedContext, ob);
     }
 
     /**
@@ -200,8 +202,6 @@ public class WorkflowOrchestrator {
 
         return res;
     }
-
-
 
 
     @Data
