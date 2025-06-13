@@ -6,7 +6,6 @@ import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
 import org.slf4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 

@@ -26,9 +26,9 @@ public abstract class NodeMetamodel {
     private String familyId;
 
     // Metadata:
-    private Boolean isLatest; // If the node is the latest version in the current family
-    @NotNull private Boolean enabled; // If the node is enabled
-    @NotNull private Version version; // Version of the node
+    private Boolean isLatest = true; // If the node is the latest version in the current family
+    @NotNull private Boolean enabled = true; // If the node is enabled
+    @NotNull private Version version = new Version(0,0,0,null); // Version of the node
 
 
 
