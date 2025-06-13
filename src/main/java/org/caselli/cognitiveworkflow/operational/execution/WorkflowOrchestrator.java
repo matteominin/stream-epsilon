@@ -3,7 +3,6 @@ package org.caselli.cognitiveworkflow.operational.execution;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.services.InputMapperService;
 import org.caselli.cognitiveworkflow.operational.LLM.services.IntentDetectionService;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;

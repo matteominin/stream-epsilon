@@ -8,7 +8,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.LlmPort;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
 import org.caselli.cognitiveworkflow.operational.LLM.PortStructuredOutputConverter;
 import org.springframework.ai.chat.client.ChatClient;

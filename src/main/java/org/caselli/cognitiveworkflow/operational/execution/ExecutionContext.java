@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational;
+package org.caselli.cognitiveworkflow.operational.execution;
 
 import java.util.*;
 
