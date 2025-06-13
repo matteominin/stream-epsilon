@@ -39,16 +39,26 @@ public class WorkflowInstanceManager {
         // Check if the instance already exists
         var existing = workflowsRegistry.get(workflowMetamodel.getId());
         if(existing.isPresent()) {
-            // There is an instance in the registry
+            // There is an instance in the registry: 3 cases
+            var running = isRunning(existing.get().getId());
 
-            // If the instance is not deprecated
-            if(!existing.get().isDeprecated()) return existing.get();
+            // 1) If the instance is not deprecated we can return it
+            if(!existing.get().isDeprecated()) {
+
+                // If the workflow is not running we can check we can
+                // refresh any deprecated nodes
+                if(!running){
+                    workflowFactory.refreshDeprecatedNodes(existing.get());
+                }
+
+                return existing.get();
+            }
+
+            // 2) If it is deprecated but it is in execution we return it as it is
+            if(running) return existing.get();
 
 
-            // If it is deprecated but it is in execution
-            if(isRunning(existing.get().getId())) return existing.get();
-
-            // The existing node is deprecated and it is not in execution
+            // 3) If the existing node is deprecated and it is not in execution: we can re-create it
             this.logger.info("A workflow instance for workflow {} was found but is deprecated: deleting it", workflowMetamodel.getId());
             // Therefore, we can safely remove it from the registry
             workflowsRegistry.remove(workflowMetamodel.getId());
