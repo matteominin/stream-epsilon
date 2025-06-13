@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.caselli.cognitiveworkflow.operational.utils.Pair;
 
 @Service
 public class WorkflowOrchestrator {
@@ -48,6 +47,8 @@ public class WorkflowOrchestrator {
     public OrchestrationResult orchestrateWorkflow(String request){
         logger.info("Starting workflow orchestration for request: {}", request);
         var result = new OrchestrationResult();
+        var observability = new OrchestrationObservability();
+        result.setObservability(observability);
 
         // INTENT DETECTION
         var intentRes = runIntentDetection(request);
@@ -59,12 +60,12 @@ public class WorkflowOrchestrator {
         ExecutionContext initialContext = runInputMapper(workflowInstance, intentRes.getUserVariables(), request);
 
         // EXECUTION
-        var executionRes = runWorkflow(workflowInstance, initialContext);
+        var finalContext = runWorkflow(workflowInstance, initialContext, observability);
 
 
         logger.debug("Workflow execution completed for request: {}", request);
 
-        var output = extractOutputs(executionRes.first(), workflowInstance);
+        var output = extractOutputs(finalContext, workflowInstance);
         result.setOutput(output);
 
         return result;
@@ -167,13 +168,15 @@ public class WorkflowOrchestrator {
      * Run a workflow
      * @param workflowInstance The instance of the workflow to execute
      * @param context The initial execution context
+     * @param orchestrationObservability Orchestration Observability object to track comprehensive observability
      * @return Returns the final execution context
      */
-    private Pair<ExecutionContext, WorkflowObservabilityReport> runWorkflow(WorkflowInstance workflowInstance, ExecutionContext context) {
+    private ExecutionContext runWorkflow(WorkflowInstance workflowInstance, ExecutionContext context, OrchestrationObservability orchestrationObservability) {
         logger.debug("Obtained workflow executor for instance: {}", workflowInstance.getId());
         ExecutionContext clonedContext = new ExecutionContext(context);
-        var ob = workflowExecutor.execute(workflowInstance, context);
-        return new Pair<>(clonedContext, ob);
+        var ob = workflowExecutor.execute(workflowInstance, clonedContext);
+        orchestrationObservability.setWorkflowObservabilityReport(ob);
+        return clonedContext;
     }
 
     /**
@@ -207,6 +210,11 @@ public class WorkflowOrchestrator {
     @Data
     public static class OrchestrationResult {
         Map<String, Object> output;
+        OrchestrationObservability observability;
+    }
+
+    @Data
+    static class OrchestrationObservability {
         WorkflowObservabilityReport workflowObservabilityReport;
     }
 }
