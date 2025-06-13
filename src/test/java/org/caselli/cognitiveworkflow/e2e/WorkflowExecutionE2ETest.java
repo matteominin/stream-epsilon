@@ -274,7 +274,6 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
         edge12.setSourceNodeId("1");
         edge12.setTargetNodeId("2");
 
-
         WorkflowEdge edge14 = new WorkflowEdge();
         edge14.setSourceNodeId("1");
         edge14.setTargetNodeId("4");
@@ -357,7 +356,7 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
 
         // Test that the workflow port adaptor service was called
         // The service should be called 2 times as there are two missing explicit bindings
-        // between node 2 (embedding) -> 3 (db) and 3 (db) -> (llm)
+        // between node 2 (embedding) -> 3 (db) and 3 (db) -> 4 (llm)
         verify(workflowPortAdaptorService, times(2)).adaptPorts(any(),any());
 
         // Test that now the workflow bindings have been saved in the model
