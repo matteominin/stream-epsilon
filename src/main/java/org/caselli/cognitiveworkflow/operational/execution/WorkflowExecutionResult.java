@@ -2,6 +2,9 @@ package org.caselli.cognitiveworkflow.operational.execution;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Data;
 import lombok.Getter;
 
@@ -23,10 +26,10 @@ public class WorkflowExecutionResult {
     private String errorMessage;
     private Throwable exception;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private final Instant startTime;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Instant endTime;
 
     private Duration totalExecutionTime;
@@ -48,6 +51,24 @@ public class WorkflowExecutionResult {
         this.workflowName = workflowName;
         this.startTime = Instant.now();
         this.success = false;
+    }
+
+    /**
+     * Convert the class to a JSON string
+     * @return A JSON String
+     */
+    public String toJson() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            mapper.disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+            return mapper.writeValueAsString(this);
+        } catch (Exception e) {
+            return "Error serializing to JSON: " + e.getMessage();
+        }
     }
 
     /**
@@ -160,28 +181,20 @@ public class WorkflowExecutionResult {
     }
 
 
-
-    public Map<String, NodeExecutionDetail> getNodeExecutions() { return new HashMap<>(nodeExecutions); }
-    public List<String> getExecutionOrder() { return new ArrayList<>(executionOrder); }
-    public List<EdgeEvaluationDetail> getEdgeEvaluations() { return new ArrayList<>(edgeEvaluations); }
-    public List<PortAdaptationDetail> getPortAdaptations() { return new ArrayList<>(portAdaptations); }
-    public Map<String, Map<String, Object>> getContextSnapshots() { return new HashMap<>(contextSnapshots); }
-
     /**
      * Detailed execution information for a single node
      */
     @Getter
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class NodeExecutionDetail {
-        // Getters
         private final String nodeId;
         private final String nodeName;
         private final String nodeType;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
         private Instant startTime;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
         private Instant endTime;
 
         private Duration executionTime;
@@ -213,8 +226,7 @@ public class WorkflowExecutionResult {
             this.memoryUsedBytes = runtime.totalMemory() - runtime.freeMemory();
         }
 
-        public void recordCompletion(boolean success, String errorMessage,
-                                     Throwable exception, ExecutionContext outputContext) {
+        public void recordCompletion(boolean success, String errorMessage, Throwable exception, ExecutionContext outputContext) {
             this.endTime = Instant.now();
             this.executionTime = Duration.between(startTime, endTime);
             this.success = success;
@@ -236,7 +248,6 @@ public class WorkflowExecutionResult {
             }
             return snapshot;
         }
-
     }
 
     /**
@@ -252,7 +263,7 @@ public class WorkflowExecutionResult {
         private final String conditionDetails;
         private final Map<String, String> appliedBindings;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
         private final Instant evaluationTime;
 
         public EdgeEvaluationDetail(String sourceNodeId, String targetNodeId, String edgeId,
@@ -266,7 +277,6 @@ public class WorkflowExecutionResult {
             this.appliedBindings = appliedBindings != null ? new HashMap<>(appliedBindings) : null;
             this.evaluationTime = evaluationTime;
         }
-
     }
 
     /**
@@ -275,13 +285,12 @@ public class WorkflowExecutionResult {
     @Getter
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class PortAdaptationDetail {
-        // Getters
         private final String nodeId;
         private final List<String> missingInputs;
         private final Map<String, String> suggestedBindings;
         private final boolean successful;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
         private final Instant adaptationTime;
 
         public PortAdaptationDetail(String nodeId, List<String> missingInputs,
@@ -293,7 +302,6 @@ public class WorkflowExecutionResult {
             this.successful = successful;
             this.adaptationTime = adaptationTime;
         }
-
     }
 
     /**
