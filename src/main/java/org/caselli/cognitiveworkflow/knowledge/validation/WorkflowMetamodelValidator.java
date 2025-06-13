@@ -34,7 +34,7 @@ public class WorkflowMetamodelValidator {
      * @return The NodeMetamodel if found, null otherwise
      */
     private NodeMetamodel getNodeMetamodelById(String nodeId) {
-        Optional<NodeMetamodel> res = nodeMetamodelService.getNodeById(nodeId);
+        Optional<NodeMetamodel> res = nodeMetamodelService.getById(nodeId);
         return res.orElse(null);
     }
 
@@ -115,9 +115,6 @@ public class WorkflowMetamodelValidator {
      * @param result Validation result
      */
     private void validateBasicProperties(WorkflowMetamodel workflow, ValidationResult result) {
-        if (workflow.getId() == null || workflow.getId().isEmpty())
-            result.addError("Workflow ID cannot be null or empty", "workflow.id");
-
 
         if (workflow.getName() == null || workflow.getName().isEmpty())
             result.addError("Workflow name cannot be null or empty", "workflow.name");
@@ -164,8 +161,12 @@ public class WorkflowMetamodelValidator {
 
 
             // Check if node exists in the repository
-            if (getNodeMetamodelById(nodeId) == null)
-                result.addError("Referenced node does not exist in repository: " + nodeId, "workflow.nodes");
+            var nodeMetamodel = getNodeMetamodelById(nodeId);
+            if (nodeMetamodel == null) result.addError("Referenced node does not exist in repository: " + nodeId, "workflow.nodes");
+            else if (!nodeMetamodel.getIsLatest()) {
+                // Check if the node has a newer version
+                result.addWarning("Workflow is using the node " + nodeId + " which has a newer version. Consider updating the dependency", "workflow.nodes");
+            }
         }
     }
 

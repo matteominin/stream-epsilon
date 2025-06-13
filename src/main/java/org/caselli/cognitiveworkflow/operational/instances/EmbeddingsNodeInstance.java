@@ -123,4 +123,13 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
         }
         return embeddingModel;
     }
+
+
+    @Override
+    public void handleRefreshNode(){
+        // Delete the current model
+        this.embeddingModel = null;
+        // Build the new model
+        getEmbeddingsModel();
+    }
 }

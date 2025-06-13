@@ -2,7 +2,6 @@ package org.caselli.cognitiveworkflow.knowledge.model.workflow;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 import java.util.UUID;
@@ -19,8 +18,4 @@ public class WorkflowNode {
     /** The ID of the metamodel of the node*/
     @NotNull
     private String nodeMetamodelId;
-
-    /* Specific version of the metamodel */
-    @NotNull
-    private Version version;
 }

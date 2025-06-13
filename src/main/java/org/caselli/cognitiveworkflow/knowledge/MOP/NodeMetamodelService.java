@@ -17,7 +17,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -39,39 +38,85 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
     }
 
     /**
-     * Check if a node metamodel exists by ID.
-     */
-    @Cacheable(value = "nodeMetamodels", key = "#id")
-    public boolean existsById(String id) {
-        return repository.existsById(id);
-    }
-
-    /**
      * Get a specific Node Metamodel By Id
      * @param id Id of the metamodel
      * @return The requested node
      */
     @Cacheable(value = "nodeMetamodels", key = "#id")
-    public Optional<NodeMetamodel> getNodeById(String id) {
+    public Optional<NodeMetamodel> getById(String id) {
         return repository.findById(id);
     }
+
+
+    /**
+     * Get the latest version of a node family
+     * @param familyId The family ID
+     * @return Optional containing the latest version
+     */
+    @Cacheable(value = "nodeMetamodels", key = "'family_' + #familyId + '_latest'")
+    public Optional<NodeMetamodel> getLatestVersionByFamilyId(String familyId) {
+        return repository.findByFamilyIdAndIsLatestTrue(familyId);
+    }
+
 
     /**
      * Update an existing Node Metamodel
      * Updates the MongoDB document and notifies the Operational Layer
-     * @param id Id of the Node Metamodel
+     * @param familyId Id of the Node Metamodel Family
      * @param updatedData New Metamodel
      * @return Return the newly saved Document
      */
-    @CacheEvict(value = "nodeMetamodels", key = "#id")
-    public NodeMetamodel updateNode(String id, NodeMetamodel updatedData) {
+    @CacheEvict(value = "nodeMetamodels", allEntries = true)
+    public NodeMetamodel updateNode(String familyId, NodeMetamodel updatedData) {
         // Check if the documents exists
-        repository.findById(id).orElseThrow(() -> new IllegalArgumentException("NodeMetamodel with id " + id + " does not exist."));
-        NodeMetamodel saved = repository.save(updatedData);
-        // Notify the Operational Level of the modification
-        eventPublisher.publishEvent(new NodeMetamodelUpdateEvent(id, saved));
+        var old = repository.findByFamilyIdAndIsLatestTrue(familyId);
+        if(old.isEmpty()) throw new IllegalArgumentException("NodeMetamodel with familyId " + familyId + " does not exist.");
+        var oldVersionDoc = old.get();
 
-        return saved;
+
+        // Check the the type of update
+        var isBreaking = (updatedData.getVersion().getMajor() - old.get().getVersion().getMajor() ) > 0;
+
+        if( isBreaking ){
+            // If it's a breaking change:
+
+            // 1) Clone the metamodel
+            updatedData.setId(UUID.randomUUID().toString()); // Overwrite the metamodel id to make it a new document
+            updatedData.setIsLatest(true); // Set it as the latest version
+            updatedData.setFamilyId(oldVersionDoc.getFamilyId()); // Family ID
+
+            // 2) Save the cloned metamodel as a new metamodel in the repository
+            NodeMetamodel saved = repository.save(updatedData);
+
+
+            // 3) Update the old metamodel
+            oldVersionDoc.setIsLatest(false);
+            repository.save(oldVersionDoc);
+
+
+            return saved;
+        }
+
+        else {
+            // If it is not a breaking change:
+
+            // 1) Update the model
+            updatedData.setId(oldVersionDoc.getId());
+            updatedData.setFamilyId(oldVersionDoc.getFamilyId());
+
+            updatedData.setUpdatedAt(LocalDateTime.now()); // Set the updated date
+            updatedData.setIsLatest(true); // Set the node as the latest of its family
+
+
+
+            NodeMetamodel saved = repository.save(updatedData);
+
+            // 2) Notify the Operational Level of the modification
+            eventPublisher.publishEvent(new NodeMetamodelUpdateEvent(updatedData.getId(), saved));
+
+            return saved;
+
+        }
     }
 
     /**
@@ -171,7 +216,10 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      */
     private NodeMetamodel createBaseNodeMetamodel(NodeMetamodel nodeMetamodel) throws BadRequestException {
         nodeMetamodel.setId(UUID.randomUUID().toString()); // Ignore the pre-existing ID
-        nodeMetamodel.setCreatedAt(LocalDateTime.now());
+        nodeMetamodel.setFamilyId(UUID.randomUUID().toString()); // Ignore the pre-existing Family Id
+        nodeMetamodel.setCreatedAt(LocalDateTime.now()); // Set the created date
+        nodeMetamodel.setUpdatedAt(LocalDateTime.now()); // Set the updated date
+        nodeMetamodel.setIsLatest(true); // Set the node as the latest of its family
         // Validate
         var res = nodeMetamodelValidator.validate(nodeMetamodel);
         if(!res.isValid()) throw new BadRequestException("NodeMetamodel is not valid: " + res.getErrors());

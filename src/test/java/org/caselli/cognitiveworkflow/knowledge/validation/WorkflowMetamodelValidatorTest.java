@@ -78,12 +78,12 @@ public class WorkflowMetamodelValidatorTest {
         RestPort IA2 = createStringPort("I_A_1");
         RestPort OA1 = createStringPort("O_A_1");
         NodeMetamodel nodeA = createNode("node_A", List.of(IA1, IA2), List.of(OA1));
-        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(nodeA));
+        when(nodeMetamodelService.getById("node_A")).thenReturn(Optional.of(nodeA));
 
         RestPort IB1 = createStringPort("O_A_1");  // <---- IMPLICIT BINDING: OA1 => IB1
         RestPort OB1 = createStringPort("O_B_1");
         NodeMetamodel nodeB = createNode("node_B", List.of(IB1), List.of(OB1));
-        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(nodeB));
+        when(nodeMetamodelService.getById("node_B")).thenReturn(Optional.of(nodeB));
 
 
         WorkflowNode wNodeA = new WorkflowNode();
@@ -116,12 +116,12 @@ public class WorkflowMetamodelValidatorTest {
         RestPort IA2 = createStringPort("I_A_1");
         RestPort OA1 = createStringPort("O_A_1");
         NodeMetamodel nodeA = createNode("node_A", List.of(IA1, IA2), List.of(OA1));
-        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(nodeA));
+        when(nodeMetamodelService.getById("node_A")).thenReturn(Optional.of(nodeA));
 
         RestPort IB1 = createStringPort("NO_MATCHING");  // <---- NO MATCHING
         RestPort OB1 = createStringPort("O_B_1");
         NodeMetamodel nodeB = createNode("node_B", List.of(IB1), List.of(OB1));
-        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(nodeB));
+        when(nodeMetamodelService.getById("node_B")).thenReturn(Optional.of(nodeB));
 
 
         WorkflowNode wNodeA = new WorkflowNode();
@@ -155,12 +155,12 @@ public class WorkflowMetamodelValidatorTest {
         RestPort IA2 = createStringPort("I_A_1");
         RestPort OA1 = createStringPort("O_A_1");
         NodeMetamodel nodeA = createNode("node_A", List.of(IA1, IA2), List.of(OA1));
-        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(nodeA));
+        when(nodeMetamodelService.getById("node_A")).thenReturn(Optional.of(nodeA));
 
         RestPort IB1 = createStringPort("NO_MATCHING");  // <---- NO MATCHING
         RestPort OB1 = createStringPort("O_B_1");
         NodeMetamodel nodeB = createNode("node_B", List.of(IB1), List.of(OB1));
-        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(nodeB));
+        when(nodeMetamodelService.getById("node_B")).thenReturn(Optional.of(nodeB));
 
 
         WorkflowNode wNodeA = new WorkflowNode();
@@ -194,12 +194,12 @@ public class WorkflowMetamodelValidatorTest {
         RestPort IA2 = createStringPort("I_A_1");
         RestPort OA1 = createStringPort("O_A_1");
         NodeMetamodel nodeA = createNode("node_A", List.of(IA1, IA2), List.of(OA1));
-        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(nodeA));
+        when(nodeMetamodelService.getById("node_A")).thenReturn(Optional.of(nodeA));
 
         RestPort IB1 = createStringPort("NO_MATCHING");  // <---- NO MATCHING
         RestPort OB1 = createStringPort("O_B_1");
         NodeMetamodel nodeB = createNode("node_B", List.of(IB1), List.of(OB1));
-        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(nodeB));
+        when(nodeMetamodelService.getById("node_B")).thenReturn(Optional.of(nodeB));
 
 
         WorkflowNode wNodeA = new WorkflowNode();
@@ -267,10 +267,10 @@ public class WorkflowMetamodelValidatorTest {
         edge4.setSourceNodeId("B");
         edge4.setTargetNodeId("D");
 
-        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(createNode("node_A", List.of(), List.of())));
-        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(createNode("node_B", List.of(), List.of())));
-        when(nodeMetamodelService.getNodeById("node_C")).thenReturn(Optional.of(createNode("node_C", List.of(), List.of())));
-        when(nodeMetamodelService.getNodeById("node_D")).thenReturn(Optional.of(createNode("node_D", List.of(), List.of())));
+        when(nodeMetamodelService.getById("node_A")).thenReturn(Optional.of(createNode("node_A", List.of(), List.of())));
+        when(nodeMetamodelService.getById("node_B")).thenReturn(Optional.of(createNode("node_B", List.of(), List.of())));
+        when(nodeMetamodelService.getById("node_C")).thenReturn(Optional.of(createNode("node_C", List.of(), List.of())));
+        when(nodeMetamodelService.getById("node_D")).thenReturn(Optional.of(createNode("node_D", List.of(), List.of())));
 
         WorkflowMetamodel workflow = createWorkflow("cyclic",
                 List.of(wNodeA, wNodeB, wNodeC, wNodeD),
@@ -307,8 +307,8 @@ public class WorkflowMetamodelValidatorTest {
         edge2.setTargetNodeId("A");
 
 
-        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(createNode("node_A", List.of(), List.of())));
-        when(nodeMetamodelService.getNodeById("node_B")).thenReturn(Optional.of(createNode("node_B", List.of(), List.of())));
+        when(nodeMetamodelService.getById("node_A")).thenReturn(Optional.of(createNode("node_A", List.of(), List.of())));
+        when(nodeMetamodelService.getById("node_B")).thenReturn(Optional.of(createNode("node_B", List.of(), List.of())));
 
         WorkflowMetamodel workflow = createWorkflow("cyclic",
                 List.of(wNodeA, wNodeB),
@@ -332,7 +332,7 @@ public class WorkflowMetamodelValidatorTest {
         edge.setSourceNodeId("A");
         edge.setTargetNodeId("nonexistent_node");
 
-        when(nodeMetamodelService.getNodeById("node_A")).thenReturn(Optional.of(createNode("node_A", List.of(), List.of())));
+        when(nodeMetamodelService.getById("node_A")).thenReturn(Optional.of(createNode("node_A", List.of(), List.of())));
 
         WorkflowMetamodel workflow = createWorkflow("invalid_edge", List.of(wNode), List.of(edge));
         var res = validator.validate(workflow);
@@ -361,7 +361,7 @@ public class WorkflowMetamodelValidatorTest {
         wNode.setId("A");
         wNode.setNodeMetamodelId("nonexistent_node");
 
-        when(nodeMetamodelService.getNodeById("nonexistent_node")).thenReturn(Optional.empty());
+        when(nodeMetamodelService.getById("nonexistent_node")).thenReturn(Optional.empty());
 
         WorkflowMetamodel workflow = createWorkflow("invalid_ref", List.of(wNode), Collections.emptyList());
         var res = validator.validate(workflow);

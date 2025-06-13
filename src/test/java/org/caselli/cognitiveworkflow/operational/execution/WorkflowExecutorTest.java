@@ -35,6 +35,12 @@ class WorkflowExecutorTest {
     @Mock
     private WorkflowMetamodelService workflowMetamodelService;
 
+    @Mock
+    private WorkflowInstanceManager workflowInstanceManager;
+
+    @Mock
+    private NodeInstanceManager nodeInstanceManager;
+
     @InjectMocks
     private WorkflowExecutor executor;
 
