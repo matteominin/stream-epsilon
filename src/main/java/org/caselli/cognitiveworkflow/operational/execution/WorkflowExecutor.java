@@ -40,9 +40,9 @@ public class WorkflowExecutor {
      * @param context The execution context
      * @return Detailed execution result with performance metrics and observability data
      */
-    public WorkflowExecutionResult execute(WorkflowInstance workflow, ExecutionContext context) {
+    public WorkflowObservabilityReport execute(WorkflowInstance workflow, ExecutionContext context) {
         // Observability
-        WorkflowExecutionResult executionResult = new WorkflowExecutionResult(
+        WorkflowObservabilityReport executionResult = new WorkflowObservabilityReport(
                 workflow.getId(),
                 workflow.getMetamodel().getName() != null ? workflow.getMetamodel().getName() : "Unnamed Workflow"
         );
@@ -211,11 +211,9 @@ public class WorkflowExecutor {
             return executionResult;
 
         } catch (Exception e) {
-            // Ensure execution result is marked as failed if not already done
-            if (executionResult.isSuccess()) {
-                executionResult.markCompleted(false, e.getMessage(), e);
-            }
+            if (executionResult.isSuccess()) executionResult.markCompleted(false, e.getMessage(), e);
             throw e;
+
         } finally {
             // Mark the workflow as no longer in execution
             workflowInstanceManager.markFinished(workflow.getId());
@@ -229,7 +227,7 @@ public class WorkflowExecutor {
      * @param executionResult The execution result for observaiility
      * @return true if the condition passes or there is no condition, false otherwise
      */
-    private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context, WorkflowExecutionResult executionResult) {
+    private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context, WorkflowObservabilityReport executionResult) {
         WorkflowEdge.Condition cond = edge.getCondition();
         if (cond == null) return true;
 
@@ -264,7 +262,7 @@ public class WorkflowExecutor {
      * @throws RuntimeException if required inputs cannot be satisfied through port adaptation
      */
     private void ensureRequiredInputsSatisfied(WorkflowInstance workflowInstance, String currentId,
-                                               ExecutionContext context, WorkflowExecutionResult executionResult) {
+                                               ExecutionContext context, WorkflowObservabilityReport executionResult) {
         NodeInstance node = workflowInstance.getInstanceByWorkflowNodeId(currentId);
         List<String> missingRequiredInputs = getUnsatisfiedInputs(node, context);
 
@@ -289,7 +287,7 @@ public class WorkflowExecutor {
      */
     private boolean attemptPortAdaptationWithTracking(WorkflowInstance workflowInstance, String currentId,
                                                       ExecutionContext context, List<String> missingRequiredInputs,
-                                                      WorkflowExecutionResult executionResult) {
+                                                      WorkflowObservabilityReport executionResult) {
 
         NodeInstance node = workflowInstance.getInstanceByWorkflowNodeId(currentId);
         Map<WorkflowEdge, Map<String, String>> newBindingsPerEdge = new HashMap<>();
@@ -538,9 +536,8 @@ public class WorkflowExecutor {
     private List<String> getUnsatisfiedInputs(NodeInstance node, ExecutionContext context) {
         List<String> unsatisfied = new ArrayList<>();
         for (Port port : node.getMetamodel().getInputPorts()) {
-            if (port.getSchema() != null && port.getSchema().getRequired() != null && port.getSchema().getRequired() && !context.containsKey(port.getKey())) {
+            if (port.getSchema() != null && port.getSchema().getRequired() != null && port.getSchema().getRequired() && !context.containsKey(port.getKey()))
                 unsatisfied.add(port.getKey());
-            }
         }
         return unsatisfied;
     }

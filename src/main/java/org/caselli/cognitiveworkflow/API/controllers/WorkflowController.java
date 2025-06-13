@@ -5,7 +5,6 @@ import jakarta.validation.Valid;
 import lombok.Data;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
-import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.operational.execution.WorkflowOrchestrator;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Optional;
 
 @Validated
 @RestController
@@ -67,13 +65,13 @@ public class WorkflowController {
     @PostMapping("/execute")
     public ResponseEntity<Object> execute(@RequestBody ExecuteDTO request) {
         long startTime = System.nanoTime();
-        var context = workflowOrchestrator.orchestrateWorkflowExecution(request.request);
+        var res = workflowOrchestrator.orchestrateWorkflow(request.request);
         long endTime = System.nanoTime();
         long duration = endTime - startTime;
         System.out.println("Execution time: " + duration + " nanoseconds");
 
 
-        return ResponseEntity.ok(context);
+        return ResponseEntity.ok(res);
     }
 
     @Data

@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Data;
 import lombok.Getter;
-
 import java.time.Instant;
 import java.time.Duration;
 import java.util.*;
@@ -18,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-public class WorkflowExecutionResult {
+public class WorkflowObservabilityReport {
 
     private final String workflowId;
     private final String workflowName;
@@ -46,7 +45,7 @@ public class WorkflowExecutionResult {
 
     private final WorkflowExecutionMetrics metrics = new WorkflowExecutionMetrics();
 
-    public WorkflowExecutionResult(String workflowId, String workflowName) {
+    public WorkflowObservabilityReport(String workflowId, String workflowName) {
         this.workflowId = workflowId;
         this.workflowName = workflowName;
         this.startTime = Instant.now();
@@ -147,8 +146,7 @@ public class WorkflowExecutionResult {
      */
     private void calculateMetrics() {
         metrics.totalNodes = nodeExecutions.size();
-        metrics.successfulNodes = (int) nodeExecutions.values().stream()
-                .mapToLong(n -> n.success ? 1 : 0).sum();
+        metrics.successfulNodes = (int) nodeExecutions.values().stream().mapToLong(n -> n.success ? 1 : 0).sum();
         metrics.failedNodes = metrics.totalNodes - metrics.successfulNodes;
 
         // Timing statistics

@@ -1,5 +1,6 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
+import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
@@ -43,8 +44,42 @@ public class WorkflowOrchestrator {
      * @param request The user request to be processed
      * @throws RuntimeException if intent cannot be satisfied or no workflow is available
      */
-    public Map<String, Object> orchestrateWorkflowExecution(String request){
+    public OrchestrationResult orchestrateWorkflow(String request){
         logger.info("Starting workflow orchestration for request: {}", request);
+        var result = new OrchestrationResult();
+
+        // INTENT DETECTION
+        var intentRes = runIntentDetection(request);
+
+        // ROUTING
+        var workflowInstance = runRouting(intentRes.getIntentId());
+
+        // INPUT MAPPING
+        ExecutionContext initialContext = runInputMapper(workflowInstance, intentRes.getUserVariables(), request);
+
+        // EXECUTION
+        ExecutionContext finalContext = runWorkflow(workflowInstance, initialContext);
+
+
+        logger.debug("Workflow execution completed for request: {}", request);
+
+        var output = extractOutputs(finalContext, workflowInstance);
+        result.setOutput(output);
+
+        return result;
+
+    }
+
+
+    /**
+     * Run the intent detection
+     * If the detected intent is new, saves it in the catalog in the Knowledge Layer
+     * @param request The user's request
+     * @return Returns the intent detection result if an intent is found
+     * @throws RuntimeException if no intent is detected
+     */
+    private IntentDetectionService.IntentDetectionResponse.IntentDetectorResult runIntentDetection(String request){
+        logger.info("Detecting intent for request: {}", request);
 
         var intentRes = intentDetectionService.detect(request);
         logger.info("Intent detection result: {}", intentRes);
@@ -75,7 +110,16 @@ public class WorkflowOrchestrator {
             throw new RuntimeException("Intent cannot be satisfied.");
         }
 
-        // ROUTING
+        return intentRes;
+    }
+
+    /**
+     * Routes the user request to an available workflow
+     * @param intentId The intent detected by teh user's request
+     * @return The instance of the workflow that handles the request
+    * @throws RuntimeException if no workflow is found
+     */
+    private WorkflowInstance runRouting(String intentId){
         logger.info("Routing workflow for intent ID: {}", intentId);
         WorkflowInstance workflowInstance = routingManager.routeWorkflowRequest(intentId);
         if (workflowInstance == null) {
@@ -83,26 +127,20 @@ public class WorkflowOrchestrator {
             throw new RuntimeException("No workflow available to handle intent: " + intentId);
         }
         logger.info("Successfully routed to workflow instance: {}", workflowInstance.getId());
-
-        // EXECUTION
-        var userVariables = intentRes.getUserVariables();
-        logger.info("Starting workflow with variables: {}", userVariables);
-        var context = startWorkflow(workflowInstance, userVariables, request);
-
-
-        logger.debug("Workflow execution completed for request: {}", request);
-
-        return extractOutputs(context, workflowInstance);
+        return workflowInstance;
     }
 
+
     /**
-     * Start the execution of a workflow. Maps unstructured variables to the input ports
-     * @param workflowInstance The instance of the workflow to execute
-     * @param variables The variables of the user
-     * @return Returns the final execution context
+     * Execute the Input Mapper
+     * @param workflowInstance Instance of the workflow to execute
+     * @param variables Extracted variables
+     * @param userRequest User's request
+     * @return Returns the initial execution context
      */
-    private ExecutionContext startWorkflow(WorkflowInstance workflowInstance, Map<String,Object> variables, String userRequest) {
-        logger.debug("Starting workflow instance: {}", workflowInstance.getId());
+    private ExecutionContext runInputMapper(WorkflowInstance workflowInstance, Map<String, Object> variables, String userRequest){
+
+        logger.info("Starting workflow with variables: {}", variables);
 
         // Get the entry points of the workflow
         Set<String> entryPointIDs = workflowInstance.getMetamodel().getEntryNodes();
@@ -120,11 +158,19 @@ public class WorkflowOrchestrator {
             throw new RuntimeException("Workflow Failed to start: no starting node can be found.");
         }
 
-        ExecutionContext context = inputMapping.getContext();
+        return inputMapping.getContext();
+    }
 
+
+    /**
+     * Run a workflow
+     * @param workflowInstance The instance of the workflow to execute
+     * @param context The initial execution context
+     * @return Returns the final execution context
+     */
+    private ExecutionContext runWorkflow(WorkflowInstance workflowInstance, ExecutionContext context) {
         logger.debug("Obtained workflow executor for instance: {}", workflowInstance.getId());
         workflowExecutor.execute(workflowInstance, context);
-
         return context;
     }
 
@@ -153,5 +199,14 @@ public class WorkflowOrchestrator {
         }
 
         return res;
+    }
+
+
+
+
+    @Data
+    public static class OrchestrationResult {
+        Map<String, Object> output;
+        WorkflowObservabilityReport workflowObservabilityReport;
     }
 }
