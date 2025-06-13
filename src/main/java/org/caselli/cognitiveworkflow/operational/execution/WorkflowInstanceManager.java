@@ -117,7 +117,8 @@ public class WorkflowInstanceManager {
      * @return Returns true if there is at least one instance of the workflow that is being executed
      */
     public boolean isRunning(String workflowId) {
-        return runningWorkflows.containsKey(workflowId);
+        var val = runningWorkflows.get(workflowId);
+        return val != null && val.get() > 0;
     }
 
     /**
@@ -145,7 +146,7 @@ public class WorkflowInstanceManager {
             // If the workflow is running or the update is breaking, no hot-swapping
             if(isRunning(id) || isBreaking){
 
-                if(isBreaking) this.logger.info("Workflow instance {} is already running: no hot-swap, marking it as deprecated", instance.get().getId());
+                if(!isBreaking) this.logger.info("Workflow instance {} is already running: no hot-swap, marking it as deprecated", instance.get().getId());
                 else this.logger.info("Workflow instance {} had a breaking change update: no hot-swap, marking it as deprecated", instance.get().getId());
 
                 // Re-Installation
@@ -155,7 +156,6 @@ public class WorkflowInstanceManager {
 
             } else {
                 // HOT-SWAP
-
                 this.logger.info("Hot-swapping workflow instance {} metamodel", instance.get().getId());
 
                 // Directly update the metamodel

@@ -161,8 +161,12 @@ public class WorkflowMetamodelValidator {
 
 
             // Check if node exists in the repository
-            if (getNodeMetamodelById(nodeId) == null)
-                result.addError("Referenced node does not exist in repository: " + nodeId, "workflow.nodes");
+            var nodeMetamodel = getNodeMetamodelById(nodeId);
+            if (nodeMetamodel == null) result.addError("Referenced node does not exist in repository: " + nodeId, "workflow.nodes");
+            else if (!nodeMetamodel.getIsLatest()) {
+                // Check if the node has a newer version
+                result.addWarning("Workflow is using the node " + nodeId + " which has a newer version. Consider updating the dependency", "workflow.nodes");
+            }
         }
     }
 

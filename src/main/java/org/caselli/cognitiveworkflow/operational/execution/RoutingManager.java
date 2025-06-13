@@ -52,8 +52,16 @@ public class RoutingManager {
             // Select best workflow based on score
             WorkflowInstance bestDefinition = TemperatureSampler.sapleSortedList(existingInstances, temperature);
             if(bestDefinition != null) {
+
                 logger.info("Running instance for workflow handling the intent with ID {} was found", intentId);
-                return bestDefinition;
+
+                // Instead of directly return the instance, we call the workflowInstanceManager
+                // to get the instance of that metamodel
+                // This is fundamental as the method 'getOrCreate' check if the instance is marked as 'deprecated'
+                // as in case it is and it is not running, it re-creates it with the new metamodel version.
+                // Therefore, without calling 'getOrCreate', deprecated version are never removed
+                // (otherwise, we could create a sort of garbage collector scheduled to run periodically)
+                return this.workflowInstanceManager.getOrCreate(bestDefinition.getMetamodel());
             }
         }
 
@@ -61,11 +69,15 @@ public class RoutingManager {
 
         // If no Workflow in memory can handle the intent:
         // Load workflow definition from catalog
-        List<WorkflowMetamodel> definitions = metamodelService.findTopNHandlingIntent(intentId, candidatesCount);
+        List<WorkflowMetamodel> candidates = metamodelService.findTopNHandlingIntent(intentId, candidatesCount);
 
-        if (definitions != null && !definitions.isEmpty()) {
+        if (candidates != null && !candidates.isEmpty()) {
             // Select best workflow based on score
-            WorkflowMetamodel bestDefinition = TemperatureSampler.sapleSortedList(definitions, temperature);
+            // For now we are using a temperature-based sampling technique in order to
+            // avoid to select always best workflow
+            // TODO: A future improvement could be to implement the routing selection as an LLM agent that select the best
+            // workflow not only for its score, but also for its capabilities and metadata
+            WorkflowMetamodel bestDefinition = TemperatureSampler.sapleSortedList(candidates, temperature);
 
             logger.info("Found a Workflow Metamodel handling the intent with ID {}. Creating a new instance", intentId);
 
@@ -73,10 +85,10 @@ public class RoutingManager {
             return workflowInstanceManager.getOrCreate(bestDefinition);
         }
 
-        // No pre-defined workflows are found in the SBOM.
+        // No pre-defined workflows are found in the catalog.
         else {
             // Try to combine Nodes
-            // TODO [...]
+            // TODO: Workflow Synthesis
 
             logger.info("No pre-existing workflow metamodels can handle the intent with ID {}", intentId);
 

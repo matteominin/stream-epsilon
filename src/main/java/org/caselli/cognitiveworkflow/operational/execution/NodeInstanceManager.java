@@ -116,11 +116,12 @@ public class NodeInstanceManager {
 
     /**
      * Check if a node in in execution
-     * @param nodeId Id of the node
+     * @param workflowId Id of the node
      * @return Returns true if there is at least one instance of the node that is being executed
      */
-    public boolean isRunning(String nodeId) {
-        return runningNodes.containsKey(nodeId);
+    public boolean isRunning(String workflowId) {
+        var val = runningNodes.get(workflowId);
+        return val != null && val.get() > 0;
     }
 
 
