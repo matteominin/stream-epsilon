@@ -3,11 +3,9 @@ package org.caselli.cognitiveworkflow.operational.execution;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.caselli.cognitiveworkflow.operational.utils.DurationToMillisSerializer;
 import java.time.Instant;
@@ -16,26 +14,15 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Execution result for workflow observability
+ * Workflow Execution report for observability
  */
+@EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-public class WorkflowObservabilityReport {
+public class WorkflowObservabilityReport extends ObservabilityReport {
 
     private final String workflowId;
     private final String workflowName;
-    private boolean success;
-    private String errorMessage;
-    private Throwable exception;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
-    private final Instant startTime;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
-    private Instant endTime;
-
-    @JsonSerialize(using = DurationToMillisSerializer.class)
-    private Duration totalExecutionTime;
 
     private final Map<String, NodeExecutionDetail> nodeExecutions = new ConcurrentHashMap<>();
 
@@ -55,39 +42,15 @@ public class WorkflowObservabilityReport {
     public WorkflowObservabilityReport(String workflowId, String workflowName, ExecutionContext initialContext) {
         this.workflowId = workflowId;
         this.workflowName = workflowName;
-        this.startTime = Instant.now();
-        this.success = false;
         this.initialContext = new ExecutionContext(initialContext); // deep copy
-    }
-
-    /**
-     * Convert the class to a JSON string
-     * @return A JSON String
-     */
-    public String toJson() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            mapper.disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
-            mapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-            return mapper.writeValueAsString(this);
-        } catch (Exception e) {
-            return "Error serializing to JSON: " + e.getMessage();
-        }
     }
 
     /**
      * Marks the workflow execution as completed
      */
+    @Override
     public void markCompleted(boolean success, String errorMessage, Throwable exception) {
-        this.endTime = Instant.now();
-        this.totalExecutionTime = Duration.between(startTime, endTime);
-        this.success = success;
-        this.errorMessage = errorMessage;
-        this.exception = exception;
-
+        super.markCompleted(success, errorMessage, exception);
         calculateMetrics();
     }
 
