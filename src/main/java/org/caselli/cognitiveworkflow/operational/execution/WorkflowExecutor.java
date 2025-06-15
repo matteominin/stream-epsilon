@@ -42,14 +42,15 @@ public class WorkflowExecutor {
      */
     public WorkflowObservabilityReport execute(WorkflowInstance workflow, ExecutionContext context) {
         // Observability
-        WorkflowObservabilityReport executionResult = new WorkflowObservabilityReport(
+        WorkflowObservabilityReport executionRecord = new WorkflowObservabilityReport(
                 workflow.getId(),
-                workflow.getMetamodel().getName() != null ? workflow.getMetamodel().getName() : "Unnamed Workflow"
+                workflow.getMetamodel().getName(),
+                context
         );
 
         try {
             logger.info("-------------------------------------------");
-            logger.info("Starting workflow execution: {} (ID: {})", executionResult.getWorkflowName(), workflow.getId());
+            logger.info("Starting workflow execution: {} (ID: {})", executionRecord.getWorkflowName(), workflow.getId());
 
             // Mark the workflow as in execution
             workflowInstanceManager.markRunning(workflow.getId());
@@ -57,7 +58,7 @@ public class WorkflowExecutor {
             // Check if the workflow is enabled
             if (!workflow.getMetamodel().getEnabled()) {
                 String errorMsg = "Cannot execute Workflow " + workflow.getId() + ". It is not enabled.";
-                executionResult.markCompleted(false, errorMsg, new RuntimeException(errorMsg));
+                executionRecord.markCompleted(false, errorMsg, new RuntimeException(errorMsg));
                 throw new RuntimeException(errorMsg);
             }
 
@@ -101,7 +102,7 @@ public class WorkflowExecutor {
                 }
 
                 // Record node execution start
-                executionResult.recordNodeStart(
+                executionRecord.recordNodeStart(
                         currentId,
                         current.getMetamodel().getName() != null ? current.getMetamodel().getName() : "Unnamed Node",
                         current.getMetamodel().getClass().getSimpleName(),
@@ -116,7 +117,7 @@ public class WorkflowExecutor {
                     prepareNodeInputs(current, context);
 
                     // Check if all required input ports are present
-                    ensureRequiredInputsSatisfied(workflow, currentId, context, executionResult);
+                    ensureRequiredInputsSatisfied(workflow, currentId, context, executionRecord);
 
                     logger.info("Current context keys: {}", context.keySet());
 
@@ -128,7 +129,7 @@ public class WorkflowExecutor {
                     processedNodeIds.add(currentId);
 
                     logger.info("Node {} executed successfully", currentId);
-                    executionResult.recordNodeCompletion(currentId, true, nodeErrorMessage, nodeException, context);
+                    executionRecord.recordNodeCompletion(currentId, true, nodeErrorMessage, nodeException, context);
 
 
                 } catch (Exception e) {
@@ -136,8 +137,8 @@ public class WorkflowExecutor {
                     nodeException = e;
 
                     logger.error("Error processing node {}: {}", currentId, e.getMessage(), e);
-                    executionResult.recordNodeCompletion(currentId, false, nodeErrorMessage, nodeException, context);
-                    executionResult.markCompleted(false, "Node execution failed: " + currentId, e);
+                    executionRecord.recordNodeCompletion(currentId, false, nodeErrorMessage, nodeException, context);
+                    executionRecord.markCompleted(false, "Node execution failed: " + currentId, e);
                     throw new RuntimeException("Error processing node " + currentId, e);
 
                 } finally {
@@ -173,7 +174,7 @@ public class WorkflowExecutor {
                         }
 
                         // Record edge evaluation
-                        executionResult.recordEdgeEvaluation(currentId, targetId, edge.getId(), true, "Condition passed", appliedBindings);
+                        executionRecord.recordEdgeEvaluation(currentId, targetId, edge.getId(), true, "Condition passed", appliedBindings);
 
                         // Decrement in-degree
                         inDegree.compute(targetId, (k, v) -> (v == null ? 0 : v) - 1);
@@ -185,33 +186,33 @@ public class WorkflowExecutor {
                         }
                     } else {
                         // Record failed edge evaluation
-                        executionResult.recordEdgeEvaluation(currentId, targetId, edge.getId(), false, "Condition not met", null);
+                        executionRecord.recordEdgeEvaluation(currentId, targetId, edge.getId(), false, "Condition not met", null);
                         logger.info("Edge condition from {} to {} is not met", currentId, targetId);
                     }
                 }
             }
 
             // Mark workflow as successfully completed
-            executionResult.markCompleted(true, null, null);
+            executionRecord.markCompleted(true, null, null);
 
             logger.info("-------------------------------------------");
             logger.info("Workflow execution completed successfully. Metrics: ");
             logger.info("Processed nodes={}", processedNodeIds);
-            logger.info("Total execution time: {} ms", executionResult.getTotalExecutionTime().toMillis());
+            logger.info("Total execution time: {} ms", executionRecord.getTotalExecutionTime().toMillis());
             logger.info("{} total nodes, {} successful, {} failed",
-                    executionResult.getMetrics().getTotalNodes(),
-                    executionResult.getMetrics().getSuccessfulNodes(),
-                    executionResult.getMetrics().getFailedNodes());
+                    executionRecord.getMetrics().getTotalNodes(),
+                    executionRecord.getMetrics().getSuccessfulNodes(),
+                    executionRecord.getMetrics().getFailedNodes());
             logger.info("-------------------------------------------");
 
 
-            System.out.println(executionResult.toJson()); // TODO: remove
+            System.out.println(executionRecord.toJson()); // TODO: remove
 
 
-            return executionResult;
+            return executionRecord;
 
         } catch (Exception e) {
-            if (executionResult.isSuccess()) executionResult.markCompleted(false, e.getMessage(), e);
+            if (executionRecord.isSuccess()) executionRecord.markCompleted(false, e.getMessage(), e);
             throw e;
 
         } finally {

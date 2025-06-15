@@ -1,12 +1,15 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Data;
 import lombok.Getter;
+import org.caselli.cognitiveworkflow.operational.utils.DurationToMillisSerializer;
 import java.time.Instant;
 import java.time.Duration;
 import java.util.*;
@@ -31,6 +34,7 @@ public class WorkflowObservabilityReport {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Instant endTime;
 
+    @JsonSerialize(using = DurationToMillisSerializer.class)
     private Duration totalExecutionTime;
 
     private final Map<String, NodeExecutionDetail> nodeExecutions = new ConcurrentHashMap<>();
@@ -41,15 +45,19 @@ public class WorkflowObservabilityReport {
 
     private final List<PortAdaptationDetail> portAdaptations = Collections.synchronizedList(new ArrayList<>());
 
+    @JsonIgnore
     private final Map<String, Map<String, Object>> contextSnapshots = new ConcurrentHashMap<>();
 
     private final WorkflowExecutionMetrics metrics = new WorkflowExecutionMetrics();
 
-    public WorkflowObservabilityReport(String workflowId, String workflowName) {
+    private final ExecutionContext initialContext;
+
+    public WorkflowObservabilityReport(String workflowId, String workflowName, ExecutionContext initialContext) {
         this.workflowId = workflowId;
         this.workflowName = workflowName;
         this.startTime = Instant.now();
         this.success = false;
+        this.initialContext = new ExecutionContext(initialContext); // deep copy
     }
 
     /**
@@ -88,7 +96,7 @@ public class WorkflowObservabilityReport {
      */
     public void recordNodeStart(String nodeId, String nodeName, String nodeType, ExecutionContext inputContext) {
         NodeExecutionDetail detail = new NodeExecutionDetail(nodeId, nodeName, nodeType);
-        detail.recordStart(inputContext);
+        detail.recordStart();
         nodeExecutions.put(nodeId, detail);
         executionOrder.add(nodeId);
 
@@ -102,10 +110,13 @@ public class WorkflowObservabilityReport {
     public void recordNodeCompletion(String nodeId, boolean success, String errorMessage, Throwable exception, ExecutionContext outputContext) {
         NodeExecutionDetail detail = nodeExecutions.get(nodeId);
         if (detail != null) {
-            detail.recordCompletion(success, errorMessage, exception, outputContext);
-
             // Take context snapshot after node execution
-            contextSnapshots.put("after_" + nodeId, createContextSnapshot(outputContext));
+            Map<String, Object> afterSnapshot = createContextSnapshot(outputContext);
+            contextSnapshots.put("after_" + nodeId, afterSnapshot);
+
+            // Calculate context differences and update the node detail
+            Map<String, Object> beforeSnapshot = contextSnapshots.get("before_" + nodeId);
+            detail.recordCompletion(success, errorMessage, exception, beforeSnapshot, afterSnapshot);
         }
     }
 
@@ -140,6 +151,7 @@ public class WorkflowObservabilityReport {
         }
         return snapshot;
     }
+
 
     /**
      * Calculates various metrics
@@ -178,6 +190,30 @@ public class WorkflowObservabilityReport {
         metrics.successfulPortAdaptations = (int) portAdaptations.stream().mapToLong(p -> p.successful ? 1 : 0).sum();
     }
 
+    /**
+     * Represents the differences in context between two snapshots
+     */
+    @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class ContextDifferences {
+        private Map<String, Object> addedKeys = new HashMap<>();
+        private Map<String, ValueChange> modifiedKeys = new HashMap<>();
+        private Map<String, Object> removedKeys = new HashMap<>();
+
+                /**
+                 * Represents a value change from before to after
+                 */
+                @JsonInclude(JsonInclude.Include.NON_NULL)
+                public record ValueChange(Object beforeValue, Object afterValue) {
+        }
+
+        /**
+         * Check if there are any differences
+         */
+        public boolean isEmpty() {
+            return addedKeys.isEmpty() && modifiedKeys.isEmpty() && removedKeys.isEmpty();
+        }
+    }
 
     /**
      * Detailed execution information for a single node
@@ -195,14 +231,14 @@ public class WorkflowObservabilityReport {
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
         private Instant endTime;
 
+        @JsonSerialize(using = DurationToMillisSerializer.class)
         private Duration executionTime;
         private boolean success;
         private String errorMessage;
         private Throwable exception;
 
-        // Input/Output tracking
-        private Map<String, Object> inputArguments;
-        private Map<String, Object> outputResults;
+        // Context differences instead of full snapshots
+        private ContextDifferences contextChanges;
 
         // Resource usage (if available)
         private Long memoryUsedBytes;
@@ -215,36 +251,56 @@ public class WorkflowObservabilityReport {
             this.threadId = (int) Thread.currentThread().getId();
         }
 
-        public void recordStart(ExecutionContext inputContext) {
+        public void recordStart() {
             this.startTime = Instant.now();
-            this.inputArguments = createArgumentsSnapshot(inputContext);
 
             // Record memory usage before execution
             Runtime runtime = Runtime.getRuntime();
             this.memoryUsedBytes = runtime.totalMemory() - runtime.freeMemory();
         }
 
-        public void recordCompletion(boolean success, String errorMessage, Throwable exception, ExecutionContext outputContext) {
+        public void recordCompletion(boolean success, String errorMessage, Throwable exception,
+                                     Map<String, Object> beforeSnapshot, Map<String, Object> afterSnapshot) {
             this.endTime = Instant.now();
             this.executionTime = Duration.between(startTime, endTime);
             this.success = success;
             this.errorMessage = errorMessage;
             this.exception = exception;
-            this.outputResults = createArgumentsSnapshot(outputContext);
+
+            // Calculate context differences instead of storing full snapshots
+            this.contextChanges = calculateContextDifferences(beforeSnapshot, afterSnapshot);
         }
 
-        private Map<String, Object> createArgumentsSnapshot(ExecutionContext context) {
-            Map<String, Object> snapshot = new HashMap<>();
-            for (String key : context.keySet()) {
-                Object value = context.get(key);
-                // Create a safe representation for serialization
-                if (value != null) {
-                    snapshot.put(key, value.toString());
-                } else {
-                    snapshot.put(key, null);
+        /**
+         * Calculates the differences between two context snapshots
+         */
+        private ContextDifferences calculateContextDifferences(Map<String, Object> before, Map<String, Object> after) {
+            ContextDifferences diff = new ContextDifferences();
+
+            if (before == null) before = new HashMap<>();
+            if (after == null) after = new HashMap<>();
+
+            // Find added and modified keys
+            for (Map.Entry<String, Object> entry : after.entrySet()) {
+                String key = entry.getKey();
+                Object afterValue = entry.getValue();
+                Object beforeValue = before.get(key);
+
+                if (!before.containsKey(key)) {
+                    diff.addedKeys.put(key, afterValue);
+                } else if (!Objects.equals(beforeValue, afterValue)) {
+                    diff.modifiedKeys.put(key, new ContextDifferences.ValueChange(beforeValue, afterValue));
                 }
             }
-            return snapshot;
+
+            // Find removed keys
+            for (String key : before.keySet()) {
+                if (!after.containsKey(key)) {
+                    diff.removedKeys.put(key, before.get(key));
+                }
+            }
+
+            return diff;
         }
     }
 
@@ -309,15 +365,29 @@ public class WorkflowObservabilityReport {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class WorkflowExecutionMetrics {
         private int totalNodes;
+
         private int successfulNodes;
+
         private int failedNodes;
+
+        @JsonSerialize(using = DurationToMillisSerializer.class)
         private Duration fastestNodeTime;
+
+        @JsonSerialize(using = DurationToMillisSerializer.class)
         private Duration slowestNodeTime;
+
+        @JsonSerialize(using = DurationToMillisSerializer.class)
         private Duration averageNodeTime;
+
+        @JsonSerialize(using = DurationToMillisSerializer.class)
         private Duration medianNodeTime;
+
         private int totalEdgeEvaluations;
+
         private int passedEdgeEvaluations;
+
         private int totalPortAdaptations;
+
         private int successfulPortAdaptations;
     }
 }
