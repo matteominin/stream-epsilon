@@ -6,6 +6,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.LLM.services.InputMapperService;
 import org.caselli.cognitiveworkflow.operational.LLM.services.IntentDetectionService;
+import org.caselli.cognitiveworkflow.operational.RoutingObservabilityReport;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class WorkflowOrchestrator {
         var intentRes = runIntentDetection(request, observability);
 
         // ROUTING
-        var workflowInstance = runRouting(intentRes.getIntentId());
+        var workflowInstance = runRouting(intentRes.getIntentId(),observability);
 
         // INPUT MAPPING
         ExecutionContext initialContext = runInputMapper(workflowInstance, intentRes.getUserVariables(), request, observability);
@@ -122,16 +123,24 @@ public class WorkflowOrchestrator {
      * Routes the user request to an available workflow
      * @param intentId The intent detected by teh user's request
      * @return The instance of the workflow that handles the request
-    * @throws RuntimeException if no workflow is found
+     * @param orchestrationObservability Orchestration Observability object to track comprehensive observability
+     * @throws RuntimeException if no workflow is found
      */
-    private WorkflowInstance runRouting(String intentId){
+    private WorkflowInstance runRouting(String intentId, OrchestrationObservability orchestrationObservability){
         logger.info("Routing workflow for intent ID: {}", intentId);
+        RoutingObservabilityReport observabilityReport = new RoutingObservabilityReport(intentId);
+        orchestrationObservability.setRouting(observabilityReport);
+
         WorkflowInstance workflowInstance = routingManager.routeWorkflowRequest(intentId);
         if (workflowInstance == null) {
             logger.error("No workflow available to handle intent: {}", intentId);
+            observabilityReport.markCompleted(false, "No workflow available to handle intent: " + intentId, null);
             throw new RuntimeException("No workflow available to handle intent: " + intentId);
         }
         logger.info("Successfully routed to workflow instance: {}", workflowInstance.getId());
+        observabilityReport.setSelectedWorkflowId(workflowInstance.getId());
+        observabilityReport.markCompleted(true, null, null);
+
         return workflowInstance;
     }
 
@@ -223,6 +232,7 @@ public class WorkflowOrchestrator {
     @Data
     static class OrchestrationObservability {
         ObservabilityReport intentDetection;
+        ObservabilityReport routing;
         ObservabilityReport inputMapper;
         ObservabilityReport workflowExecution;
     }
