@@ -8,6 +8,8 @@ import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.LLM.LLMAbstractService;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
+import org.caselli.cognitiveworkflow.operational.execution.IntentDetectionObservabilityReport;
+import org.caselli.cognitiveworkflow.operational.execution.ResultWithObservability;
 import org.caselli.cognitiveworkflow.operational.utils.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -43,8 +45,6 @@ public class IntentDetectionService extends LLMAbstractService {
 
     private final IntentMetamodelService intentMetamodelService;
 
-
-
     public IntentDetectionService(LLMModelFactory llmModelFactory, IntentMetamodelService intentMetamodelService) {
         this.llmModelFactory = llmModelFactory;
         this.intentMetamodelService = intentMetamodelService;
@@ -60,8 +60,10 @@ public class IntentDetectionService extends LLMAbstractService {
      *             <li>Return null if intent is not clear.</li>
      *         </ul>
      */
-    public IntentDetectionResponse.IntentDetectorResult detect(String userInput) {
+    public ResultWithObservability<IntentDetectionResponse.IntentDetectorResult> detect(String userInput) {
         logger.info("Detecting intent for user input: {}...", userInput);
+
+        IntentDetectionObservabilityReport observabilityReport = new IntentDetectionObservabilityReport(userInput);
 
         // Search top-matching intents
         var intents = intentMetamodelService.findMostSimilarIntent(userInput);
@@ -70,6 +72,9 @@ public class IntentDetectionService extends LLMAbstractService {
                 .map(intent -> String.format("- Intent ID: %s, Intent Name: %s, Description: %s",
                         intent.getId(), intent.getName(), intent.getDescription()))
                 .collect(Collectors.joining("\n"));
+
+
+        observabilityReport.setSimilarIntents(intents);
 
         if(intents.isEmpty()) logger.info("No similar intents found");
         else logger.info("Found similar intents: " + intentsOutput);
@@ -95,9 +100,11 @@ public class IntentDetectionService extends LLMAbstractService {
         // Determine if the intent is non-existent or there has been an error
         if (modelAnswer == null || modelAnswer.getData() == null || (modelAnswer.getError() != null && !modelAnswer.getError().isEmpty()) ) {
             logger.error("Error in intent detection: {}", modelAnswer != null ? modelAnswer.getError() : "Unknown error");
+
+            observabilityReport.markCompleted(false,  modelAnswer.getError(), null );
+
             return null;
         }
-
 
         var result = modelAnswer.getData();
 
@@ -147,7 +154,12 @@ public class IntentDetectionService extends LLMAbstractService {
         }
         result.setUserVariables(newVariables);
 
-        return result;
+        // Observability
+        observabilityReport.setIntentDetectorResult(result);
+        observabilityReport.markCompleted(true,  null, null );
+
+
+        return new ResultWithObservability<>(result, observabilityReport);
     }
 
     @Override

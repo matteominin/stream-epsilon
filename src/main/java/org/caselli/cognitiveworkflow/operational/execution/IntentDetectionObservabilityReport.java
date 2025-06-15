@@ -3,7 +3,9 @@ package org.caselli.cognitiveworkflow.operational.execution;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.operational.LLM.services.IntentDetectionService;
+import java.util.List;
 
 /**
  * Intent detection observability trace
@@ -17,8 +19,9 @@ public class IntentDetectionObservabilityReport extends ObservabilityReport{
 
     String inputRequest;
 
+    List<IntentMetamodel> similarIntents;
+
     public IntentDetectionObservabilityReport(String inputRequest) {
         this.inputRequest = inputRequest;
     }
-
 }

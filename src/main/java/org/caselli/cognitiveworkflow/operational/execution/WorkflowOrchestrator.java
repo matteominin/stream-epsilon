@@ -51,7 +51,7 @@ public class WorkflowOrchestrator {
         result.setObservability(observability);
 
         // INTENT DETECTION
-        var intentRes = runIntentDetection(request);
+        var intentRes = runIntentDetection(request, observability);
 
         // ROUTING
         var workflowInstance = runRouting(intentRes.getIntentId());
@@ -80,10 +80,12 @@ public class WorkflowOrchestrator {
      * @return Returns the intent detection result if an intent is found
      * @throws RuntimeException if no intent is detected
      */
-    private IntentDetectionService.IntentDetectionResponse.IntentDetectorResult runIntentDetection(String request){
+    private IntentDetectionService.IntentDetectionResponse.IntentDetectorResult runIntentDetection(String request, OrchestrationObservability orchestrationObservability){
         logger.info("Detecting intent for request: {}", request);
 
-        var intentRes = intentDetectionService.detect(request);
+        var res = intentDetectionService.detect(request);
+        var intentRes = res.result;
+
         logger.info("Intent detection result: {}", intentRes);
 
         if(intentRes == null) {
@@ -111,6 +113,8 @@ public class WorkflowOrchestrator {
             logger.error("Intent ID is null for request: {}", request);
             throw new RuntimeException("Intent cannot be satisfied.");
         }
+
+        orchestrationObservability.setIntentDetectionObservabilityReport(res.observabilityReport);
 
         return intentRes;
     }
@@ -215,6 +219,7 @@ public class WorkflowOrchestrator {
 
     @Data
     static class OrchestrationObservability {
-        WorkflowObservabilityReport workflowObservabilityReport;
+        ObservabilityReport intentDetectionObservabilityReport;
+        ObservabilityReport workflowObservabilityReport;
     }
 }
