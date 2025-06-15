@@ -31,7 +31,4 @@ public class InputMapperObservabilityReport extends ObservabilityReport{
         this.nodes = nodes;
         this.requestInput = requestInput;
     }
-
-
-
 }

@@ -129,18 +129,23 @@ public class InputMapperService extends LLMAbstractService {
         StringBuilder builder = new StringBuilder("<nodes_list>\n");
 
         nodes.forEach(node -> {
-            String portsDescription = node.getInputPorts().stream()
-                    .map(Port::portToJson)
-                    .map(s -> s.replace("{", "\\{").replace("}", "\\}"))
-                    .collect(Collectors.joining(",\n    "));
 
-            builder.append("- Node ID: ").append(node.getId()).append("\n")
-                    .append("- Name: ").append(node.getName()).append("\n")
-                    .append("- Description: ").append(node.getDescription()).append("\n")
-                    .append("  Input Ports:\n")
-                    .append("  ```json\n")
-                    .append("  [\n    ").append(portsDescription).append("\n  ]\n")
-                    .append("  ```\n\n");
+            if(node.getInputPorts() != null && !node.getInputPorts().isEmpty()){
+
+                String portsDescription = node.getInputPorts().stream()
+                        .map(Port::portToJson)
+                        .map(s -> s.replace("{", "\\{").replace("}", "\\}"))
+                        .collect(Collectors.joining(",\n    "));
+
+                builder.append("- Node ID: ").append(node.getId()).append("\n")
+                        .append("- Name: ").append(node.getName()).append("\n")
+                        .append("- Description: ").append(node.getDescription()).append("\n")
+                        .append("  Input Ports:\n")
+                        .append("  ```json\n")
+                        .append("  [\n    ").append(portsDescription).append("\n  ]\n")
+                        .append("  ```\n\n");
+            }
+
         });
 
         return builder.append("</nodes_list>").toString();

@@ -174,7 +174,7 @@ public class InputMapperServiceIT {
 
         var res = inputMapperService.mapInput(variables,List.of(nodeA));
 
-        assertNull(res);
+        assertNull(res.result);
     }
 
 
@@ -333,7 +333,7 @@ public class InputMapperServiceIT {
         var res = inputMapperService.mapInput(variables,List.of(nodeA, nodeB, nodeC, nodeD));
 
         // ASSERTIONS
-        assertNull(res);
+        assertNull(res.result);
     }
 
 
