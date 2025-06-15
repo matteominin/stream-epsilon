@@ -4,7 +4,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.EmbeddingsNodeMetamode
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.EmbeddingsPort;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.EmbeddingModelFactory;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.context.annotation.Scope;

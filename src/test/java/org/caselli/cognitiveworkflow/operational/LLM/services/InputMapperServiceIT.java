@@ -49,7 +49,7 @@ public class InputMapperServiceIT {
                 "email", "caselli@gmail.com"
         );
 
-        var res = inputMapperService.mapInput(variables,List.of(nodeA));
+        var res = inputMapperService.mapInput(variables,List.of(nodeA)).result;
 
         System.out.println("Context result:"+res);
 
@@ -92,7 +92,7 @@ public class InputMapperServiceIT {
         );
 
         // MAPPER
-        var res = inputMapperService.mapInput(variables,List.of(nodeA));
+        var res = inputMapperService.mapInput(variables,List.of(nodeA)).result;
 
         // ASSERTIONS
         assertNotNull(res);
@@ -133,7 +133,7 @@ public class InputMapperServiceIT {
                 "email", "caselli@gmail.com"
         );
 
-        var res = inputMapperService.mapInput(variables,List.of(nodeA));
+        var res = inputMapperService.mapInput(variables,List.of(nodeA)).result;
 
         // ASSERTIONS
         assertNotNull(res);
@@ -174,7 +174,7 @@ public class InputMapperServiceIT {
 
         var res = inputMapperService.mapInput(variables,List.of(nodeA));
 
-        assertNull(res);
+        assertNull(res.result);
     }
 
 
@@ -242,7 +242,7 @@ public class InputMapperServiceIT {
         nodeC.setInputPorts(List.of(source_C_1, source_C_2,source_C_3,source_C_4));
         nodeC.setOutputPorts(List.of());
 
-        var res = inputMapperService.mapInput(variables,List.of(nodeA, nodeB, nodeC));
+        var res = inputMapperService.mapInput(variables,List.of(nodeA, nodeB, nodeC)).result;
 
         if(res != null){
             // Debug why test is failing
@@ -333,7 +333,7 @@ public class InputMapperServiceIT {
         var res = inputMapperService.mapInput(variables,List.of(nodeA, nodeB, nodeC, nodeD));
 
         // ASSERTIONS
-        assertNull(res);
+        assertNull(res.result);
     }
 
 
@@ -412,7 +412,7 @@ public class InputMapperServiceIT {
                 "email", "caselli@gmail.com"
         );
 
-        var res = inputMapperService.mapInput(variables,List.of(nodeA, nodeB, nodeC, nodeD));
+        var res = inputMapperService.mapInput(variables,List.of(nodeA, nodeB, nodeC, nodeD)).result;
 
         // ASSERTIONS
         assertNotNull(res);
@@ -465,7 +465,7 @@ public class InputMapperServiceIT {
                 "order_id", "ORDER_ID"
         );
 
-        var res = inputMapperService.mapInput(variables, List.of(nodeA));
+        var res = inputMapperService.mapInput(variables, List.of(nodeA)).result;
 
         assertNotNull(res);
 
@@ -514,7 +514,7 @@ public class InputMapperServiceIT {
                 "TARGET", "Mario"
         );
 
-        var res = inputMapperService.mapInput(variables, List.of(nodeA));
+        var res = inputMapperService.mapInput(variables, List.of(nodeA)).result;
 
         assertNotNull(res);
 
@@ -572,7 +572,7 @@ public class InputMapperServiceIT {
                 "TARGET", "Mario"
         );
 
-        var res = inputMapperService.mapInput(variables, List.of(nodeA));
+        var res = inputMapperService.mapInput(variables, List.of(nodeA)).result;
 
         assertNotNull(res);
 
@@ -621,7 +621,7 @@ public class InputMapperServiceIT {
 
         String request = "I want to a 4k streaming with no more latency the 10ms";
 
-        var res = inputMapperService.mapInput(variables, List.of(nodeA), request);
+        var res = inputMapperService.mapInput(variables, List.of(nodeA), request).result;
 
         assertNotNull(res);
 

@@ -1,5 +1,6 @@
 package org.caselli.cognitiveworkflow.knowledge.model.intent;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
@@ -32,5 +33,6 @@ public class IntentMetamodel {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @JsonIgnore
     private List<Double> embedding;
 }

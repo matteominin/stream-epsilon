@@ -8,7 +8,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.http.HttpEntity;

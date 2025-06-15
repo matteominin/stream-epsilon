@@ -1,12 +1,14 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
+import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.services.InputMapperService;
 import org.caselli.cognitiveworkflow.operational.LLM.services.IntentDetectionService;
+import org.caselli.cognitiveworkflow.operational.observability.RoutingObservabilityReport;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
+import org.caselli.cognitiveworkflow.operational.observability.ObservabilityReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -44,10 +46,47 @@ public class WorkflowOrchestrator {
      * @param request The user request to be processed
      * @throws RuntimeException if intent cannot be satisfied or no workflow is available
      */
-    public Map<String, Object> orchestrateWorkflowExecution(String request){
+    public OrchestrationResult orchestrateWorkflow(String request){
         logger.info("Starting workflow orchestration for request: {}", request);
+        var result = new OrchestrationResult();
+        var observability = new OrchestrationObservability();
+        result.setObservability(observability);
 
-        var intentRes = intentDetectionService.detect(request);
+        // INTENT DETECTION
+        var intentRes = runIntentDetection(request, observability);
+
+        // ROUTING
+        var workflowInstance = runRouting(intentRes.getIntentId(),observability);
+
+        // INPUT MAPPING
+        ExecutionContext initialContext = runInputMapper(workflowInstance, intentRes.getUserVariables(), request, observability);
+
+        // EXECUTION
+        var finalContext = runWorkflow(workflowInstance, initialContext, observability);
+
+        logger.debug("Workflow execution completed for request: {}", request);
+
+        var output = extractOutputs(finalContext, workflowInstance);
+        result.setOutput(output);
+
+        return result;
+
+    }
+
+
+    /**
+     * Run the intent detection
+     * If the detected intent is new, saves it in the catalog in the Knowledge Layer
+     * @param request The user's request
+     * @return Returns the intent detection result if an intent is found
+     * @throws RuntimeException if no intent is detected
+     */
+    private IntentDetectionService.IntentDetectionResponse.IntentDetectorResult runIntentDetection(String request, OrchestrationObservability orchestrationObservability){
+        logger.info("Detecting intent for request: {}", request);
+
+        var res = intentDetectionService.detect(request);
+        var intentRes = res.result;
+
         logger.info("Intent detection result: {}", intentRes);
 
         if(intentRes == null) {
@@ -76,34 +115,48 @@ public class WorkflowOrchestrator {
             throw new RuntimeException("Intent cannot be satisfied.");
         }
 
-        // ROUTING
-        logger.info("Routing workflow for intent ID: {}", intentId);
-        WorkflowInstance workflowInstance = routingManager.routeWorkflowRequest(intentId);
-        if (workflowInstance == null) {
-            logger.error("No workflow available to handle intent: {}", intentId);
-            throw new RuntimeException("No workflow available to handle intent: " + intentId);
-        }
-        logger.info("Successfully routed to workflow instance: {}", workflowInstance.getId());
+        orchestrationObservability.setIntentDetection(res.observabilityReport);
 
-        // EXECUTION
-        var userVariables = intentRes.getUserVariables();
-        logger.info("Starting workflow with variables: {}", userVariables);
-        var context = startWorkflow(workflowInstance, userVariables, request);
-
-
-        logger.debug("Workflow execution completed for request: {}", request);
-
-        return extractOutputs(context, workflowInstance);
+        return intentRes;
     }
 
     /**
-     * Start the execution of a workflow. Maps unstructured variables to the input ports
-     * @param workflowInstance The instance of the workflow to execute
-     * @param variables The variables of the user
-     * @return Returns the final execution context
+     * Routes the user request to an available workflow
+     * @param intentId The intent detected by teh user's request
+     * @return The instance of the workflow that handles the request
+     * @param orchestrationObservability Orchestration Observability object to track comprehensive observability
+     * @throws RuntimeException if no workflow is found
      */
-    private ExecutionContext startWorkflow(WorkflowInstance workflowInstance, Map<String,Object> variables, String userRequest) {
-        logger.debug("Starting workflow instance: {}", workflowInstance.getId());
+    private WorkflowInstance runRouting(String intentId, OrchestrationObservability orchestrationObservability){
+        logger.info("Routing workflow for intent ID: {}", intentId);
+        RoutingObservabilityReport observabilityReport = new RoutingObservabilityReport(intentId);
+        orchestrationObservability.setRouting(observabilityReport);
+
+        WorkflowInstance workflowInstance = routingManager.routeWorkflowRequest(intentId);
+        if (workflowInstance == null) {
+            logger.error("No workflow available to handle intent: {}", intentId);
+            observabilityReport.markCompleted(false, "No workflow available to handle intent: " + intentId, null);
+            throw new RuntimeException("No workflow available to handle intent: " + intentId);
+        }
+        logger.info("Successfully routed to workflow instance: {}", workflowInstance.getId());
+        observabilityReport.setSelectedWorkflowId(workflowInstance.getId());
+        observabilityReport.markCompleted(true, null, null);
+
+        return workflowInstance;
+    }
+
+
+    /**
+     * Execute the Input Mapper
+     * @param workflowInstance Instance of the workflow to execute
+     * @param variables Extracted variables
+     * @param userRequest User's requests
+     * @param orchestrationObservability Orchestration Observability object to track comprehensive observability
+     * @return Returns the initial execution context
+     */
+    private ExecutionContext runInputMapper(WorkflowInstance workflowInstance, Map<String, Object> variables, String userRequest, OrchestrationObservability orchestrationObservability){
+
+        logger.info("Starting workflow with variables: {}", variables);
 
         // Get the entry points of the workflow
         Set<String> entryPointIDs = workflowInstance.getMetamodel().getEntryNodes();
@@ -113,7 +166,8 @@ public class WorkflowOrchestrator {
                 .map(id -> workflowInstance.getInstanceByWorkflowNodeId(id).getMetamodel())
                 .collect(Collectors.toList());
 
-        var inputMapping = inputMapperService.mapInput(variables, entryPointMetamodels, userRequest);
+        var res = inputMapperService.mapInput(variables, entryPointMetamodels, userRequest);
+        var inputMapping = res.result;
         logger.debug("Input mapping result: {}", inputMapping);
 
         if(inputMapping == null) {
@@ -121,12 +175,25 @@ public class WorkflowOrchestrator {
             throw new RuntimeException("Workflow Failed to start: no starting node can be found.");
         }
 
-        ExecutionContext context = inputMapping.getContext();
+        orchestrationObservability.setInputMapper(res.getObservabilityReport());
 
+        return inputMapping.getContext();
+    }
+
+
+    /**
+     * Run a workflow
+     * @param workflowInstance The instance of the workflow to execute
+     * @param context The initial execution context
+     * @param orchestrationObservability Orchestration Observability object to track comprehensive observability
+     * @return Returns the final execution context
+     */
+    private ExecutionContext runWorkflow(WorkflowInstance workflowInstance, ExecutionContext context, OrchestrationObservability orchestrationObservability) {
         logger.debug("Obtained workflow executor for instance: {}", workflowInstance.getId());
-        workflowExecutor.execute(workflowInstance, context);
-
-        return context;
+        ExecutionContext clonedContext = new ExecutionContext(context);
+        var ob = workflowExecutor.execute(workflowInstance, clonedContext);
+        orchestrationObservability.setWorkflowExecution(ob);
+        return clonedContext;
     }
 
     /**
@@ -154,5 +221,20 @@ public class WorkflowOrchestrator {
         }
 
         return res;
+    }
+
+
+    @Data
+    public static class OrchestrationResult {
+        Map<String, Object> output;
+        OrchestrationObservability observability;
+    }
+
+    @Data
+    static class OrchestrationObservability {
+        ObservabilityReport intentDetection;
+        ObservabilityReport routing;
+        ObservabilityReport inputMapper;
+        ObservabilityReport workflowExecution;
     }
 }

@@ -312,13 +312,14 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
 
         // Execute
         String request = "What is the title of the famous movie about an aristocrat?";
-        var res = workflowOrchestrator.orchestrateWorkflowExecution(request);
+        var result = workflowOrchestrator.orchestrateWorkflow(request);
+        var output = result.getOutput();
 
-        System.out.println("Result: " + res);
+        System.out.println("Output: " + output);
 
-        assertThat(res).isNotNull();
+        assertThat(result).isNotNull();
         @SuppressWarnings("unchecked")
-        Map<String, Object> resMap = (Map<String, Object>) res.get("res");
+        Map<String, Object> resMap = (Map<String, Object>) output.get("res");
         assertTrue(resMap.containsKey("title"));
         assertTrue(resMap.containsKey("plot"));
     }
@@ -344,13 +345,14 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
 
         // Execute
         String request = "What is the title of the famous movie about an aristocrat?";
-        var res = workflowOrchestrator.orchestrateWorkflowExecution(request);
+        var res = workflowOrchestrator.orchestrateWorkflow(request);
+        var output = res.getOutput();
 
-        System.out.println("Result: " + res);
+        System.out.println("output: " + output);
 
-        assertThat(res).isNotNull();
+        assertThat(output).isNotNull();
         @SuppressWarnings("unchecked")
-        Map<String, Object> resMap = (Map<String, Object>) res.get("res");
+        Map<String, Object> resMap = (Map<String, Object>) output.get("res");
         assertTrue(resMap.containsKey("title"));        assertTrue(resMap.containsKey("title"));
         assertTrue(resMap.containsKey("plot"));
 

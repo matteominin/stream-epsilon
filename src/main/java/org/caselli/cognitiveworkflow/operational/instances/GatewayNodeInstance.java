@@ -2,7 +2,7 @@ package org.caselli.cognitiveworkflow.operational.instances;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.GatewayNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 @Component

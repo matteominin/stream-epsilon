@@ -13,7 +13,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.VectorDbNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.VectorDbPort;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;

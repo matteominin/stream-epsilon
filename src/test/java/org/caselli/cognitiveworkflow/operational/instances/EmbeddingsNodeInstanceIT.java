@@ -3,7 +3,7 @@ package org.caselli.cognitiveworkflow.operational.instances;
 import org.caselli.cognitiveworkflow.knowledge.model.node.EmbeddingsNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.EmbeddingsPort;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.EmbeddingModelFactory;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

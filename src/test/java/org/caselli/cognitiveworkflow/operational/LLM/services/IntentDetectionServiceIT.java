@@ -76,7 +76,8 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        var result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest).result;
+        
         System.out.println(result);
 
         assertNotNull(result);
@@ -97,7 +98,7 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        var result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest).result;
         System.out.println(result);
 
         assertNotNull(result);
@@ -121,7 +122,7 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        var result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest).result;
         System.out.println(result);
 
         assertNotNull(result);
@@ -137,7 +138,7 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        var result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest).result;
 
         System.out.println(result);
 
@@ -158,7 +159,7 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        var result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest).result;
 
         assertNull(result);
     }
@@ -169,7 +170,7 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        var result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest).result;
 
         assertNull(result);
     }
@@ -180,7 +181,7 @@ class IntentDetectionServiceIT {
 
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(mockIntentMetamodels);
 
-        var result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest).result;
 
         assertNull(result);
     }
@@ -196,7 +197,7 @@ class IntentDetectionServiceIT {
         mockIntent.setDescription("Route user requests across different nodes (or cloud resources) according to user ``intent'' and hardware availability,  relying on specialized AI modules to optimize networking decisions. Supporting different request types like streaming, real-time translation, IoT, etc.");
         when(intentMetamodelService.findMostSimilarIntent(userRequest)).thenReturn(List.of(mockIntent));
 
-        var result = intentDetectionService.detect(userRequest);
+        var result = intentDetectionService.detect(userRequest).result;
         System.out.println(result);
 
         assertNotNull(result);

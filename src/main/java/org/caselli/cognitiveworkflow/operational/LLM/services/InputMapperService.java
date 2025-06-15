@@ -6,9 +6,11 @@ import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
-import org.caselli.cognitiveworkflow.operational.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.LLM.LLMAbstractService;
 import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
+import org.caselli.cognitiveworkflow.operational.observability.InputMapperObservabilityReport;
+import org.caselli.cognitiveworkflow.operational.observability.ResultWithObservability;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -47,7 +49,7 @@ public class InputMapperService extends LLMAbstractService {
     }
 
 
-    public InputMapperResult mapInput(Map<String, Object> variables, List<NodeMetamodel> nodes) {
+    public ResultWithObservability<InputMapperResult>  mapInput(Map<String, Object> variables, List<NodeMetamodel> nodes) {
         return mapInput(variables, nodes, null);
     }
 
@@ -61,18 +63,24 @@ public class InputMapperService extends LLMAbstractService {
      * @return InputMapperResult containing the found variable-to-port bindings,
      * or null if no suitable mapping could be determined
      */
-    public InputMapperResult mapInput(Map<String, Object> variables, List<NodeMetamodel> nodes, String requestInput) {
+    public ResultWithObservability<InputMapperResult> mapInput(Map<String, Object> variables, List<NodeMetamodel> nodes, String requestInput) {
         logger.info("Starting input mapping with LLM for {} variables and {} nodes", variables.size(), nodes.size());
+
+        InputMapperObservabilityReport observabilityReport = new InputMapperObservabilityReport(variables, nodes, requestInput);
+        ResultWithObservability<InputMapperResult> resultWithObservability = new ResultWithObservability<>(new InputMapperResult(new ExecutionContext()), observabilityReport);
+
 
 
         if (nodes.isEmpty()) {
             logger.warn("No nodes available for mapping");
+            observabilityReport.markCompleted(false, "No nodes available for mapping", null);
             return null;
         }
 
         if (variables.isEmpty() && (requestInput == null || requestInput.isEmpty())) {
             logger.info("No variables provided, skipping mapping");
-            return new InputMapperResult(new ExecutionContext());
+            observabilityReport.markCompleted(false, "No variables provided, skipping mapping", null);
+            return resultWithObservability;
         }
 
 
@@ -88,8 +96,8 @@ public class InputMapperService extends LLMAbstractService {
             ));
 
 
-            // TODO: remove this debug line in production
-            System.out.println("Prompt: " + prompt.getContents());
+            // TODO: remove this line
+            // System.out.println("Prompt: " + prompt.getContents());
 
 
             // Call the LLM
@@ -101,9 +109,18 @@ public class InputMapperService extends LLMAbstractService {
 
             logger.info("LLM returned {}", result != null ? result.getBindings() : "null");
 
-            return processLLMResult(result, nodes);
+            var res =  processLLMResult(result, nodes);
+            resultWithObservability.setResult(res);
+
+            observabilityReport.setInputMapperResult(res);
+            observabilityReport.markCompleted(true, null, null);
+
+            return resultWithObservability;
         } catch (Exception e) {
             logger.error("Input mapping failed: {}", e.getMessage(), e);
+
+            observabilityReport.markCompleted(false, e.getMessage(), e);
+
             return null;
         }
     }
@@ -112,18 +129,23 @@ public class InputMapperService extends LLMAbstractService {
         StringBuilder builder = new StringBuilder("<nodes_list>\n");
 
         nodes.forEach(node -> {
-            String portsDescription = node.getInputPorts().stream()
-                    .map(Port::portToJson)
-                    .map(s -> s.replace("{", "\\{").replace("}", "\\}"))
-                    .collect(Collectors.joining(",\n    "));
 
-            builder.append("- Node ID: ").append(node.getId()).append("\n")
-                    .append("- Name: ").append(node.getName()).append("\n")
-                    .append("- Description: ").append(node.getDescription()).append("\n")
-                    .append("  Input Ports:\n")
-                    .append("  ```json\n")
-                    .append("  [\n    ").append(portsDescription).append("\n  ]\n")
-                    .append("  ```\n\n");
+            if(node.getInputPorts() != null && !node.getInputPorts().isEmpty()){
+
+                String portsDescription = node.getInputPorts().stream()
+                        .map(Port::portToJson)
+                        .map(s -> s.replace("{", "\\{").replace("}", "\\}"))
+                        .collect(Collectors.joining(",\n    "));
+
+                builder.append("- Node ID: ").append(node.getId()).append("\n")
+                        .append("- Name: ").append(node.getName()).append("\n")
+                        .append("- Description: ").append(node.getDescription()).append("\n")
+                        .append("  Input Ports:\n")
+                        .append("  ```json\n")
+                        .append("  [\n    ").append(portsDescription).append("\n  ]\n")
+                        .append("  ```\n\n");
+            }
+
         });
 
         return builder.append("</nodes_list>").toString();
