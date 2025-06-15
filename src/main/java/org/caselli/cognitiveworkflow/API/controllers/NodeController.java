@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -36,6 +37,15 @@ public class NodeController {
         return ResponseEntity.ok(page);
     }
 
+    /**
+     * Search for specific nodes
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<NodeMetamodel>> search(@RequestParam(name = "query", required = true) String query) {
+        List<NodeMetamodel> res = nodeMetamodelService.search(query);
+        System.out.println(res);
+        return ResponseEntity.ok(res);
+    }
 
     /**
      * Create a new LLM node metamodel

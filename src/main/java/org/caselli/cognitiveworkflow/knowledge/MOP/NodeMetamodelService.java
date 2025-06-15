@@ -1,12 +1,15 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.PostConstruct;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.NodeMetamodelUpdateEvent;
+import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.*;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.repository.NodeMetamodelCatalog;
 import org.caselli.cognitiveworkflow.knowledge.validation.NodeMetamodelValidator;
 import org.caselli.cognitiveworkflow.knowledge.validation.ValidationResult;
+import org.caselli.cognitiveworkflow.operational.LLM.services.EmbeddingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -24,18 +27,30 @@ import java.util.UUID;
 
 @Service
 public class NodeMetamodelService implements ApplicationListener<ApplicationReadyEvent>  {
-    private static final Logger logger = LoggerFactory.getLogger(NodeMetamodelService.class);
+    private final Logger logger = LoggerFactory.getLogger(NodeMetamodelService.class);
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final EmbeddingService embeddingService;
     private final NodeMetamodelCatalog repository;
     private final NodeMetamodelValidator nodeMetamodelValidator;
 
-    public NodeMetamodelService(NodeMetamodelCatalog repository, ApplicationEventPublisher eventPublisher,NodeMetamodelValidator nodeMetamodelValidator) {
+    private final NodeSearchService nodeSearchService;
+
+    public NodeMetamodelService(NodeMetamodelCatalog repository, ApplicationEventPublisher eventPublisher, EmbeddingService embeddingService, NodeMetamodelValidator nodeMetamodelValidator, NodeSearchService nodeSearchService) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
+        this.embeddingService = embeddingService;
         this.nodeMetamodelValidator = nodeMetamodelValidator;
+        this.nodeSearchService = nodeSearchService;
     }
+
+    @PostConstruct
+    public void init() {
+        // For testing purposes only:
+        // generateEmbeddingForAll();
+    }
+
 
     /**
      * Get a specific Node Metamodel By Id
@@ -56,6 +71,15 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
     @Cacheable(value = "nodeMetamodels", key = "'family_' + #familyId + '_latest'")
     public Optional<NodeMetamodel> getLatestVersionByFamilyId(String familyId) {
         return repository.findByFamilyIdAndIsLatestTrue(familyId);
+    }
+
+
+    /**
+     * Search Node in the catalog
+     * @param query Text query for semantic search
+     */
+    public List<NodeMetamodel> search(String query){
+        return this.nodeSearchService.performSemanticSearch(query);
     }
 
 
@@ -292,5 +316,58 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         logger.info(" - Total warnings across all nodes: {}", totalWarnings);
         logger.info(" - Total errors across all nodes: {}", totalErrors);
         logger.info("-------------------------------------------------");
+    }
+
+
+    /**
+     * Private helper method to generate embedding for a node
+     * and set it on the intent object.
+     * @param nodeMetamodel The node to generate embedding for.
+     */
+    private void generateAndSetEmbedding(NodeMetamodel nodeMetamodel) {
+        StringBuilder textBuilder = new StringBuilder();
+
+        // Core identifying information
+        textBuilder.append("Name: ").append(nodeMetamodel.getName()).append(". ");
+        textBuilder.append("Type: ").append(nodeMetamodel.getType()).append(". ");
+        textBuilder.append("Description: ").append(nodeMetamodel.getDescription()).append(". ");
+        if (nodeMetamodel.getAuthor() != null && !nodeMetamodel.getAuthor().trim().isEmpty()) textBuilder.append("Author: ").append(nodeMetamodel.getAuthor()).append(". ");
+
+        // Qualitative descriptor
+        if (nodeMetamodel.getQualitativeDescriptor() != null && !nodeMetamodel.getQualitativeDescriptor().isEmpty()) textBuilder.append("Qualitative details: ").append(nodeMetamodel.getQualitativeDescriptor().toJson()).append(". ");
+
+        // Add input/output ports
+        List<? extends Port> inputPorts = nodeMetamodel.getInputPorts();
+        if (inputPorts != null && !inputPorts.isEmpty()) {
+            textBuilder.append("Input ports: ");
+            for (Port port : inputPorts) textBuilder.append(port.getKey()).append(" ");
+            textBuilder.append(". ");
+        }
+
+        List<? extends Port> outputPorts = nodeMetamodel.getOutputPorts();
+        if (outputPorts != null && !outputPorts.isEmpty()) {
+            textBuilder.append("Output ports: ");
+            for (Port port : outputPorts) textBuilder.append(port.getKey()).append(" ");
+            textBuilder.append(". ");
+        }
+
+        String textToEmbed = textBuilder.toString().trim();
+
+        // Generate the embedding
+        List<Double> embedding = embeddingService.generateEmbedding(textToEmbed);
+        nodeMetamodel.setEmbedding(embedding);
+    }
+
+    /**
+     * Generate embedding for all intents in the catalog
+     * For testing purposes only
+     */
+    private void generateEmbeddingForAll() {
+        List<NodeMetamodel> nodes = repository.findAll();
+        for (NodeMetamodel node : nodes) {
+            generateAndSetEmbedding(node);
+            this.repository.save(node);
+        }
+        this.logger.info("Generated embedding for {} nodes", nodes.size());
     }
 }

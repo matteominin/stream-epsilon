@@ -48,6 +48,7 @@ public class LlmPort extends Port {
         protected LlmPort createInstance() {
             var port = new LlmPort();
             port.setRole(role);
+            port.setPortType(PortImplementationType.LLM);
             return port;
         }
     }

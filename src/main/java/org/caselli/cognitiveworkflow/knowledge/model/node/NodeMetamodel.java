@@ -1,5 +1,6 @@
 package org.caselli.cognitiveworkflow.knowledge.model.node;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
@@ -30,8 +31,6 @@ public abstract class NodeMetamodel {
     @NotNull private Boolean enabled = true; // If the node is enabled
     @NotNull private Version version = new Version(0,0,0,null); // Version of the node
 
-
-
     @NotNull private String name;
     @NotNull private NodeType type;
     @NotNull private String description;
@@ -47,6 +46,10 @@ public abstract class NodeMetamodel {
     /** Quantitative descriptor (e.g., cSLAs, performance metrics, costs) */
     private org.bson.Document quantitativeDescriptor;
 
+
+    /** Embedding field for semantic search **/
+    @JsonIgnore
+    private List<Double> embedding;
 
     // Abstract methods to be implemented by subclasses
     @NotNull public abstract List<? extends Port> getInputPorts();

@@ -40,6 +40,7 @@ public class VectorDbPort extends Port {
         @Override
         protected VectorDbPort createInstance() {
             var port = new VectorDbPort();
+            port.setPortType(PortImplementationType.VECTOR_DB);
             port.setRole(role);
             return port;
         }
