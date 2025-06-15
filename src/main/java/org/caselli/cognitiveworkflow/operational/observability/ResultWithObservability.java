@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational.execution;
+package org.caselli.cognitiveworkflow.operational.observability;
 
 import lombok.Data;
 

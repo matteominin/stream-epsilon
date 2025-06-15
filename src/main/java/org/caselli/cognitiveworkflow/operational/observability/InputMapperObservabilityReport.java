@@ -1,5 +1,5 @@
 
-package org.caselli.cognitiveworkflow.operational.execution;
+package org.caselli.cognitiveworkflow.operational.observability;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.LLM.services.InputMapperService;
+import org.caselli.cognitiveworkflow.operational.observability.ObservabilityReport;
+
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +18,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-public class InputMapperObservabilityReport extends ObservabilityReport{
+public class InputMapperObservabilityReport extends ObservabilityReport {
 
     InputMapperService.InputMapperResult inputMapperResult;
 

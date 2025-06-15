@@ -1,9 +1,9 @@
-package org.caselli.cognitiveworkflow.operational;
+package org.caselli.cognitiveworkflow.operational.observability;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.caselli.cognitiveworkflow.operational.execution.ObservabilityReport;
+import org.caselli.cognitiveworkflow.operational.observability.ObservabilityReport;
 
 
 /**

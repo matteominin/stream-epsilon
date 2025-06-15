@@ -6,6 +6,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.operational.LLM.services.PortAdapterService;
 import org.caselli.cognitiveworkflow.operational.instances.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
+import org.caselli.cognitiveworkflow.operational.observability.WorkflowObservabilityReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

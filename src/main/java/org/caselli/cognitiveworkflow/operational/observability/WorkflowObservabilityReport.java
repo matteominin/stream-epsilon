@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational.execution;
+package org.caselli.cognitiveworkflow.operational.observability;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.observability.ObservabilityReport;
 import org.caselli.cognitiveworkflow.operational.utils.DurationToMillisSerializer;
 import java.time.Instant;
 import java.time.Duration;
