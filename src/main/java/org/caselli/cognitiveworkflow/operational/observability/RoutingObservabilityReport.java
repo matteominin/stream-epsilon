@@ -3,7 +3,6 @@ package org.caselli.cognitiveworkflow.operational.observability;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.caselli.cognitiveworkflow.operational.observability.ObservabilityReport;
 
 
 /**

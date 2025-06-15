@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
-import org.caselli.cognitiveworkflow.operational.observability.ObservabilityReport;
 import org.caselli.cognitiveworkflow.operational.utils.DurationToMillisSerializer;
 import java.time.Instant;
 import java.time.Duration;

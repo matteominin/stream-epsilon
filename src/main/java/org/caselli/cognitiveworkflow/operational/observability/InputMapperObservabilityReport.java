@@ -7,8 +7,6 @@ import lombok.EqualsAndHashCode;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.LLM.services.InputMapperService;
-import org.caselli.cognitiveworkflow.operational.observability.ObservabilityReport;
-
 import java.util.List;
 import java.util.Map;
 

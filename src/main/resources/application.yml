@@ -20,6 +20,11 @@ spring:
 server:
   port: 3001
 
+
+# ENVIRONMENT
+app:
+  environment: development
+
 # LLM: default API keys
 llm:
   openai:

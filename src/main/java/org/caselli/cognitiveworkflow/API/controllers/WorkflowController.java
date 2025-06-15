@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import lombok.Data;
 import org.apache.coyote.BadRequestException;
+import org.caselli.cognitiveworkflow.config.EnvironmentHelper;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
@@ -23,10 +24,13 @@ public class WorkflowController {
     private final WorkflowMetamodelService workflowMetamodelService;
     private final WorkflowOrchestrator workflowOrchestrator;
 
+    private final EnvironmentHelper environmentHelper;
+
     @Autowired
-    public WorkflowController(WorkflowMetamodelService workflowService,  WorkflowOrchestrator workflowOrchestrator) {
+    public WorkflowController(WorkflowMetamodelService workflowService, WorkflowOrchestrator workflowOrchestrator, EnvironmentHelper environmentHelper) {
         this.workflowMetamodelService = workflowService;
         this.workflowOrchestrator = workflowOrchestrator;
+        this.environmentHelper = environmentHelper;
     }
 
     @GetMapping
@@ -70,13 +74,23 @@ public class WorkflowController {
         long duration = endTime - startTime;
         System.out.println("Execution time: " + duration + " nanoseconds");
 
+        /*
+            On dev the output always include the observability trace, unless it is explicitly disabled
+            by setting observability=false in the request body
+         */
+        var isObservabilityActive = environmentHelper.isDev();
+        if(!request.observability) isObservabilityActive = false;
 
-        return ResponseEntity.ok(res);
+        if(isObservabilityActive) return ResponseEntity.ok(res);
+        else return ResponseEntity.ok(res.getOutput());
     }
 
     @Data
     public static class ExecuteDTO {
         @JsonProperty("request")
         String request;
+
+        @JsonProperty("observability")
+        boolean observability;
     }
 }
