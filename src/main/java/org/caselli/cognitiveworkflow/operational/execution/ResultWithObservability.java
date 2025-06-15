@@ -1,9 +1,12 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
+import lombok.Data;
+
 /**
  * Helper class to return a result and the observability trace for a process
  * @param <T> The result class
  */
+@Data
 public class ResultWithObservability<T> {
     public ObservabilityReport observabilityReport;
 
@@ -12,5 +15,10 @@ public class ResultWithObservability<T> {
     public ResultWithObservability(T result, ObservabilityReport observabilityReport) {
         this.observabilityReport = observabilityReport;
         this.result = result;
+    }
+
+    public ResultWithObservability(ObservabilityReport observabilityReport) {
+        this.observabilityReport = observabilityReport;
+        this.result = null;
     }
 }

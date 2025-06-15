@@ -57,11 +57,10 @@ public class WorkflowOrchestrator {
         var workflowInstance = runRouting(intentRes.getIntentId());
 
         // INPUT MAPPING
-        ExecutionContext initialContext = runInputMapper(workflowInstance, intentRes.getUserVariables(), request);
+        ExecutionContext initialContext = runInputMapper(workflowInstance, intentRes.getUserVariables(), request, observability);
 
         // EXECUTION
         var finalContext = runWorkflow(workflowInstance, initialContext, observability);
-
 
         logger.debug("Workflow execution completed for request: {}", request);
 
@@ -114,7 +113,7 @@ public class WorkflowOrchestrator {
             throw new RuntimeException("Intent cannot be satisfied.");
         }
 
-        orchestrationObservability.setIntentDetectionObservabilityReport(res.observabilityReport);
+        orchestrationObservability.setIntentDetection(res.observabilityReport);
 
         return intentRes;
     }
@@ -141,10 +140,11 @@ public class WorkflowOrchestrator {
      * Execute the Input Mapper
      * @param workflowInstance Instance of the workflow to execute
      * @param variables Extracted variables
-     * @param userRequest User's request
+     * @param userRequest User's requests
+     * @param orchestrationObservability Orchestration Observability object to track comprehensive observability
      * @return Returns the initial execution context
      */
-    private ExecutionContext runInputMapper(WorkflowInstance workflowInstance, Map<String, Object> variables, String userRequest){
+    private ExecutionContext runInputMapper(WorkflowInstance workflowInstance, Map<String, Object> variables, String userRequest, OrchestrationObservability orchestrationObservability){
 
         logger.info("Starting workflow with variables: {}", variables);
 
@@ -156,13 +156,16 @@ public class WorkflowOrchestrator {
                 .map(id -> workflowInstance.getInstanceByWorkflowNodeId(id).getMetamodel())
                 .collect(Collectors.toList());
 
-        var inputMapping = inputMapperService.mapInput(variables, entryPointMetamodels, userRequest);
+        var res = inputMapperService.mapInput(variables, entryPointMetamodels, userRequest);
+        var inputMapping = res.result;
         logger.debug("Input mapping result: {}", inputMapping);
 
         if(inputMapping == null) {
             logger.error("Workflow failed to start: variables ({}) not sufficient for entry points.", variables);
             throw new RuntimeException("Workflow Failed to start: no starting node can be found.");
         }
+
+        orchestrationObservability.setInputMapper(res.getObservabilityReport());
 
         return inputMapping.getContext();
     }
@@ -179,7 +182,7 @@ public class WorkflowOrchestrator {
         logger.debug("Obtained workflow executor for instance: {}", workflowInstance.getId());
         ExecutionContext clonedContext = new ExecutionContext(context);
         var ob = workflowExecutor.execute(workflowInstance, clonedContext);
-        orchestrationObservability.setWorkflowObservabilityReport(ob);
+        orchestrationObservability.setWorkflowExecution(ob);
         return clonedContext;
     }
 
@@ -219,7 +222,8 @@ public class WorkflowOrchestrator {
 
     @Data
     static class OrchestrationObservability {
-        ObservabilityReport intentDetectionObservabilityReport;
-        ObservabilityReport workflowObservabilityReport;
+        ObservabilityReport intentDetection;
+        ObservabilityReport inputMapper;
+        ObservabilityReport workflowExecution;
     }
 }
