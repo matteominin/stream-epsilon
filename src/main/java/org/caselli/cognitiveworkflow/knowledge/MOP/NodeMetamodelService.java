@@ -3,7 +3,6 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import org.apache.coyote.BadRequestException;
 import org.caselli.cognitiveworkflow.knowledge.MOP.event.NodeMetamodelUpdateEvent;
-import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.*;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.repository.NodeMetamodelCatalog;
@@ -35,14 +34,14 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
     private final NodeMetamodelCatalog repository;
     private final NodeMetamodelValidator nodeMetamodelValidator;
 
-    private final NodeSearchService nodeSearchService;
+    private final NodeHybridSearchService nodeHybridSearchService;
 
-    public NodeMetamodelService(NodeMetamodelCatalog repository, ApplicationEventPublisher eventPublisher, EmbeddingService embeddingService, NodeMetamodelValidator nodeMetamodelValidator, NodeSearchService nodeSearchService) {
+    public NodeMetamodelService(NodeMetamodelCatalog repository, ApplicationEventPublisher eventPublisher, EmbeddingService embeddingService, NodeMetamodelValidator nodeMetamodelValidator, NodeHybridSearchService nodeHybridSearchService) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
         this.embeddingService = embeddingService;
         this.nodeMetamodelValidator = nodeMetamodelValidator;
-        this.nodeSearchService = nodeSearchService;
+        this.nodeHybridSearchService = nodeHybridSearchService;
     }
 
     @PostConstruct
@@ -79,7 +78,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
      * @param query Text query for semantic search
      */
     public List<NodeMetamodel> search(String query){
-        return this.nodeSearchService.performSemanticSearch(query);
+        return this.nodeHybridSearchService.performHybridSearch(query);
     }
 
 

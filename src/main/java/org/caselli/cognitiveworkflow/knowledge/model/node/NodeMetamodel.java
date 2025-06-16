@@ -55,7 +55,6 @@ public abstract class NodeMetamodel {
     @NotNull public abstract List<? extends Port> getInputPorts();
     @NotNull public abstract List<? extends Port> getOutputPorts();
 
-
     public enum NodeType {
         AI,
         TOOL,FLOW
