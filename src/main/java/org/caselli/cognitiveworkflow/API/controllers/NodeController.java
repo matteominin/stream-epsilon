@@ -1,6 +1,7 @@
 package org.caselli.cognitiveworkflow.API.controllers;
 
 import org.apache.coyote.BadRequestException;
+import org.caselli.cognitiveworkflow.knowledge.MOP.NodeHybridSearchService;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.*;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -42,7 +42,8 @@ public class NodeController {
      */
     @GetMapping("/search")
     public ResponseEntity<Object> search(@RequestParam(name = "query", required = true) String query) {
-        var res = nodeMetamodelService.search(query);
+        var filter = new NodeHybridSearchService.NodeSearchFilter();
+        var res = nodeMetamodelService.search(query, filter);
         return ResponseEntity.ok(res);
     }
 

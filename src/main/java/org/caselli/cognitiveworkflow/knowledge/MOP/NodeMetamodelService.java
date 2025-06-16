@@ -74,11 +74,20 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
 
 
     /**
+     * Search Node in the catalog with filters
+     * @param query Text query for semantic search
+     * @param filter Filters
+     */
+    public List<NodeHybridSearchService.NodeSearchResult> search(String query, NodeHybridSearchService.NodeSearchFilter filter){
+        return this.nodeHybridSearchService.performHybridSearch(query, filter);
+    }
+
+    /**
      * Search Node in the catalog
      * @param query Text query for semantic search
      */
     public List<NodeHybridSearchService.NodeSearchResult> search(String query){
-        return this.nodeHybridSearchService.performHybridSearch(query);
+        return this.nodeHybridSearchService.performHybridSearch(query, new NodeHybridSearchService.NodeSearchFilter());
     }
 
 

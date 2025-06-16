@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service responsible for hybrid search of Nodes using MongoDB Atlas Vector Search and Full-Text Search.
@@ -49,13 +50,13 @@ public class NodeHybridSearchService {
     }
 
     /**
-     * Perform the Hybrid Search (Semantic Search + Full Text Search) on the Metamodel Catalog Repository
+     * Perform the Hybrid Search (Semantic Search + Full Text Search) on the Metamodel Catalog Repository With Optional Filtering
      * @param input The input query
+     * @param filter Filters
      * @return Returns a list of matching meta-models
      */
-    public List<NodeSearchResult> performHybridSearch(String input) {
+    public List<NodeSearchResult> performHybridSearch(String input, NodeSearchFilter filter) {
         if (input == null || input.trim().isEmpty()) return Collections.emptyList();
-
 
         try {
             List<Double> userInputEmbedding = embeddingService.generateEmbedding(input);
@@ -64,7 +65,8 @@ public class NodeHybridSearchService {
                 return Collections.emptyList();
             }
 
-            List<Document> pipeline = buildHybridSearchPipeline(input, userInputEmbedding);
+            List<Document> pipeline = buildHybridSearchPipeline(input, userInputEmbedding, filter);
+
 
             Aggregation aggregation = Aggregation.newAggregation(
                     pipeline.stream()
@@ -103,8 +105,9 @@ public class NodeHybridSearchService {
      * Builds the MongoDB aggregation pipeline for hybrid search using RRF pattern.
      * @param query The text query
      * @param queryVector The Query Embedding
+     * @param filter Filters
      */
-    private List<Document> buildHybridSearchPipeline(String query, List<Double> queryVector) {
+    private List<Document> buildHybridSearchPipeline(String query, List<Double> queryVector, NodeSearchFilter filter) {
 
         // Stage 1: Vector Search
         Document vectorSearchStage = new Document("$vectorSearch", new Document()
@@ -175,13 +178,23 @@ public class NodeHybridSearchService {
                 )))
         );
 
-        // Stage 6: Remove search metadata fields
+        // Stage 6: Filter Stage
+        Document filterDoc = new Document();
+        Document filterStage = new Document("$match", filterDoc);
+        if (Boolean.TRUE.equals(filter.getOnlyEnabled())) filterDoc.append("enabled", true);
+        if (Boolean.TRUE.equals(filter.getOnlyLatest())) filterDoc.append("isLatest", true);
+        if (filter.getTypes() != null && !filter.getTypes().isEmpty()) {
+            List<String> typeStrings = filter.getTypes().stream().map(Enum::name).collect(Collectors.toList());
+            filterDoc.append("type", new Document("$in", typeStrings));
+        }
+
+        // Stage 7: Remove search metadata fields
         Document unsetStage = new Document("$unset", Arrays.asList("search_score", "search_type"));
 
-        // Stage 7: Sort by combined score
+        // Stage 8: Sort by combined score
         Document sortStage = new Document("$sort", new Document("combined_score", -1));
 
-        // Stage 8: Limit final results
+        // Stage 9: Limit final results
         Document limitStage = new Document("$limit", finalLimit);
 
         return Arrays.asList(
@@ -190,6 +203,7 @@ public class NodeHybridSearchService {
                 unionWithStage,
                 groupByIdStage,
                 replaceRootStage,
+                filterStage,
                 unsetStage,
                 sortStage,
                 limitStage
@@ -289,5 +303,12 @@ public class NodeHybridSearchService {
         private Number combinedScore;
         private Number vectorScore;
         private Number fulltextScore;
+    }
+
+    @Data
+    public static class NodeSearchFilter {
+        private List<NodeMetamodel.NodeType> types;
+        private Boolean onlyEnabled = true;
+        private Boolean onlyLatest = true;
     }
 }
