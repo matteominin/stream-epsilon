@@ -50,6 +50,7 @@ public class RestPort extends Port {
         protected RestPort createInstance() {
             var port = new RestPort();
             port.setRole(role);
+            port.setPortType(PortImplementationType.REST);
             return port;
         }
     }

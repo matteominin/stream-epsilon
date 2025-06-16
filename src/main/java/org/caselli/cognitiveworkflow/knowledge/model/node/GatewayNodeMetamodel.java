@@ -1,5 +1,6 @@
 package org.caselli.cognitiveworkflow.knowledge.model.node;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,6 +29,7 @@ public class GatewayNodeMetamodel extends FlowNodeMetamodel {
         this.setControlType(ControlType.GATEWAY);
     }
 
+
     /**
         The input ports for this node.
         They are also the output ports as this is a transparent gateway.
@@ -42,7 +44,7 @@ public class GatewayNodeMetamodel extends FlowNodeMetamodel {
     }
 
     @Override
-    @NotNull
+    @JsonIgnore
     public List<StandardPort> getOutputPorts() {
         // The output ports mirror the input ports
         return this.inputPorts;

@@ -1,6 +1,7 @@
 package org.caselli.cognitiveworkflow.API.controllers;
 
 import org.apache.coyote.BadRequestException;
+import org.caselli.cognitiveworkflow.knowledge.MOP.NodeHybridSearchService;
 import org.caselli.cognitiveworkflow.knowledge.MOP.NodeMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.*;
 import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
@@ -36,6 +37,15 @@ public class NodeController {
         return ResponseEntity.ok(page);
     }
 
+    /**
+     * Search for specific nodes
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Object> search(@RequestParam(name = "query", required = true) String query) {
+        var filter = new NodeHybridSearchService.NodeSearchFilter();
+        var res = nodeMetamodelService.search(query, filter);
+        return ResponseEntity.ok(res);
+    }
 
     /**
      * Create a new LLM node metamodel

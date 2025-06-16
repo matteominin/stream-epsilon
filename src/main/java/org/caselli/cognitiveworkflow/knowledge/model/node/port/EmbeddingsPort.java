@@ -40,6 +40,7 @@ public class EmbeddingsPort extends Port {
         @Override
         protected EmbeddingsPort createInstance() {
             var port = new EmbeddingsPort();
+            port.setPortType(PortImplementationType.EMBEDDINGS);
             port.setRole(role);
             return port;
         }
