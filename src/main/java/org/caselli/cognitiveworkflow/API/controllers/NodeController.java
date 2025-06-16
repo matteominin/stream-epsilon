@@ -41,9 +41,8 @@ public class NodeController {
      * Search for specific nodes
      */
     @GetMapping("/search")
-    public ResponseEntity<List<NodeMetamodel>> search(@RequestParam(name = "query", required = true) String query) {
-        List<NodeMetamodel> res = nodeMetamodelService.search(query);
-        System.out.println(res);
+    public ResponseEntity<Object> search(@RequestParam(name = "query", required = true) String query) {
+        var res = nodeMetamodelService.search(query);
         return ResponseEntity.ok(res);
     }
 

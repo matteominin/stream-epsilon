@@ -1,5 +1,7 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.bson.Document;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.LLM.services.EmbeddingService;
@@ -51,7 +53,7 @@ public class NodeHybridSearchService {
      * @param input The input query
      * @return Returns a list of matching meta-models
      */
-    public List<NodeMetamodel> performHybridSearch(String input) {
+    public List<NodeSearchResult> performHybridSearch(String input) {
         if (input == null || input.trim().isEmpty()) return Collections.emptyList();
 
 
@@ -70,16 +72,26 @@ public class NodeHybridSearchService {
                             .toArray(AggregationOperation[]::new)
             );
 
-            AggregationResults<NodeMetamodel> results = mongoTemplate.aggregate(
+            AggregationResults<Document> results = mongoTemplate.aggregate(
                     aggregation,
                     collectionName,
-                    NodeMetamodel.class
+                    Document.class
             );
 
-            List<NodeMetamodel> resultList = results.getMappedResults();
-            log.info("Hybrid search returned {} results for query: '{}'", resultList.size(), input);
 
-            return resultList;
+            List<NodeSearchResult> finalResults = results.getMappedResults().stream().map(doc -> {
+                NodeMetamodel model = mongoTemplate.getConverter().read(NodeMetamodel.class, doc);
+                Double combined = doc.getDouble("combined_score");
+                Double vector = doc.getDouble("vector_score");
+                Double fulltext = doc.getDouble("fulltext_score");
+
+                return new NodeSearchResult(model, combined, vector, fulltext);
+            }).toList();
+
+
+            log.info("Hybrid search returned {} results for query: '{}'", finalResults.size(), input);
+
+            return finalResults;
 
         } catch (Exception e) {
             log.error("Error during hybrid search for query '{}': {}", input, e.getMessage(), e);
@@ -139,13 +151,13 @@ public class NodeHybridSearchService {
                 .append("doc", new Document("$first", "$$ROOT"))
                 .append("vector_score", new Document("$max", new Document("$cond", Arrays.asList(
                         new Document("$eq", Arrays.asList("$search_type", "vector")),
-                        "$search_score",
-                        0
+                        new Document("$toDouble", "$search_score"), // Cast to double here
+                        0.0
                 ))))
                 .append("fulltext_score", new Document("$max", new Document("$cond", Arrays.asList(
                         new Document("$eq", Arrays.asList("$search_type", "fulltext")),
-                        "$search_score",
-                        0
+                        new Document("$toDouble", "$search_score"), // Cast to double here
+                        0.0
                 ))))
         );
 
@@ -267,5 +279,15 @@ public class NodeHybridSearchService {
             log.error("Error during full-text search: {}", e.getMessage(), e);
             return Collections.emptyList();
         }
+    }
+
+
+    @Data
+    @AllArgsConstructor
+    public static class NodeSearchResult {
+        private NodeMetamodel node;
+        private Number combinedScore;
+        private Number vectorScore;
+        private Number fulltextScore;
     }
 }
