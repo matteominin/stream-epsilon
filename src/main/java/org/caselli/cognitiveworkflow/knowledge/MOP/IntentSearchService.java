@@ -1,7 +1,7 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
 
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
-import org.caselli.cognitiveworkflow.operational.LLM.services.EmbeddingService;
+import org.caselli.cognitiveworkflow.operational.AI.services.EmbeddingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

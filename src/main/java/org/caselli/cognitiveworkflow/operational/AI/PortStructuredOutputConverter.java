@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational.LLM;
+package org.caselli.cognitiveworkflow.operational.AI;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;

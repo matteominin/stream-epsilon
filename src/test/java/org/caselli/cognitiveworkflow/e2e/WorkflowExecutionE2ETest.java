@@ -11,7 +11,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.shared.Version;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
-import org.caselli.cognitiveworkflow.operational.LLM.services.PortAdapterService;
+import org.caselli.cognitiveworkflow.operational.AI.services.PortAdapterService;
 import org.caselli.cognitiveworkflow.operational.execution.WorkflowOrchestrator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

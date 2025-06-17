@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bson.Document;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
-import org.caselli.cognitiveworkflow.operational.LLM.services.EmbeddingService;
+import org.caselli.cognitiveworkflow.operational.AI.services.EmbeddingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -3,7 +3,7 @@ package org.caselli.cognitiveworkflow.knowledge.MOP;
 import jakarta.annotation.PostConstruct;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.repository.IntentMetamodelCatalog;
-import org.caselli.cognitiveworkflow.operational.LLM.services.EmbeddingService;
+import org.caselli.cognitiveworkflow.operational.AI.services.EmbeddingService;
 import org.slf4j.Logger;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;

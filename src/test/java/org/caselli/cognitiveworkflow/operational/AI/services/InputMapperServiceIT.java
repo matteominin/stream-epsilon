@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational.LLM.services;
+package org.caselli.cognitiveworkflow.operational.AI.services;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;

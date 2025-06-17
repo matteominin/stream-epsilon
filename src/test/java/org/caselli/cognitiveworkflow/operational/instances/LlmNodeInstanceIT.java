@@ -4,7 +4,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.LlmPort;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
-import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
+import org.caselli.cognitiveworkflow.operational.AI.factories.LLMModelFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

@@ -1,10 +1,10 @@
-package org.caselli.cognitiveworkflow.operational.LLM.services;
+package org.caselli.cognitiveworkflow.operational.AI.services;
 
 import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
-import org.caselli.cognitiveworkflow.operational.LLM.LLMAbstractService;
-import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
+import org.caselli.cognitiveworkflow.operational.AI.LLMAbstractService;
+import org.caselli.cognitiveworkflow.operational.AI.factories.LLMModelFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;

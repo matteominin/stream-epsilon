@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational.LLM.services;
+package org.caselli.cognitiveworkflow.operational.AI.services;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -6,8 +6,8 @@ import lombok.Data;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
-import org.caselli.cognitiveworkflow.operational.LLM.LLMAbstractService;
-import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
+import org.caselli.cognitiveworkflow.operational.AI.LLMAbstractService;
+import org.caselli.cognitiveworkflow.operational.AI.factories.LLMModelFactory;
 import org.caselli.cognitiveworkflow.operational.observability.IntentDetectionObservabilityReport;
 import org.caselli.cognitiveworkflow.operational.observability.ResultWithObservability;
 import org.caselli.cognitiveworkflow.operational.utils.StringUtils;

@@ -1,6 +1,6 @@
-package org.caselli.cognitiveworkflow.operational.LLM.services;
+package org.caselli.cognitiveworkflow.operational.AI.services;
 
-import org.caselli.cognitiveworkflow.operational.LLM.factories.EmbeddingModelFactory;
+import org.caselli.cognitiveworkflow.operational.AI.factories.EmbeddingModelFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.util.List;

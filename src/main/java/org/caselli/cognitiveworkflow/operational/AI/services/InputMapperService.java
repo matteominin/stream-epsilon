@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational.LLM.services;
+package org.caselli.cognitiveworkflow.operational.AI.services;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -7,8 +7,8 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
-import org.caselli.cognitiveworkflow.operational.LLM.LLMAbstractService;
-import org.caselli.cognitiveworkflow.operational.LLM.factories.LLMModelFactory;
+import org.caselli.cognitiveworkflow.operational.AI.LLMAbstractService;
+import org.caselli.cognitiveworkflow.operational.AI.factories.LLMModelFactory;
 import org.caselli.cognitiveworkflow.operational.observability.InputMapperObservabilityReport;
 import org.caselli.cognitiveworkflow.operational.observability.ResultWithObservability;
 import org.springframework.ai.chat.client.ChatClient;

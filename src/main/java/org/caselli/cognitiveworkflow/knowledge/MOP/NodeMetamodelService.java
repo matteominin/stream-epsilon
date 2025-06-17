@@ -8,7 +8,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.repository.NodeMetamodelCatalog;
 import org.caselli.cognitiveworkflow.knowledge.validation.NodeMetamodelValidator;
 import org.caselli.cognitiveworkflow.knowledge.validation.ValidationResult;
-import org.caselli.cognitiveworkflow.operational.LLM.services.EmbeddingService;
+import org.caselli.cognitiveworkflow.operational.AI.services.EmbeddingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

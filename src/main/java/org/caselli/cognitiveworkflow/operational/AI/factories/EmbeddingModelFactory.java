@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational.LLM.factories;
+package org.caselli.cognitiveworkflow.operational.AI.factories;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

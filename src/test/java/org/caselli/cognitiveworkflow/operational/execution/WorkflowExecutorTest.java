@@ -8,7 +8,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
-import org.caselli.cognitiveworkflow.operational.LLM.services.PortAdapterService;
+import org.caselli.cognitiveworkflow.operational.AI.services.PortAdapterService;
 import org.caselli.cognitiveworkflow.operational.instances.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.instances.RestNodeInstance;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;

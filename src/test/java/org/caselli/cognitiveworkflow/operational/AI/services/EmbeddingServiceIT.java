@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational.LLM.services;
+package org.caselli.cognitiveworkflow.operational.AI.services;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

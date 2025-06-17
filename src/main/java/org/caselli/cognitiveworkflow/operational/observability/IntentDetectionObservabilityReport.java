@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
-import org.caselli.cognitiveworkflow.operational.LLM.services.IntentDetectionService;
-import org.caselli.cognitiveworkflow.operational.observability.ObservabilityReport;
-
+import org.caselli.cognitiveworkflow.operational.AI.services.IntentDetectionService;
 import java.util.List;
 
 /**

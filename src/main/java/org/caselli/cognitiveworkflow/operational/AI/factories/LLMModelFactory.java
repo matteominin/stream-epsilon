@@ -1,4 +1,4 @@
-package org.caselli.cognitiveworkflow.operational.LLM.factories;
+package org.caselli.cognitiveworkflow.operational.AI.factories;
 
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.springframework.ai.anthropic.AnthropicChatModel;
