@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Tag("it")
+@Tag("focus")
 @ActiveProfiles("test")
 
 class IntentDetectionServiceIT {

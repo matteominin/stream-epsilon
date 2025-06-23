@@ -103,7 +103,7 @@ public class IntentDetectionService extends LLMAbstractService {
 
             observabilityReport.markCompleted(false,  modelAnswer.getError(), null );
 
-            return null;
+            return new ResultWithObservability<>(null, observabilityReport);
         }
 
         var result = modelAnswer.getData();

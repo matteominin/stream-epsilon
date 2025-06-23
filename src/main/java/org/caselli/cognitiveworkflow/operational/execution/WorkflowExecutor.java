@@ -206,10 +206,6 @@ public class WorkflowExecutor {
                     executionRecord.getMetrics().getFailedNodes());
             logger.info("-------------------------------------------");
 
-
-            System.out.println(executionRecord.toJson()); // TODO: remove
-
-
             return executionRecord;
 
         } catch (Exception e) {

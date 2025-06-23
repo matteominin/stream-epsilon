@@ -2,6 +2,7 @@ package org.caselli.cognitiveworkflow.operational.instances;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
+import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,7 @@ class RestNodeInstanceIT {
     }
 
     @Test
+
     @DisplayName("Should handle basic GET request with no inputs")
     void shouldHandleBasicGetRequest() {
         String testPath = "/api/resource";
@@ -68,6 +70,8 @@ class RestNodeInstanceIT {
         RestPort outputPort = new RestPort();
         outputPort.setKey("outputBody");
         outputPort.setRole(RestPort.RestPortRole.RES_FULL_BODY);
+        outputPort.setSchema(PortSchema.builder().stringSchema().build());
+
         RestPort statusOutputPort = new RestPort();
         statusOutputPort.setKey("outputStatus");
         statusOutputPort.setRole(RestPort.RestPortRole.RES_STATUS);
@@ -248,22 +252,27 @@ class RestNodeInstanceIT {
         RestPort fullBodyPort = new RestPort();
         fullBodyPort.setKey("responseFullBody");
         fullBodyPort.setRole(RestPort.RestPortRole.RES_FULL_BODY);
+        fullBodyPort.setSchema(PortSchema.builder().stringSchema().build());
 
         RestPort statusPort = new RestPort();
         statusPort.setKey("responseStatus");
         statusPort.setRole(RestPort.RestPortRole.RES_STATUS);
+        fullBodyPort.setSchema(PortSchema.builder().stringSchema().build());
 
         RestPort headersPort = new RestPort();
         headersPort.setKey("responseHeaders");
         headersPort.setRole(RestPort.RestPortRole.RES_HEADERS);
+        fullBodyPort.setSchema(PortSchema.builder().stringSchema().build());
 
         RestPort nameFieldPort = new RestPort();
         nameFieldPort.setKey("name");
         nameFieldPort.setRole(RestPort.RestPortRole.RES_BODY_FIELD);
+        fullBodyPort.setSchema(PortSchema.builder().stringSchema().build());
 
         RestPort cityFieldPort = new RestPort();
         cityFieldPort.setKey("city");
         cityFieldPort.setRole(RestPort.RestPortRole.RES_BODY_FIELD);
+        fullBodyPort.setSchema(PortSchema.builder().stringSchema().build());
 
         metamodel.setOutputPorts(Arrays.asList(fullBodyPort, statusPort, headersPort, nameFieldPort, cityFieldPort));
 
