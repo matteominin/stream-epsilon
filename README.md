@@ -2,9 +2,11 @@
 
 > **Academic Reference**: This implementation is based on my thesis "Designing Self-Aware Multi-Agent AI Systems: A Two-Fold Framework Based on AIBOM and Reflective Architecture", Università degli Studi di Firenze, 2024/2025.
 > 
-> 📚 **Complete thesis materials** (including PDF, experiments, and supplementary materials): [github.com/NiccoloCase/bsc-multi-agent-ai-framework](https://github.com/NiccoloCase/bsc-multi-agent-ai-framework/tree/main)
+> 📚 **Complete thesis materials** (including PDF, experiments, use cases in AI for Network Engineering, and supplementary materials): [github.com/NiccoloCase/bsc-multi-agent-ai-framework](https://github.com/NiccoloCase/bsc-multi-agent-ai-framework/tree/main)
 
 A reflective, self-aware multi-agent AI system that implements dynamic workflow execution with runtime adaptability. This framework combines the Reflection architectural pattern with an AI Bill of Materials (AIBOM) approach to create maintainable, traceable, and adaptive cognitive workflows.
+
+**🎯 Research Focus**: This work advances the intersection of **Software Engineering for AI (SE4AI)** and **AI for Software Engineering (AI4SE)**, addressing critical challenges in building maintainable, traceable, and adaptive AI systems through principled software engineering approaches.
 
 ## 🚀 Quick Start
 
@@ -37,11 +39,11 @@ MONGO_VECTOR_SEARCH_DEMO_URI=your_vector_search_mongodb_connection_string
 
 The application requires specific search indexes to be created in MongoDB Atlas:
 
-| Collection | Index Name | Type | Purpose |
-|------------|------------|------|---------|
-| `intents` | `intent_vector_index` | vectorSearch | Intent similarity matching |
-| `meta_nodes` | `node_search_index` | search | Node keyword search |
-| `meta_nodes` | `node_vector_index` | vectorSearch | Node semantic search |
+| Collection | Index Name | Type |
+|------------|------------|------|
+| `intents` | `intent_vector_index` | vectorSearch |
+| `meta_nodes` | `node_search_index` | search | 
+| `meta_nodes` | `node_vector_index` | vectorSearch | 
 
 **Important**: Ensure all indexes are in `READY` status before starting the application.
 
@@ -49,14 +51,14 @@ The application requires specific search indexes to be created in MongoDB Atlas:
 
 ```bash
 # Clone the repository
-git clone https://github.com/ncaselli/cognitive-workflow.git
+git clone https://github.com/NiccoloCase/cognitive-workflow.git
 cd cognitive-workflow
 
 # Install dependencies and run
 mvn spring-boot:run
 ```
 
-The application will start on `http://localhost:8080`
+The application will start on `http://localhost:3001`
 
 ## 🏗️ Architecture Overview
 
@@ -94,7 +96,6 @@ The framework implements a two-layer architecture based on the Reflection patter
 - Enables component discovery and retrieval
 - Supports workflow synthesis from existing components
 
-
 ## 🧪 Testing
 
 The project includes comprehensive test coverage:
@@ -103,50 +104,7 @@ The project includes comprehensive test coverage:
 - **54 Integration Tests**: LLM integration, schema conversion, database operations  
 - **2 End-to-End Tests**: Complete workflow execution scenarios
 
-```bash
-# Run all tests
-mvn test
 
-# Run specific test categories
-mvn test -Dtest="**/*UnitTest"
-mvn test -Dtest="**/*IntegrationTest"
-```
-
-
-## 🎯 Use Cases
-
-### AI for Network Engineering (AI4NE)
-- Intelligent routing of AI tasks across cloud resources
-- Dynamic model selection based on constraints
-- Real-time latency and cost optimization
-
-### Network Engineering for AI (NE4AI)  
-- Network topology optimization for AI workloads
-- Resource allocation for distributed AI systems
-- Performance monitoring and adaptation
-
-### General Cognitive Workflows
-- Multi-step reasoning tasks
-- Document processing pipelines  
-- Complex decision-making workflows
-
-## 🔒 Security & Compliance
-
-- **AIBOM Integration**: Complete traceability of AI components
-- **Audit Logging**: Comprehensive execution tracking
-- **Model Governance**: Version control and certification support
-- **Data Privacy**: Configurable data retention policies
-
-## 📊 Monitoring & Observability
-
-The framework provides built-in monitoring capabilities:
-
-- Workflow execution metrics
-- Node performance tracking  
-- Intent detection accuracy
-- System health indicators
-
-Access metrics at `/actuator/metrics` when running.
 
 ## 🤝 Contributing
 
@@ -156,8 +114,7 @@ Access metrics at `/actuator/metrics` when running.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Università degli Studi di Firenze** - Department of Information Engineering
 - **Prof. Enrico Vicario** - Thesis Supervisor  
