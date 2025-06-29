@@ -183,8 +183,7 @@ public class VectorDbNodeInstance extends ToolNodeInstance {
         VectorDbNodeMetamodel.VectorSearchConfig config = getMetamodel().getParameters();
         if (config == null) config = new VectorDbNodeMetamodel.VectorSearchConfig();
 
-        // Look for parameter overrides in the context
-        // TODO
+        // TODO Look for parameter overrides in the context
 
         return config;
     }

@@ -95,11 +95,6 @@ public class InputMapperService extends LLMAbstractService {
                     new UserMessage(variablesDescription + "\n\n" + nodesDescription + "\n\n" + requestDescription)
             ));
 
-
-            // TODO: remove this line
-            // System.out.println("Prompt: " + prompt.getContents());
-
-
             // Call the LLM
             InputMapperLLMResult result = getChatClient()
                     .prompt(prompt)
