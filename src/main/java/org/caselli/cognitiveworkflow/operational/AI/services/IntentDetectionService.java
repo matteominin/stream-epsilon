@@ -14,6 +14,8 @@ import org.caselli.cognitiveworkflow.operational.utils.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -93,7 +95,19 @@ public class IntentDetectionService extends LLMAbstractService {
         logger.debug("Prompt: {}", prompt.getContents());
 
         // Call the LLM
-        IntentDetectionResponse modelAnswer = getChatClient().prompt(prompt).call().entity(IntentDetectionResponse.class);
+        ChatClient.CallResponseSpec response = getChatClient().prompt(prompt).call();
+
+
+        Usage usage = response.chatResponse().getMetadata().getUsage();
+        if (usage != null) {
+            logger.info("Token usage - Input: {}, Output: {}, Total: {}",
+                    usage.getPromptTokens(),
+                    usage.getCompletionTokens(),
+                    usage.getTotalTokens());
+        }
+
+        IntentDetectionResponse modelAnswer = response.entity(IntentDetectionResponse.class);
+
 
         logger.debug("Model answer: {}", modelAnswer);
 
