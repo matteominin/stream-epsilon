@@ -25,15 +25,17 @@ public class WorkflowExecutor {
     private final PortAdapterService portAdapterService;
     private final WorkflowInstanceManager workflowInstanceManager;
     private final NodeInstanceManager nodeInstanceManager;
+    private final EdgeConditionEvaluator edgeConditionEvaluator;
 
     public WorkflowExecutor(WorkflowMetamodelService workflowMetamodelService,
                             PortAdapterService portAdapterService,
                             WorkflowInstanceManager workflowInstanceManager,
-                            NodeInstanceManager nodeInstanceManager) {
+                            NodeInstanceManager nodeInstanceManager, EdgeConditionEvaluator edgeConditionEvaluator) {
         this.workflowMetamodelService = workflowMetamodelService;
         this.portAdapterService = portAdapterService;
         this.workflowInstanceManager = workflowInstanceManager;
         this.nodeInstanceManager = nodeInstanceManager;
+        this.edgeConditionEvaluator = edgeConditionEvaluator;
     }
 
     /**
@@ -226,24 +228,13 @@ public class WorkflowExecutor {
      * @return true if the condition passes or there is no condition, false otherwise
      */
     private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context) {
-        WorkflowEdge.Condition cond = edge.getCondition();
-        if (cond == null) return true;
-
-        String portKey = cond.getPort();
-        Object val = context.get(portKey);
-
-        if (val == null) {
-            logger.info("Edge condition failed: port '{}' has null value", portKey);
-            return false;
+        boolean result = edgeConditionEvaluator.evaluate(edge, context);
+        if (result) {
+            logger.info("Edge condition for edge {} passed", edge.getId());
+        } else {
+            logger.info("Edge condition for edge {} did not pass", edge.getId());
         }
-
-        String expectedValue = cond.getTargetValue();
-        String actualValue = val.toString();
-        boolean pass = expectedValue.equals(actualValue);
-
-        if (!pass) logger.debug("Edge condition not met: expected '{}' but got '{}' for port '{}'", expectedValue, actualValue, portKey);
-
-        return pass;
+        return result;
     }
 
 

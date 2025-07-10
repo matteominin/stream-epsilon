@@ -5,6 +5,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.EdgeCondition;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
@@ -302,7 +303,10 @@ public class WorkflowMetamodelValidator {
         for (WorkflowEdge edge : workflow.getEdges()) {
             if (edge.getCondition() == null) continue;
 
-            if (edge.getCondition().getPort() == null) {
+            for (var expression :edge.getCondition().getExpressions()) {
+
+
+            if (expression.getPort() == null) {
                 result.addError(
                         "Condition port cannot be null or empty",
                         "workflow.edges." + edge.getId()
@@ -310,26 +314,16 @@ public class WorkflowMetamodelValidator {
                 continue;
             }
 
-            if(edge.getCondition().getTargetValue() == null){
-                result.addError(
-                        "Condition target value cannot be null or empty",
-                        "workflow.edges." + edge.getId()
-                );
-                continue;
-            }
-
 
             String sourceNodeId = edge.getSourceNodeId();
-            String expectedValue = edge.getCondition().getTargetValue();
 
             NodeMetamodel sourceNode = nodesById.get(sourceNodeId);
             if (sourceNode == null) continue;
 
-            String portKey = edge.getCondition().getPort();
+            String portKey = expression.getPort();
 
             // Check if the port exists in the source node's outputs
-            if (sourceNode.getOutputPorts() == null ||
-                    sourceNode.getOutputPorts().stream().noneMatch(p -> p.getKey().equals(portKey))) {
+            if (sourceNode.getOutputPorts() == null || sourceNode.getOutputPorts().stream().noneMatch(p -> p.getKey().equals(portKey))) {
 
                 result.addError(
                         "Condition references non-existent output port '" + portKey +
@@ -346,9 +340,12 @@ public class WorkflowMetamodelValidator {
                     .findFirst();
 
             if (port.isPresent()) {
+
+                var expectedValue = expression.getValue().toString();
+
                 PortSchema schema = port.get().getSchema();
                 if (schema != null) {
-                    boolean isValidValue = validateExpectedValue(schema.getType(), expectedValue);
+                    boolean isValidValue = validateExpectedValue(schema.getType(), expectedValue, expression.getOperation());
                     if (!isValidValue) {
                         result.addError(
                                 "Condition value '" + expectedValue +
@@ -359,15 +356,24 @@ public class WorkflowMetamodelValidator {
                 }
             }
         }
+        }
     }
 
     /**
      * Checks if a condition's expected value matches the port's type.
      * @param portType The type of the port
      * @param expectedValue The expected value to validate
+     * @param operation The operation to validate against
      */
-    private boolean validateExpectedValue(PortType portType, String expectedValue) {
-        if (expectedValue == null) return false;
+    private boolean validateExpectedValue(PortType portType, String expectedValue, EdgeCondition.Operation operation){
+
+        if (expectedValue == null)
+            return operation == EdgeCondition.Operation.IS_NULL || operation == EdgeCondition.Operation.IS_NOT_NULL ||
+                    operation == EdgeCondition.Operation.IS_TRUE || operation == EdgeCondition.Operation.IS_FALSE;
+
+        if(operation == EdgeCondition.Operation.CONTAINS || operation == EdgeCondition.Operation.STARTS_WITH || operation == EdgeCondition.Operation.IN || operation == EdgeCondition.Operation.NOT_IN) {
+            return portType == PortType.ARRAY;
+        }
 
         try {
             return switch (portType) {

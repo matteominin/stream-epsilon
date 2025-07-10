@@ -31,14 +31,5 @@ public class WorkflowEdge {
      * Optional condition for activating this transition.
      * If null, the edge is considered unconditionally valid.
      */
-    private Condition condition;
-
-    /**
-     * Represents a simple equality condition on a port's value
-     */
-    @Data
-    public static class Condition {
-        private String port;
-        private String targetValue;
-    }
+    private EdgeCondition condition;
 }
