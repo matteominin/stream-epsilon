@@ -32,6 +32,7 @@ public class WorkflowExecutor {
                             PortAdapterService portAdapterService,
                             WorkflowInstanceManager workflowInstanceManager,
                             NodeInstanceManager nodeInstanceManager, EdgeConditionEvaluator edgeConditionEvaluator) {
+
         this.workflowMetamodelService = workflowMetamodelService;
         this.portAdapterService = portAdapterService;
         this.workflowInstanceManager = workflowInstanceManager;
@@ -132,15 +133,13 @@ public class WorkflowExecutor {
                 // Mark this incoming edge as satisfied
                 targetState.satisfiedIncomingEdges++;
 
-                logger.info("Edge condition passed: {} -> {} (satisfied: {}/{})",
-                        sourceNodeId, targetNodeId, targetState.satisfiedIncomingEdges, targetState.totalIncomingEdges);
+                logger.info("Edge condition passed: {} -> {} (satisfied: {}/{})", sourceNodeId, targetNodeId, targetState.satisfiedIncomingEdges, targetState.totalIncomingEdges);
             } else {
                 logger.info("Edge condition failed: {} -> {}", sourceNodeId, targetNodeId);
             }
 
             // Record edge evaluation
-            executionRecord.recordEdgeEvaluation(sourceNodeId, targetNodeId, edge.getId(),
-                    conditionPassed, conditionPassed ? "Condition passed" : "Condition not met", appliedBindings);
+            executionRecord.recordEdgeEvaluation(sourceNodeId, targetNodeId, edge.getId(), conditionPassed, conditionPassed ? "Condition passed" : "Condition not met", appliedBindings);
 
             // Check if target node is ready to execute based on its execution type
             boolean targetReady = isNodeReadyToExecute(targetState);
@@ -212,8 +211,7 @@ public class WorkflowExecutor {
             }
         }
 
-        logger.info("Execution state initialized: {} nodes, {} ready initially",
-                state.nodeStates.size(), state.readyQueue.size());
+        logger.info("Execution state initialized: {} nodes, {} ready initially", state.nodeStates.size(), state.readyQueue.size());
 
         return state;
     }
@@ -224,7 +222,6 @@ public class WorkflowExecutor {
      */
     private void executeNode(WorkflowInstance workflow, String workflowNodeId, NodeInstance nodeInstance, ExecutionContext context, WorkflowObservabilityReport executionRecord) throws Exception {
 
-
         try {
             // Apply default values for inputs
             prepareNodeInputs(nodeInstance, context);
@@ -234,8 +231,10 @@ public class WorkflowExecutor {
 
             logger.info("Current context keys: {}", context.keySet());
 
-            // Mark node as running and execute
+            // Mark node as running
             nodeInstanceManager.markRunning(nodeInstance.getId());
+
+            // Execute the node instance
             nodeInstance.process(context);
 
         } finally {
@@ -314,8 +313,6 @@ public class WorkflowExecutor {
     }
 
 
-
-
     /**
      * Evaluates the condition on an edge to determine if execution should proceed.
      * @param edge The edge
@@ -324,13 +321,7 @@ public class WorkflowExecutor {
      */
     private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context) {
         if(edge.getCondition() == null) return true;
-        boolean result = edgeConditionEvaluator.evaluate(edge, context);
-        if (result) {
-            logger.info("Edge condition for edge {} passed", edge.getId());
-        } else {
-            logger.info("Edge condition for edge {} did not pass", edge.getId());
-        }
-        return result;
+        return edgeConditionEvaluator.evaluate(edge, context);
     }
 
 
