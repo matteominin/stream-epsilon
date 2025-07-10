@@ -3,6 +3,7 @@ package org.caselli.cognitiveworkflow.operational.execution;
 import org.caselli.cognitiveworkflow.knowledge.MOP.WorkflowMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowEdge;
+import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.AI.services.PortAdapterService;
 import org.caselli.cognitiveworkflow.operational.instances.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
@@ -70,138 +71,18 @@ public class WorkflowExecutor {
             List<WorkflowEdge> edges = workflow.getMetamodel().getEdges();
             validateEdges(workflow, edges);
 
-            // Build adjacency list and in-degree map
-            Map<String, List<WorkflowEdge>> outgoing = new HashMap<>();
-            Map<String, Integer> inDegree = new HashMap<>();
+            // Build execution state tracking
+            ExecutionState executionState = buildExecutionState(workflow, edges);
 
-            for (String nodeId : workflow.getWorkflowNodesMap().keySet())
-                inDegree.put(nodeId, 0);
+            // Process nodes with proper MERGE/JOIN semantics
+            processWorkflowNodes(workflow, context, executionRecord, executionState);
 
-            for (WorkflowEdge edge : edges) {
-                outgoing.computeIfAbsent(edge.getSourceNodeId(), k -> new ArrayList<>()).add(edge);
-                inDegree.compute(edge.getTargetNodeId(), (k, v) -> v == null ? 1 : v + 1);
-            }
-
-            // Starting Queue
-            Queue<String> queue = new LinkedList<>();
-            // The starting nodes are all nodes with in-degree 0
-            for (Map.Entry<String, Integer> entry : inDegree.entrySet())
-                if (entry.getValue() == 0)
-                    queue.add(workflow.getWorkflowNodesMap().get(entry.getKey()).getId());
-
-            logger.info("Starting workflow execution from {} entry nodes", queue.size());
-            Set<String> processedNodeIds = new HashSet<>();
-
-            // Process nodes in topological order
-            while (!queue.isEmpty()) {
-                String currentId = queue.poll();
-                NodeInstance current = workflow.getInstanceByWorkflowNodeId(currentId);
-
-                logger.info("*******************************************");
-                logger.info("Processing node: {}", currentId);
-
-                if (current == null) {
-                    logger.error("Node instance not found for ID: {}", currentId);
-                    continue;
-                }
-
-                // Record node execution start
-                executionRecord.recordNodeStart(
-                        currentId,
-                        current.getMetamodel().getName() != null ? current.getMetamodel().getName() : "Unnamed Node",
-                        current.getMetamodel().getClass().getSimpleName(),
-                        context
-                );
-
-                String nodeErrorMessage = null;
-                Throwable nodeException = null;
-
-                try {
-                    // Apply default values for any missing inputs
-                    prepareNodeInputs(current, context);
-
-                    // Check if all required input ports are present
-                    ensureRequiredInputsSatisfied(workflow, currentId, context, executionRecord);
-
-                    logger.info("Current context keys: {}", context.keySet());
-
-                    // Mark the node as in execution
-                    nodeInstanceManager.markRunning(current.getId());
-
-                    // Process the node
-                    current.process(context);
-                    processedNodeIds.add(currentId);
-
-                    logger.info("Node {} executed successfully", currentId);
-                    executionRecord.recordNodeCompletion(currentId, true, nodeErrorMessage, nodeException, context);
-
-
-                } catch (Exception e) {
-                    nodeErrorMessage = e.getMessage();
-                    nodeException = e;
-
-                    logger.error("Error processing node {}: {}", currentId, e.getMessage(), e);
-                    executionRecord.recordNodeCompletion(currentId, false, nodeErrorMessage, nodeException, context);
-                    executionRecord.markCompleted(false, "Node execution failed: " + currentId, e);
-                    throw new RuntimeException("Error processing node " + currentId, e);
-
-                } finally {
-                    // Mark the node as no longer in execution
-                    nodeInstanceManager.markFinished(current.getId());
-                }
-
-                // Apply default values for any missing outputs
-                applyDefaultOutputValues(current, context);
-
-                // Propagate outputs to all the outgoing edges
-                List<WorkflowEdge> outs = outgoing.getOrDefault(currentId, Collections.emptyList());
-
-                // Consider all the outgoing edges of the current node
-                for (WorkflowEdge edge : outs) {
-                    String targetId = edge.getTargetNodeId();
-                    NodeInstance targetNode = workflow.getInstanceByWorkflowNodeId(targetId);
-
-                    if (targetNode == null) {
-                        logger.warn("Edge references non-existent target node ID: {}", targetId);
-                        continue;
-                    }
-
-                    // Evaluate the edge condition with tracking
-                    boolean pass = evaluateEdgeCondition(edge, context);
-
-                    if (pass) {
-                        // Apply bindings with tracking
-                        Map<String, String> appliedBindings = null;
-                        if (edge.getBindings() != null) {
-                            appliedBindings = new HashMap<>(edge.getBindings());
-                            applyEdgeBindings(workflow, edge, context);
-                        }
-
-                        // Record edge evaluation
-                        executionRecord.recordEdgeEvaluation(currentId, targetId, edge.getId(), true, "Condition passed", appliedBindings);
-
-                        // Decrement in-degree
-                        inDegree.compute(targetId, (k, v) -> (v == null ? 0 : v) - 1);
-
-                        // Enqueue target node if ready
-                        if (inDegree.get(targetId) == 0) {
-                            queue.add(targetId);
-                            logger.info("Node {} is now ready for execution", targetId);
-                        }
-                    } else {
-                        // Record failed edge evaluation
-                        executionRecord.recordEdgeEvaluation(currentId, targetId, edge.getId(), false, "Condition not met", null);
-                        logger.info("Edge condition from {} to {} is not met", currentId, targetId);
-                    }
-                }
-            }
 
             // Mark workflow as successfully completed
             executionRecord.markCompleted(true, null, null);
 
             logger.info("-------------------------------------------");
-            logger.info("Workflow execution completed successfully. Metrics: ");
-            logger.info("Processed nodes={}", processedNodeIds);
+            logger.info("Workflow execution completed successfully");
             logger.info("Total execution time: {} ms", executionRecord.getTotalExecutionTime().toMillis());
             logger.info("{} total nodes, {} successful, {} failed",
                     executionRecord.getMetrics().getTotalNodes(),
@@ -222,12 +103,227 @@ public class WorkflowExecutor {
     }
 
     /**
+     * Processes outgoing edges from a node
+     */
+    private void processOutgoingEdges(WorkflowInstance workflow, String sourceNodeId, ExecutionContext context, WorkflowObservabilityReport executionRecord, ExecutionState executionState) {
+
+        List<WorkflowEdge> outgoingEdges = executionState.outgoingEdges.getOrDefault(sourceNodeId, Collections.emptyList());
+
+        for (WorkflowEdge edge : outgoingEdges) {
+            String targetNodeId = edge.getTargetNodeId();
+            NodeExecutionState targetState = executionState.nodeStates.get(targetNodeId);
+
+            if (targetState == null) {
+                logger.warn("Target node {} not found for edge {}", targetNodeId, edge.getId());
+                continue;
+            }
+
+            // Evaluate edge condition
+            boolean conditionPassed = evaluateEdgeCondition(edge, context);
+
+            Map<String, String> appliedBindings = null;
+            if (conditionPassed) {
+                // Apply bindings
+                if (edge.getBindings() != null) {
+                    appliedBindings = new HashMap<>(edge.getBindings());
+                    applyEdgeBindings(workflow, edge, context);
+                }
+
+                // Mark this incoming edge as satisfied
+                targetState.satisfiedIncomingEdges++;
+
+                logger.info("Edge condition passed: {} -> {} (satisfied: {}/{})",
+                        sourceNodeId, targetNodeId, targetState.satisfiedIncomingEdges, targetState.totalIncomingEdges);
+            } else {
+                logger.info("Edge condition failed: {} -> {}", sourceNodeId, targetNodeId);
+            }
+
+            // Record edge evaluation
+            executionRecord.recordEdgeEvaluation(sourceNodeId, targetNodeId, edge.getId(),
+                    conditionPassed, conditionPassed ? "Condition passed" : "Condition not met", appliedBindings);
+
+            // Check if target node is ready to execute based on its execution type
+            boolean targetReady = isNodeReadyToExecute(targetState);
+
+            if (targetReady && !executionState.readyQueue.contains(targetNodeId)) {
+                executionState.readyQueue.add(targetNodeId);
+                logger.info("Node {} is now ready for execution (type: {})", targetNodeId, targetState.executionType);
+            }
+        }
+    }
+
+
+    /**
+     * Determines if a node is ready to execute based on its execution type
+     */
+    private boolean isNodeReadyToExecute(NodeExecutionState nodeState) {
+        return switch (nodeState.executionType) {
+            case MERGE ->
+                // MERGE nodes execute when at least one incoming edge is satisfied
+                    nodeState.satisfiedIncomingEdges > 0;
+            default ->
+                // JOIN nodes execute when all incoming edges are satisfied
+                    nodeState.satisfiedIncomingEdges >= nodeState.totalIncomingEdges;
+        };
+    }
+
+
+    /**
+     * Builds the initial execution state for the workflow
+     */
+    private ExecutionState buildExecutionState(WorkflowInstance workflow, List<WorkflowEdge> edges) {
+        ExecutionState state = new ExecutionState();
+
+        // Initialize node states
+        for (String nodeId : workflow.getWorkflowNodesMap().keySet()) {
+            NodeInstance nodeInstance = workflow.getInstanceByWorkflowNodeId(nodeId);
+            WorkflowNode workflowNode = workflow.getWorkflowNodesMap().get(nodeId);
+
+            NodeExecutionState nodeState = new NodeExecutionState();
+            nodeState.nodeId = nodeId;
+            nodeState.nodeInstance = nodeInstance;
+            nodeState.executionType = workflowNode.getExecutionType();
+            nodeState.totalIncomingEdges = 0;
+            nodeState.satisfiedIncomingEdges = 0;
+            nodeState.hasIncomingEdges = false;
+
+            state.nodeStates.put(nodeId, nodeState);
+        }
+
+        // Build adjacency lists and count incoming edges
+        for (WorkflowEdge edge : edges) {
+            String sourceId = edge.getSourceNodeId();
+            String targetId = edge.getTargetNodeId();
+
+            state.outgoingEdges.computeIfAbsent(sourceId, k -> new ArrayList<>()).add(edge);
+
+            NodeExecutionState targetState = state.nodeStates.get(targetId);
+            if (targetState != null) {
+                targetState.totalIncomingEdges++;
+                targetState.hasIncomingEdges = true;
+            }
+        }
+
+        // Initialize ready queue with nodes that have no incoming edges
+        for (NodeExecutionState nodeState : state.nodeStates.values()) {
+            if (!nodeState.hasIncomingEdges) {
+                state.readyQueue.add(nodeState.nodeId);
+                logger.info("Node {} has no incoming edges, adding to ready queue", nodeState.nodeId);
+            }
+        }
+
+        logger.info("Execution state initialized: {} nodes, {} ready initially",
+                state.nodeStates.size(), state.readyQueue.size());
+
+        return state;
+    }
+
+
+    /**
+     * Executes a single node
+     */
+    private void executeNode(WorkflowInstance workflow, String workflowNodeId, NodeInstance nodeInstance, ExecutionContext context, WorkflowObservabilityReport executionRecord) throws Exception {
+
+
+        try {
+            // Apply default values for inputs
+            prepareNodeInputs(nodeInstance, context);
+
+            // Check required inputs
+            ensureRequiredInputsSatisfied(workflow, workflowNodeId, context, executionRecord);
+
+            logger.info("Current context keys: {}", context.keySet());
+
+            // Mark node as running and execute
+            nodeInstanceManager.markRunning(nodeInstance.getId());
+            nodeInstance.process(context);
+
+        } finally {
+            nodeInstanceManager.markFinished(nodeInstance.getId());
+        }
+
+        // Apply default output values
+        applyDefaultOutputValues(nodeInstance, context);
+    }
+
+
+    /**
+     * Processes workflow nodes
+     */
+    private void processWorkflowNodes(WorkflowInstance workflow, ExecutionContext context, WorkflowObservabilityReport executionRecord, ExecutionState executionState) {
+
+        Set<String> processedNodes = new HashSet<>();
+
+        while (!executionState.readyQueue.isEmpty()) {
+            String currentId = executionState.readyQueue.poll();
+            NodeExecutionState currentState = executionState.nodeStates.get(currentId);
+
+            if (processedNodes.contains(currentId)) {
+                logger.debug("Node {} already processed, skipping", currentId);
+                continue;
+            }
+
+            logger.info("*******************************************");
+            logger.info("Processing node: {} (type: {})", currentId, currentState.executionType);
+
+            // Record node execution start
+            executionRecord.recordNodeStart(
+                    currentId,
+                    currentState.nodeInstance.getMetamodel().getName() != null ?
+                            currentState.nodeInstance.getMetamodel().getName() : "Unnamed Node",
+                    currentState.nodeInstance.getMetamodel().getClass().getSimpleName(),
+                    context
+            );
+
+            boolean nodeExecutionSuccessful = false;
+            String nodeErrorMessage = null;
+            Throwable nodeException = null;
+
+            try {
+
+                // Execute the node
+                executeNode(workflow, currentState.nodeId, currentState.nodeInstance, context, executionRecord);
+                nodeExecutionSuccessful = true;
+                processedNodes.add(currentId);
+
+                logger.info("Node {} executed successfully", currentId);
+
+            } catch (Exception e) {
+                nodeErrorMessage = e.getMessage();
+                nodeException = e;
+                logger.error("Error processing node {}: {}", currentId, e.getMessage(), e);
+
+                // For failed nodes, we still need to evaluate outgoing edges to potentially
+                // unblock downstream nodes (especially MERGE nodes)
+                // TODO
+            }
+
+            // Record node completion
+            executionRecord.recordNodeCompletion(currentId, nodeExecutionSuccessful, nodeErrorMessage, nodeException, context);
+
+            // Process outgoing edges regardless of node execution success
+            processOutgoingEdges(workflow, currentId, context, executionRecord, executionState);
+
+            // If node failed and it's critical, we might want to stop execution
+            if (!nodeExecutionSuccessful) {
+                // You can add logic here to determine if this failure should stop the workflow
+                // For now, we continue to allow downstream MERGE nodes to potentially execute
+                logger.warn("Node {} failed, but continuing workflow execution", currentId);
+            }
+        }
+    }
+
+
+
+
+    /**
      * Evaluates the condition on an edge to determine if execution should proceed.
      * @param edge The edge
      * @param context The current context
      * @return true if the condition passes or there is no condition, false otherwise
      */
     private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context) {
+        if(edge.getCondition() == null) return true;
         boolean result = edgeConditionEvaluator.evaluate(edge, context);
         if (result) {
             logger.info("Edge condition for edge {} passed", edge.getId());
@@ -529,5 +625,22 @@ public class WorkflowExecutor {
                 unsatisfied.add(port.getKey());
         }
         return unsatisfied;
+    }
+
+
+
+    private static class ExecutionState {
+        final Map<String, NodeExecutionState> nodeStates = new HashMap<>();
+        final Map<String, List<WorkflowEdge>> outgoingEdges = new HashMap<>();
+        final Queue<String> readyQueue = new LinkedList<>();
+    }
+
+    private static class NodeExecutionState {
+        String nodeId;
+        NodeInstance nodeInstance;
+        WorkflowNode.ExecutionType executionType;
+        int totalIncomingEdges;
+        int satisfiedIncomingEdges;
+        boolean hasIncomingEdges;
     }
 }
