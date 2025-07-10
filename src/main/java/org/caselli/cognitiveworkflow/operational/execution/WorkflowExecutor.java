@@ -15,6 +15,7 @@ import java.util.*;
 /**
  * Class for executing workflows with comprehensive observability.
  * Execution progresses in a topological order.
+ * @author niccolocaselli
  */
 @Service
 public class WorkflowExecutor {

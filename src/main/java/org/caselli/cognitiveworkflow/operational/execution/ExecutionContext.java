@@ -8,6 +8,7 @@ import java.util.*;
  * ExecutionContext extends HashMap to provide enhanced put and get operations
  * that support dot notation for accessing and manipulating nested Map structures
  * and List/array elements using numeric indices.
+ * @author niccolocaselli
  */
 @NoArgsConstructor
 public class ExecutionContext extends HashMap<String, Object> {

@@ -18,6 +18,8 @@ import java.util.List;
  *      - If an instance exists, asks the WorkflowInstanceManager to instantiate it; then routes the request to it;
  *      - If none exists, tries to combine nodes;
  *      - If this fails, it throws an exception.
+ *
+ *  @author niccolocaselli
  */
 @Service
 public class RoutingManager {

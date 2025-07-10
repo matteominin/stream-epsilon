@@ -9,6 +9,10 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Factory class to create instances of WorkflowInstance based on the provided WorkflowMetamodel.
+ * @author niccolocaselli
+ */
 @Component
 public class WorkflowFactory {
     private final NodeInstanceManager nodeInstanceManager;
