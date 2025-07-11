@@ -1,5 +1,8 @@
 package org.caselli.cognitiveworkflow.operational.AI;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
@@ -7,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.ai.converter.MapOutputConverter;
 import org.springframework.ai.converter.StructuredOutputConverter;
@@ -211,13 +215,15 @@ public class PortStructuredOutputConverter {
      * @param port The port containing the schema
      * @return The processed response
      */
-    public static Object processWithChatClient(ChatClient chatClient, List<Message> messages, Port port) {
+    public static PortStructuredOutputConverterResult processWithChatClient(ChatClient chatClient, List<Message> messages, Port port) {
         addFormatInstructions(messages, port);
         Prompt prompt = new Prompt(messages);
 
         logger.info("Prompt contents: {}", prompt.getContents());
 
-        String responseText = chatClient.prompt(prompt).call().content();
+        var response = chatClient.prompt(prompt).call();
+
+        String responseText = response.content();
 
         logger.info("Raw LLM response: {}", responseText);
 
@@ -225,7 +231,16 @@ public class PortStructuredOutputConverter {
 
         logger.info("Converted response: {}", res);
 
-        return res;
+        return new PortStructuredOutputConverterResult(res, responseText, response.chatResponse());
     }
 
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PortStructuredOutputConverterResult {
+        private Object result;
+        private String rawResponse;
+        private ChatResponse chatResponse;
+    }
 }

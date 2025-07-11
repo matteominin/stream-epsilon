@@ -322,6 +322,8 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
         Map<String, Object> resMap = (Map<String, Object>) output.get("res");
         assertTrue(resMap.containsKey("title"));
         assertTrue(resMap.containsKey("plot"));
+
+        result.getObservability().printTokenUsageReport();
     }
 
 
@@ -375,6 +377,8 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
                 .filter(e -> e.getSourceNodeId().equals("3") && e.getTargetNodeId().equals("4"))
                 .findFirst().orElseThrow().getBindings()
                 .containsKey("results"));
+
+        res.getObservability().printTokenUsageReport();
 
     }
 }

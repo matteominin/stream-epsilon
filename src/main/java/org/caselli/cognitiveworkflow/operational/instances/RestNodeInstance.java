@@ -9,6 +9,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.RestNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.RestPort;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.observability.NodeObservabilityReport;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.http.HttpEntity;
@@ -56,7 +57,7 @@ public class RestNodeInstance extends ToolNodeInstance {
     }
 
     @Override
-    public void process(ExecutionContext context) {
+    public void process(ExecutionContext context, NodeObservabilityReport observabilityReport) {
 
         logger.info("[Node {}]: Processing REST request.", getId());
 

@@ -6,9 +6,8 @@ import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.AI.services.InputMapperService;
 import org.caselli.cognitiveworkflow.operational.AI.services.IntentDetectionService;
-import org.caselli.cognitiveworkflow.operational.observability.RoutingObservabilityReport;
+import org.caselli.cognitiveworkflow.operational.observability.*;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
-import org.caselli.cognitiveworkflow.operational.observability.ObservabilityReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -73,6 +72,9 @@ public class WorkflowOrchestrator {
         var output = extractOutputs(finalContext, workflowInstance);
         result.setOutput(output);
 
+
+        observability.calcAndSetTotalTokenUsage();
+
         return result;
 
     }
@@ -119,7 +121,8 @@ public class WorkflowOrchestrator {
             throw new RuntimeException("Intent cannot be satisfied.");
         }
 
-        orchestrationObservability.setIntentDetection(res.observabilityReport);
+        orchestrationObservability.setIntentDetection((IntentDetectionObservabilityReport) res.observabilityReport);
+
 
         return intentRes;
     }
@@ -179,7 +182,7 @@ public class WorkflowOrchestrator {
             throw new RuntimeException("Workflow Failed to start: no starting node can be found.");
         }
 
-        orchestrationObservability.setInputMapper(res.getObservabilityReport());
+        orchestrationObservability.setInputMapper((InputMapperObservabilityReport) res.getObservabilityReport());
 
         return inputMapping.getContext();
     }
@@ -232,13 +235,5 @@ public class WorkflowOrchestrator {
     public static class OrchestrationResult {
         Map<String, Object> output;
         OrchestrationObservability observability;
-    }
-
-    @Data
-    static class OrchestrationObservability {
-        ObservabilityReport intentDetection;
-        ObservabilityReport routing;
-        ObservabilityReport inputMapper;
-        ObservabilityReport workflowExecution;
     }
 }

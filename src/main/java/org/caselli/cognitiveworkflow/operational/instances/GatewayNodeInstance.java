@@ -3,6 +3,7 @@ package org.caselli.cognitiveworkflow.operational.instances;
 import org.caselli.cognitiveworkflow.knowledge.model.node.GatewayNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.observability.NodeObservabilityReport;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 @Component
@@ -20,7 +21,7 @@ public class GatewayNodeInstance extends FlowNodeInstance {
     }
 
     @Override
-    public void process(ExecutionContext context) {
+    public void process(ExecutionContext context, NodeObservabilityReport observabilityReport) {
         logger.info("[Node {}]: Processing Transparent Gateway Instance", getId());
         // Propagate the content of the input ports to the corresponding (same name) output ports
         // [as for now context is global, we do not need to do anything here]

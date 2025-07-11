@@ -11,10 +11,13 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.AI.factories.LLMModelFactory;
 import org.caselli.cognitiveworkflow.operational.AI.PortStructuredOutputConverter;
+import org.caselli.cognitiveworkflow.operational.observability.NodeObservabilityReport;
+import org.caselli.cognitiveworkflow.operational.observability.TokenUsage;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -52,7 +55,7 @@ public class LlmNodeInstance extends AiNodeInstance {
 
 
     @Override
-    public void process(ExecutionContext context) {
+    public void process(ExecutionContext context, NodeObservabilityReport observabilityReport) {
         logger.info("[Node {}]: Processing LLM Node Instance", getId());
 
         List<Message> messages = buildPromptMessages(context);
@@ -65,10 +68,19 @@ public class LlmNodeInstance extends AiNodeInstance {
 
         try {
             // Use the helper method that handles everything
-            Object result = PortStructuredOutputConverter.processWithChatClient(getChatClient(), messages, responsePort);
+            var response = PortStructuredOutputConverter.processWithChatClient(getChatClient(), messages, responsePort);
+            var result = response.getResult();
+
 
             // Store the result in the context
             context.put(responsePort.getKey(), result);
+
+            // Track token usage
+            if(observabilityReport != null) {
+                Usage usage = response.getChatResponse().getMetadata().getUsage();
+                observabilityReport.setTokenUsage(new TokenUsage(usage));
+            }
+
             logger.debug("[Node {}]: Stored result for port {} in context", getId(), responsePort.getKey());
         } catch (Exception e) {
             // Error handling

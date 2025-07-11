@@ -7,6 +7,8 @@ import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.AI.services.PortAdapterService;
 import org.caselli.cognitiveworkflow.operational.instances.NodeInstance;
 import org.caselli.cognitiveworkflow.operational.instances.WorkflowInstance;
+import org.caselli.cognitiveworkflow.operational.observability.NodeObservabilityReport;
+import org.caselli.cognitiveworkflow.operational.observability.TokenUsage;
 import org.caselli.cognitiveworkflow.operational.observability.WorkflowObservabilityReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -234,8 +236,18 @@ public class WorkflowExecutor {
             // Mark node as running
             nodeInstanceManager.markRunning(nodeInstance.getId());
 
+            // Node Execution Observability
+            NodeObservabilityReport nodeObservabilityReport = new NodeObservabilityReport(
+                    nodeInstance.getId(),
+                    workflow.getId()
+            );
+
             // Execute the node instance
-            nodeInstance.process(context);
+            nodeInstance.process(context, nodeObservabilityReport);
+
+            // Check token usage for observability
+            if(!nodeObservabilityReport.getTokenUsage().isEmpty())
+                executionRecord.recordTokenUsage(nodeObservabilityReport.getTokenUsage());
 
         } finally {
             nodeInstanceManager.markFinished(nodeInstance.getId());
@@ -393,7 +405,7 @@ public class WorkflowExecutor {
         // If there are no source ports, we cannot adapt the edges
         if (sourcePorts.isEmpty()) {
             logger.error("No source ports available to adapt edges for node '{}'. Missing required inputs: {}", currentId, missingRequiredInputs);
-            executionResult.recordPortAdaptation(currentId, missingRequiredInputs, Collections.emptyMap(), false);
+            executionResult.recordPortAdaptation(currentId, missingRequiredInputs, Collections.emptyMap(), false, new TokenUsage());
             return false;
         }
 
@@ -402,7 +414,7 @@ public class WorkflowExecutor {
 
         if (res.getBindings().isEmpty()) {
             logger.error("No compatible edges found to adapt for node '{}'. Missing required inputs: {}", currentId, missingRequiredInputs);
-            executionResult.recordPortAdaptation(currentId, missingRequiredInputs, Collections.emptyMap(), false);
+            executionResult.recordPortAdaptation(currentId, missingRequiredInputs, Collections.emptyMap(), false, res.getTokenUsage());
             return false;
         }
 
@@ -441,7 +453,7 @@ public class WorkflowExecutor {
         boolean adaptationSuccessful = unsatisfiedInputs.isEmpty();
 
 
-        executionResult.recordPortAdaptation(currentId, missingRequiredInputs, res.getBindings(), adaptationSuccessful);
+        executionResult.recordPortAdaptation(currentId, missingRequiredInputs, res.getBindings(), adaptationSuccessful, res.getTokenUsage());
 
         if (!adaptationSuccessful) {
             logger.error("After adaptation, node '{}' still has unsatisfied required inputs: {}", currentId, unsatisfiedInputs);

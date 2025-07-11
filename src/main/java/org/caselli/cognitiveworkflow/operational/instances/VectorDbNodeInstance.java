@@ -14,6 +14,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortSchema;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.PortType;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.VectorDbPort;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.observability.NodeObservabilityReport;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
@@ -46,7 +47,7 @@ public class VectorDbNodeInstance extends ToolNodeInstance {
     }
 
     @Override
-    public void process(ExecutionContext context) {
+    public void process(ExecutionContext context, NodeObservabilityReport observabilityReport) {
         logger.info("[Node {}]: Processing Vector Search request.", getId());
 
         // INIT the DB

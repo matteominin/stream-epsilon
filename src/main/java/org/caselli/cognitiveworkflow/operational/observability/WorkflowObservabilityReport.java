@@ -40,11 +40,17 @@ public class WorkflowObservabilityReport extends ObservabilityReport {
 
     private final ExecutionContext initialContext;
 
+    private final List<TokenUsage> tokenUsages = Collections.synchronizedList(new ArrayList<>());
+
+
     public WorkflowObservabilityReport(String workflowId, String workflowName, ExecutionContext initialContext) {
         this.workflowId = workflowId;
         this.workflowName = workflowName;
         this.initialContext = new ExecutionContext(initialContext); // deep copy
     }
+
+
+
 
     /**
      * Marks the workflow execution as completed
@@ -97,11 +103,16 @@ public class WorkflowObservabilityReport extends ObservabilityReport {
     /**
      * Records port adaptation attempts
      */
-    public void recordPortAdaptation(String nodeId, List<String> missingInputs, Map<String, String> suggestedBindings, boolean successful) {
+    public void recordPortAdaptation(String nodeId, List<String> missingInputs, Map<String, String> suggestedBindings, boolean successful, TokenUsage tokenUsage) {
         PortAdaptationDetail detail = new PortAdaptationDetail(
                 nodeId, missingInputs, suggestedBindings, successful, Instant.now()
         );
         portAdaptations.add(detail);
+
+        // Record token usage if available
+        if (tokenUsage != null) {
+            recordTokenUsage(tokenUsage);
+        }
     }
 
     /**
@@ -114,6 +125,16 @@ public class WorkflowObservabilityReport extends ObservabilityReport {
             snapshot.put(key, value != null ? value.toString() : null);
         }
         return snapshot;
+    }
+
+
+    /**
+     * Record token usage for the workflow execution
+     */
+    public void recordTokenUsage(TokenUsage tokenUsage) {
+        if (tokenUsage != null) {
+            tokenUsages.add(tokenUsage);
+        }
     }
 
 
