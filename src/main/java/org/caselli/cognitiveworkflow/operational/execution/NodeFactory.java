@@ -6,6 +6,10 @@ import org.slf4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+/**
+ * Factory class to create instances of NodeInstance based on the provided NodeMetamodel.
+ * @author niccolocaselli
+ */
 @Component
 public class NodeFactory {
     private final Logger logger = org.slf4j.LoggerFactory.getLogger(NodeFactory.class);

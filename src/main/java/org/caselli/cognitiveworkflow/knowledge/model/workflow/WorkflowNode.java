@@ -18,4 +18,11 @@ public class WorkflowNode {
     /** The ID of the metamodel of the node*/
     @NotNull
     private String nodeMetamodelId;
+
+    private ExecutionType executionType = ExecutionType.JOIN;
+
+    public enum ExecutionType {
+        MERGE, // Execute when at least one incoming input is ready
+        JOIN, // Execute when all incoming inputs are ready
+    }
 }

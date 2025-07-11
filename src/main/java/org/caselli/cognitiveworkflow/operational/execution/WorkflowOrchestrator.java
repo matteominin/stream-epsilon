@@ -15,6 +15,10 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Orchestrator for managing the workflow execution process.
+ * @author niccolocaselli
+ */
 @Service
 public class WorkflowOrchestrator {
 

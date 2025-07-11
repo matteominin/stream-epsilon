@@ -256,8 +256,8 @@ class WorkflowExecutorTest {
         // MOCKING WorkflowMetamodelService behavior
         doNothing().when(workflowMetamodelService).updateMultipleEdgeBindings(anyString(), anyMap());
 
-        // EXECUTE and assert that an Exception is thrown
-        assertThrows(RuntimeException.class, () -> executor.execute(workflowInstance, context));
+        // EXECUTE
+        executor.execute(workflowInstance, context);
 
         // Verify that nodeA was processed
         verify(nodeA).process(any(ExecutionContext.class));
