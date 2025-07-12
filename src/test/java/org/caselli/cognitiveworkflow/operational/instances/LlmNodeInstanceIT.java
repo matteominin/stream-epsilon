@@ -58,7 +58,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("Simple String output")
-    void test_WithTextOutput_returnsString() {
+    void test_WithTextOutput_returnsString() throws Exception {
         metamodel.setInputPorts(List.of(
                 LlmPort.builder()
                         .withKey("object")
@@ -92,7 +92,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("Simple Int output")
-    void test_WithNumberOutput_returnsInt() {
+    void test_WithNumberOutput_returnsInt() throws Exception {
 
         metamodel.setOutputPorts(List.of(
                 LlmPort.builder()
@@ -113,7 +113,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("Simple Int output")
-    void test_WithNumberOutput_returnsFloat() {
+    void test_WithNumberOutput_returnsFloat() throws Exception {
         metamodel.setOutputPorts(List.of(
                 LlmPort.builder()
                         .withKey("res")
@@ -133,7 +133,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("Complex string output")
-    void test_patientClassificationWorkflowWithTextOutput_returnsStructuredString() {
+    void test_patientClassificationWorkflowWithTextOutput_returnsStructuredString() throws Exception {
         metamodel.setInputPorts(List.of(
                 LlmPort.builder()
                         .withKey("medicalCategories")
@@ -199,7 +199,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("Nested map output")
-    void test_patientClassificationWorkflowWithStructuredOutput_returnsMappedData() {
+    void test_patientClassificationWorkflowWithStructuredOutput_returnsMappedData() throws Exception {
         metamodel.setInputPorts(List.of(
                 LlmPort.builder()
                         .withKey("medicalCategories")
@@ -281,7 +281,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("List of strings output")
-    void test_actorFilmographyRetrievalWithStructuredArrayOutput_returnsListOfStrings() {
+    void test_actorFilmographyRetrievalWithStructuredArrayOutput_returnsListOfStrings() throws Exception {
         metamodel.setInputPorts(List.of(
                 LlmPort.builder()
                         .withKey("actor")
@@ -365,7 +365,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("List of maps output")
-    void test_actorFilmographyRetrievalWithStructuredObjectArrayOutput_returnsListOfMaps() {
+    void test_actorFilmographyRetrievalWithStructuredObjectArrayOutput_returnsListOfMaps() throws Exception {
         metamodel.setInputPorts(List.of(
                 LlmPort.builder()
                         .withKey("actor")
@@ -452,7 +452,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("Map with list output")
-    void test_actorFilmographyRetrievalWithStructuredObjectWithArray() {
+    void test_actorFilmographyRetrievalWithStructuredObjectWithArray() throws Exception {
         metamodel.setInputPorts(List.of(
                 LlmPort.builder()
                         .withKey("actor")
@@ -532,7 +532,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("List of int output")
-    void test_arrayOutput_returnsListOfInt() {
+    void test_arrayOutput_returnsListOfInt() throws Exception {
         metamodel.setInputPorts(List.of(
                 LlmPort.builder()
                         .withKey("MIN")
@@ -571,7 +571,7 @@ public class LlmNodeInstanceIT {
 
     @Test
     @DisplayName("List of floats output")
-    void test_arrayOutput_returnsListOfFloat() {
+    void test_arrayOutput_returnsListOfFloat() throws Exception {
         metamodel.setInputPorts(List.of());
 
         metamodel.setOutputPorts(List.of(

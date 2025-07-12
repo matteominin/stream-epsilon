@@ -12,6 +12,7 @@ import java.util.Map;
 
 /**
  * Input Mapper observability trace
+ * @author niccolocaselli
  */
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -25,6 +26,8 @@ public class InputMapperObservabilityReport extends ObservabilityReport {
     Map<String, Object> variables;
     List<NodeMetamodel> nodes;
     String requestInput;
+
+    TokenUsage tokenUsage;
 
     public InputMapperObservabilityReport(Map<String, Object> variables, List<NodeMetamodel> nodes, String requestInput) {
         this.variables = variables;

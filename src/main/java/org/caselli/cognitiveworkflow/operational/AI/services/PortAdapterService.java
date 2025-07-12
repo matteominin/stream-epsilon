@@ -1,10 +1,13 @@
 package org.caselli.cognitiveworkflow.operational.AI.services;
 
+
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.AI.LLMAbstractService;
 import org.caselli.cognitiveworkflow.operational.AI.factories.LLMModelFactory;
+import org.caselli.cognitiveworkflow.operational.observability.TokenUsage;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -136,8 +139,19 @@ public class PortAdapterService extends LLMAbstractService {
 
 
             // Call the LLM with the prompt
-            // Use structured output
-            PortAdaptation adaptationResult = getChatClient().prompt(prompt).call().entity(PortAdaptation.class);
+            var response = getChatClient().prompt(prompt).call();
+
+            //  Structured output handling
+            PortAdaptationLLMResult adaptationResult = response.entity(PortAdaptationLLMResult.class);
+
+
+            // Init a PortAdaptation object to hold the result
+            PortAdaptation portAdaptation = new PortAdaptation();
+            portAdaptation.setBindings(Collections.emptyMap());
+
+            // Put the token usage in the PortAdaptation result
+            portAdaptation.setTokenUsage(new TokenUsage(response.chatResponse().getMetadata().getUsage()));
+
 
             if (adaptationResult != null && adaptationResult.getBindings() != null) {
 
@@ -145,16 +159,17 @@ public class PortAdapterService extends LLMAbstractService {
                 Map<String,String> adapterPorts = adaptationResult.getBindings();
                 for (String key : adapterPorts.keySet()) logger.info(key + " -> " + adapterPorts.get(key));
 
-                return adaptationResult;
+                portAdaptation.setBindings(adaptationResult.getBindings());
+                return portAdaptation;
+
+
             } else {
                 if (adaptationResult == null) {
                     logger.warn("LLM response mapping to PortAdaptation failed");
                     return null;
                 } else {
-                    PortAdaptation emptyResult = new PortAdaptation();
-                    emptyResult.setBindings(Collections.emptyMap());
                     logger.warn("No mapping needed. Returning empty result.");
-                    return emptyResult;
+                    return portAdaptation;
                 }
             }
 
@@ -172,13 +187,19 @@ public class PortAdapterService extends LLMAbstractService {
         return llmModelFactory.createChatClient(provider, model, apiKey, options);
     }
 
+    @EqualsAndHashCode(callSuper = true)
+    @Data
+    public static class PortAdaptation extends  PortAdaptationLLMResult  {
+        private TokenUsage tokenUsage;
+    }
+
     /**
      * Class representing the adaptation of ports.
      * It contains a map of bindings that represent the adaptation between source and target ports.
      * Use dot notation for nested attributes (e.g. "A.B").
      */
     @Data
-    public static class PortAdaptation {
+    public static class PortAdaptationLLMResult {
 
         private Map<String, String> bindings;
 

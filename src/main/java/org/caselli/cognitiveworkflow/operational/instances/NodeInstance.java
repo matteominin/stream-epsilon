@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.caselli.cognitiveworkflow.knowledge.model.node.NodeMetamodel;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
+import org.caselli.cognitiveworkflow.operational.observability.NodeObservabilityReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,12 @@ public abstract class NodeInstance {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public abstract void process(ExecutionContext context) throws Exception;
+    public abstract void process(ExecutionContext context, NodeObservabilityReport observabilityReport);
+
+    public void process(ExecutionContext context) {
+        process(context, null);
+    }
+
 
     /**
      * Method to handle the refresh of the node

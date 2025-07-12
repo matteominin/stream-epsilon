@@ -6,6 +6,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.node.port.EmbeddingsPort;
 import org.caselli.cognitiveworkflow.knowledge.model.node.port.Port;
 import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.AI.factories.EmbeddingModelFactory;
+import org.caselli.cognitiveworkflow.operational.observability.NodeObservabilityReport;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,7 @@ public class EmbeddingsNodeInstance extends AiNodeInstance {
 
 
     @Override
-    public void process(ExecutionContext context) {
+    public void process(ExecutionContext context, NodeObservabilityReport observabilityReport) {
         logger.info("[Node {}]: Processing Embedding Model Instance", getId());
 
         String text = getInput(context);

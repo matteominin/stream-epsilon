@@ -21,6 +21,8 @@ public class IntentDetectionObservabilityReport extends ObservabilityReport {
 
     List<IntentMetamodel> similarIntents;
 
+    TokenUsage tokenUsage;
+
     public IntentDetectionObservabilityReport(String inputRequest) {
         this.inputRequest = inputRequest;
     }
