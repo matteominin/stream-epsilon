@@ -54,4 +54,14 @@ public class TokenUsage {
     public boolean isEmpty() {
         return completionTokens == 0 && promptTokens == 0 && totalTokens == 0;
     }
+
+
+    @Override
+    public String toString() {
+        return "TokenUsage{" +
+                "completionTokens=" + completionTokens +
+                ", promptTokens=" + promptTokens +
+                ", totalTokens=" + totalTokens +
+                '}';
+    }
 }

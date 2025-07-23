@@ -79,6 +79,7 @@ public class IntentDetectionService extends LLMAbstractService {
 
         observabilityReport.setSimilarIntents(intents);
 
+
         if(intents.isEmpty()) logger.info("No similar intents found");
         else logger.info("Found similar intents: " + intentsOutput);
 
@@ -86,6 +87,9 @@ public class IntentDetectionService extends LLMAbstractService {
         Map<String, Object> model = Map.of("availableIntents", intentsOutput);
         SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(SYSTEM_INSTRUCTIONS_TEMPLATE);
         SystemMessage systemMessage = new SystemMessage(systemPromptTemplate.create(model).getContents());
+
+
+
 
         // User message
         UserMessage userMessage = new UserMessage(userInput);
@@ -96,16 +100,25 @@ public class IntentDetectionService extends LLMAbstractService {
         logger.debug("Prompt: {}", prompt.getContents());
 
         // Call the LLM
+        long startTime = System.nanoTime();
         ChatClient.CallResponseSpec response = getChatClient().prompt(prompt).call();
-
+        long endTime = System.nanoTime();
+        System.out.println("LLM call duration: " + (endTime - startTime) / 1_000_000 + " ms");
 
         Usage usage = response.chatResponse().getMetadata().getUsage();
-        if (usage != null) observabilityReport.setTokenUsage(
-                new TokenUsage(usage.getCompletionTokens(), usage.getPromptTokens(), usage.getTotalTokens())
-        );
 
+        if (usage != null) {
+            var tokenUsage = new TokenUsage(usage.getCompletionTokens(), usage.getPromptTokens(), usage.getTotalTokens());
+            System.out.println("LLM token usage: " + tokenUsage);
+            observabilityReport.setTokenUsage(tokenUsage);
+        }
+
+
+        startTime = System.nanoTime();
         IntentDetectionResponse modelAnswer = response.entity(IntentDetectionResponse.class);
 
+        endTime = System.nanoTime();
+        System.out.println("LLM response parsing duration: " + (endTime - startTime) / 1_000_000 + " ms");
 
         logger.debug("Model answer: {}", modelAnswer);
 
@@ -142,6 +155,7 @@ public class IntentDetectionService extends LLMAbstractService {
                     .findFirst();
 
             if (intent.isEmpty()) {
+
                 // If the intentId is not found in the list of intents
                 // this means that in the previous step the intent was found by name not by id
                 // so we need to set the intentId to the real intentId
