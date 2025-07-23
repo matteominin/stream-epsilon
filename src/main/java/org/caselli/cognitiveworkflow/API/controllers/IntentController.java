@@ -1,6 +1,5 @@
 package org.caselli.cognitiveworkflow.API.controllers;
 
-
 import jakarta.validation.Valid;
 import org.caselli.cognitiveworkflow.knowledge.MOP.IntentMetamodelService;
 import org.caselli.cognitiveworkflow.knowledge.model.intent.IntentMetamodel;
@@ -24,7 +23,6 @@ public class IntentController {
         this.intentService = intentService;
     }
 
-
     @GetMapping
     public ResponseEntity<List<IntentMetamodel>> getAllIntents() {
         List<IntentMetamodel> intents = intentService.findAll();
@@ -40,23 +38,22 @@ public class IntentController {
 
     @PostMapping
     public ResponseEntity<IntentMetamodel> createIntent(@Valid @RequestBody IntentMetamodel intent) {
-         try {
-             IntentMetamodel createdIntent = intentService.create(intent);
-             return ResponseEntity.status(HttpStatus.CREATED).body(createdIntent);
-         }
-         catch (Exception e){
-             return ResponseEntity.badRequest().build();
-         }
+        try {
+            IntentMetamodel createdIntent = intentService.create(intent);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdIntent);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<IntentMetamodel> updateIntent(@PathVariable String id, @Valid @RequestBody IntentMetamodel intent) {
+    public ResponseEntity<IntentMetamodel> updateIntent(@PathVariable String id,
+            @Valid @RequestBody IntentMetamodel intent) {
         try {
             intent.setId(id);
             IntentMetamodel updatedIntent = intentService.update(intent);
             return ResponseEntity.ok(updatedIntent);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }

@@ -74,7 +74,8 @@ class WorkflowExecutorTest {
         return nodeInstance;
     }
 
-    private WorkflowInstance createWorkflowInstance(String id, List<NodeInstance> nodeInstances, List<WorkflowNode> nodes, List<WorkflowEdge> edges) {
+    private WorkflowInstance createWorkflowInstance(String id, List<NodeInstance> nodeInstances,
+            List<WorkflowNode> nodes, List<WorkflowEdge> edges) {
         WorkflowMetamodel workflowMetamodel = new WorkflowMetamodel();
         workflowMetamodel.setId(id);
         workflowMetamodel.setName("name");
@@ -99,7 +100,8 @@ class WorkflowExecutorTest {
         NodeInstance nodeA = createNodeInstanceA("nodeA", List.of(inputPortA1, inputPortA2), List.of(outputPortA1));
 
         // B
-        RestPort inputPortB = createStringPort("outputA_1"); // <-- IMPLICIT BINDING: This matches outputA_1 for implicit binding
+        RestPort inputPortB = createStringPort("outputA_1"); // <-- IMPLICIT BINDING: This matches outputA_1 for
+                                                             // implicit binding
         RestPort outputPortB = createStringPort("outputB_1");
         NodeInstance nodeB = createNodeInstanceA("nodeB", List.of(inputPortB), List.of(outputPortB));
 
@@ -116,7 +118,8 @@ class WorkflowExecutorTest {
         edge.setSourceNodeId("A");
         edge.setTargetNodeId("B");
 
-        WorkflowInstance workflowInstance = createWorkflowInstance("workflow1", List.of(nodeA, nodeB), List.of(wNodeA, wNodeB), List.of(edge));
+        WorkflowInstance workflowInstance = createWorkflowInstance("workflow1", List.of(nodeA, nodeB),
+                List.of(wNodeA, wNodeB), List.of(edge));
 
         // INPUT CONTEXT
         ExecutionContext context = new ExecutionContext();
@@ -128,7 +131,7 @@ class WorkflowExecutorTest {
             ExecutionContext currentContext = invocation.getArgument(0);
             currentContext.put("outputA_1", "valueA_1");
             return null;
-        }).when(nodeA).process(any(ExecutionContext.class));
+        }).when(nodeA).process(any(ExecutionContext.class), any());
 
         // MOCKING WorkflowMetamodelService behavior
         doNothing().when(workflowMetamodelService).updateMultipleEdgeBindings(anyString(), anyMap());
@@ -137,11 +140,12 @@ class WorkflowExecutorTest {
         executor.execute(workflowInstance, context);
 
         // Verify that the nodes were executed in the correct order
-        verify(nodeA).process(any(ExecutionContext.class));
-        verify(nodeB).process(any(ExecutionContext.class));
+        verify(nodeA).process(any(ExecutionContext.class), any());
+        verify(nodeB).process(any(ExecutionContext.class), any());
 
         // IMPORTANT: Verify that PortAdapterService was NEVER called
-        // In implicit binding scenarios, if port names match, the adapter service should not be engaged.
+        // In implicit binding scenarios, if port names match, the adapter service
+        // should not be engaged.
         verify(portAdapterService, never()).adaptPorts(anyList(), anyList());
     }
 
@@ -172,7 +176,8 @@ class WorkflowExecutorTest {
         edge.setTargetNodeId("B");
         edge.setBindings(Map.of("outputA_1", "inputB")); // <--------- Explicit binding
 
-        WorkflowInstance workflowInstance = createWorkflowInstance("workflow1", List.of(nodeA, nodeB), List.of(wNodeA, wNodeB), List.of(edge));
+        WorkflowInstance workflowInstance = createWorkflowInstance("workflow1", List.of(nodeA, nodeB),
+                List.of(wNodeA, wNodeB), List.of(edge));
 
         // INPUT CONTEXT
         ExecutionContext context = new ExecutionContext();
@@ -184,8 +189,7 @@ class WorkflowExecutorTest {
             ExecutionContext currentContext = invocation.getArgument(0);
             currentContext.put("outputA_1", "valueA_1");
             return null;
-        }).when(nodeA).process(any(ExecutionContext.class));
-
+        }).when(nodeA).process(any(ExecutionContext.class), any());
 
         // MOCKING WorkflowMetamodelService behavior
         doNothing().when(workflowMetamodelService).updateMultipleEdgeBindings(anyString(), anyMap());
@@ -194,9 +198,8 @@ class WorkflowExecutorTest {
         executor.execute(workflowInstance, context);
 
         // Verify that the nodes were executed in the correct order
-        verify(nodeA).process(any(ExecutionContext.class));
-        verify(nodeB).process(any(ExecutionContext.class));
-
+        verify(nodeA).process(any(ExecutionContext.class), any());
+        verify(nodeB).process(any(ExecutionContext.class), any());
 
         // IMPORTANT: Verify that PortAdapterService was NEVER called
         // In explicit binding scenarios, if the bindings are provided and valid,
@@ -231,7 +234,8 @@ class WorkflowExecutorTest {
         edge.setTargetNodeId("B");
         // No explicit binding here
 
-        WorkflowInstance workflowInstance = createWorkflowInstance("workflow1", List.of(nodeA, nodeB), List.of(wNodeA, wNodeB), List.of(edge));
+        WorkflowInstance workflowInstance = createWorkflowInstance("workflow1", List.of(nodeA, nodeB),
+                List.of(wNodeA, wNodeB), List.of(edge));
 
         // INPUT CONTEXT
         ExecutionContext context = new ExecutionContext();
@@ -245,7 +249,8 @@ class WorkflowExecutorTest {
             return null;
         }).when(nodeA).process(any(ExecutionContext.class));
 
-        // MOCKING PortAdapterService to return NO bindings, leading to the expected failure.
+        // MOCKING PortAdapterService to return NO bindings, leading to the expected
+        // failure.
         // Since "outputA_1" and "inputB" don't match and there's no explicit binding,
         // we expect adaptPorts to find no solutions.
         var res = new PortAdapterService.PortAdaptation();
@@ -260,10 +265,11 @@ class WorkflowExecutorTest {
         executor.execute(workflowInstance, context);
 
         // Verify that nodeA was processed
-        verify(nodeA).process(any(ExecutionContext.class));
+        verify(nodeA).process(any(ExecutionContext.class), any());
 
-        // Verify that nodeB's process method was NOT called as the exception should occur before it.
-        verify(nodeB, never()).process(any(ExecutionContext.class));
+        // Verify that nodeB's process method was NOT called as the exception should
+        // occur before it.
+        verify(nodeB, never()).process(any(ExecutionContext.class), any());
 
         // IMPORTANT: Verify that PortAdapterService was called
         // In explicit binding scenarios, if the bindings are not provided or invalid,
