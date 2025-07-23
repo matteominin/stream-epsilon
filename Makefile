@@ -8,21 +8,23 @@ build:
 run:
 	docker-compose --profile app up
 
+# Run unit tests
+unit_test:
+	docker-compose run --rm dev mvn test
+
 # Run end-to-end tests
 e2e_test:
-	docker-compose --profile e2e up --abort-on-container-exit
+	docker-compose run --rm dev mvn failsafe:integration-test -Dit.test="*E2ETest"
 
-# Run integration tests (using the dev container)
+# Run integration tests
 integration_test:
-	docker-compose --profile dev up -d
-	docker-compose exec dev mvn test -Dgroups=it
-	docker-compose --profile dev down
+	docker-compose run --rm dev mvn failsafe:integration-test -Dit.test="*IT"
 
 # Run all tests
-test:
-	docker-compose --profile dev up -d
-	docker-compose exec dev mvn test
-	docker-compose --profile dev down
+all_tests:
+	make unit_test
+	make integration_test
+	make e2e_test
 
 # Clean up
 clean:
