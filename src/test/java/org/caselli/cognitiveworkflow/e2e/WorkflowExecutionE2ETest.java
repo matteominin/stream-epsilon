@@ -14,6 +14,7 @@ import org.caselli.cognitiveworkflow.knowledge.model.workflow.WorkflowNode;
 import org.caselli.cognitiveworkflow.operational.AI.services.PortAdapterService;
 import org.caselli.cognitiveworkflow.operational.execution.WorkflowOrchestrator;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -338,6 +339,7 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
         }
 
         @Test
+        @Tag("focus")
         @DisplayName("Test the movie RAG workflow execution with port adaptation")
         void testRAGWorkflowExecutionWithoutExplicitBindings() throws BadRequestException {
                 var intent = intentMetamodelService.create(createIntent());

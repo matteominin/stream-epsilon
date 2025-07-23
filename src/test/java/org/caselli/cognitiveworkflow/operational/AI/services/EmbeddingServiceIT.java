@@ -13,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 public class EmbeddingServiceIT {
 
-    @Autowired private EmbeddingService embeddingService;
-
+    @Autowired
+    private EmbeddingService embeddingService;
 
     @Test
     public void testGetEmbeddings() {
@@ -23,7 +23,4 @@ public class EmbeddingServiceIT {
         assertNotNull(response);
         assertFalse(response.isEmpty());
     }
-
-
-
 }
