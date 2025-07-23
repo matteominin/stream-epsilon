@@ -37,7 +37,7 @@ MONGO_VECTOR_SEARCH_DEMO_URI=your_vector_search_mongodb_connection_string
 
 ### MongoDB Atlas Setup
 
-The application requires specific search indexes to be created in MongoDB Atlas:
+The application requires specific search indexes to be created in MongoDB Atlas. **All indexes must be in `READY` status before starting the application.**
 
 | Collection | Index Name | Type |
 |------------|------------|------|
@@ -45,7 +45,141 @@ The application requires specific search indexes to be created in MongoDB Atlas:
 | `meta_nodes` | `node_search_index` | search | 
 | `meta_nodes` | `node_vector_index` | vectorSearch | 
 
-**Important**: Ensure all indexes are in `READY` status before starting the application.
+#### Index Configurations
+
+**1. Full-Text Search Index for Nodes (`node_search_index` on `meta_nodes` collection)**
+
+```json
+{
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "author": {
+        "analyzer": "lucene.keyword",
+        "type": "string"
+      },
+      "createdAt": {
+        "type": "date"
+      },
+      "description": {
+        "analyzer": "lucene.standard",
+        "searchAnalyzer": "lucene.standard",
+        "type": "string"
+      },
+      "enabled": {
+        "type": "boolean"
+      },
+      "familyId": {
+        "analyzer": "lucene.keyword",
+        "type": "string"
+      },
+      "isLatest": {
+        "type": "boolean"
+      },
+      "name": {
+        "analyzer": "lucene.standard",
+        "multi": {
+          "exact": {
+            "analyzer": "lucene.keyword",
+            "type": "string"
+          }
+        },
+        "searchAnalyzer": "lucene.standard",
+        "type": "string"
+      },
+      "qualitativeDescriptor": {
+        "dynamic": true,
+        "fields": {
+          "_all_text": {
+            "analyzer": "lucene.standard",
+            "type": "string"
+          }
+        },
+        "type": "document"
+      },
+      "quantitativeDescriptor": {
+        "dynamic": true,
+        "type": "document"
+      },
+      "type": {
+        "analyzer": "lucene.keyword",
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "date"
+      },
+      "version": {
+        "fields": {
+          "label": {
+            "analyzer": "lucene.keyword",
+            "type": "string"
+          },
+          "major": {
+            "type": "number"
+          },
+          "minor": {
+            "type": "number"
+          },
+          "patch": {
+            "type": "number"
+          }
+        },
+        "type": "document"
+      }
+    }
+  },
+  "analyzers": [
+    {
+      "charFilters": [
+        {
+          "mappings": {
+            "AI": "artificial intelligence",
+            "DB": "Data base",
+            "DL": "deep learning",
+            "ML": "machine learning",
+            "NLP": "natural language processing"
+          },
+          "type": "mapping"
+        }
+      ],
+      "name": "technical_analyzer",
+      "tokenizer": {
+        "type": "standard"
+      }
+    }
+  ]
+}
+```
+
+**2. Vector Search Index for Nodes (`node_vector_index` on `meta_nodes` collection)**
+
+```json
+{
+  "fields": [
+    {
+      "numDimensions": 1536,
+      "path": "embedding",
+      "similarity": "cosine",
+      "type": "vector"
+    }
+  ]
+}
+```
+
+**3. Vector Search Index for Intents (`intent_vector_index` on `intents` collection)**
+
+```json
+{
+  "fields": [
+    {
+      "numDimensions": 1536,
+      "path": "embedding",
+      "similarity": "cosine",
+      "type": "vector"
+    }
+  ]
+}
+```
 
 ### Running the Application
 
