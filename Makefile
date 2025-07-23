@@ -20,6 +20,11 @@ e2e_test:
 integration_test:
 	docker-compose run --rm dev mvn failsafe:integration-test -Dit.test="*IT"
 
+# Run tests with focus tag
+focus_test:
+	docker-compose run --rm dev mvn test -Dgroups=focus
+	docker-compose run --rm dev mvn failsafe:integration-test -Dgroups=focus -Dit.test="*IT"
+
 # Run all tests
 all_tests:
 	make unit_test

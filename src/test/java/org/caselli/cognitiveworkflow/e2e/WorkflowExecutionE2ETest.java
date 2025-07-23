@@ -339,7 +339,6 @@ public class WorkflowExecutionE2ETest extends BaseE2ETest {
         }
 
         @Test
-        @Tag("focus")
         @DisplayName("Test the movie RAG workflow execution with port adaptation")
         void testRAGWorkflowExecutionWithoutExplicitBindings() throws BadRequestException {
                 var intent = intentMetamodelService.create(createIntent());
