@@ -7,6 +7,9 @@ services:
     container_name: sallma
     ports:
       - "${APP_PORT:-3001}:3001"
+    volumes:
+      - .:/app
+      - maven_cache:/root/.m2
     env_file:
       - .env
     profiles:
