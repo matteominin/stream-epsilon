@@ -13,9 +13,11 @@ import org.caselli.cognitiveworkflow.operational.observability.InputMapperObserv
 import org.caselli.cognitiveworkflow.operational.observability.ResultWithObservability;
 import org.caselli.cognitiveworkflow.operational.observability.TokenUsage;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ResponseEntity;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -98,14 +100,16 @@ public class InputMapperService extends LLMAbstractService {
             ));
 
             // Call the LLM
-            ChatClient.CallResponseSpec response = getChatClient().prompt(prompt).call();
+            ResponseEntity<ChatResponse, InputMapperLLMResult> response = getChatClient().prompt(prompt)
+                    .call()
+                    .responseEntity(InputMapperLLMResult.class);
 
-            Usage usage = response.chatResponse().getMetadata().getUsage();
+            Usage usage = response.getResponse().getMetadata().getUsage();
             if (usage != null) observabilityReport.setTokenUsage(
                     new TokenUsage(usage.getCompletionTokens(), usage.getPromptTokens(), usage.getTotalTokens())
             );
 
-            InputMapperLLMResult result = response.entity(InputMapperLLMResult.class);
+            InputMapperLLMResult result = response.getEntity();
 
             logger.info("LLM returned {}", result != null ? result.getBindings() : "null");
 
