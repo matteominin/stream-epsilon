@@ -8,13 +8,17 @@ A reflective, self-aware multi-agent AI system that implements dynamic workflow 
 
 **🎯 Research Focus**: This work advances the intersection of **Software Engineering for AI (SE4AI)** and **AI for Software Engineering (AI4SE)**, addressing critical challenges in building maintainable, traceable, and adaptive AI systems through principled software engineering approaches.
 
+
+![Workflow Overview](doc/assets/workflow.gif)
+
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - MongoDB Atlas account
 - OpenAI API key
-- Anthropic API key (optional)
+- Anthropic API key
 - Docker
 - Make
 
@@ -26,7 +30,7 @@ Clone `.env.template` and edit with your variables:
 cp .env.template .env
 ```
 
-#### Custom api port
+#### 🌐 Custom api port
 The default api port is 3001, in order to set a custom port add this line to your `.env` file
 ```bash
 # Optional: Spring port (default 3001)
@@ -34,7 +38,7 @@ APP_PORT=port_number
 ```
 
 
-### MongoDB Database Setup
+### 🗂️ MongoDB Database Setup
 
 The application requires  **three separate MongoDB databases**  to function properly:
 
