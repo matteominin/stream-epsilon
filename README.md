@@ -9,7 +9,47 @@ A reflective, self-aware multi-agent AI system that implements dynamic workflow 
 **🎯 Research Focus**: This work advances the intersection of **Software Engineering for AI (SE4AI)** and **AI for Software Engineering (AI4SE)**, addressing critical challenges in building maintainable, traceable, and adaptive AI systems through principled software engineering approaches.
 
 
-![Workflow Overview](doc/assets/workflow.gif)
+
+
+## 🏗️ Architecture Overview
+
+![Workflow Overview](/doc/assets/workflow.gif)
+
+### Dual-Layer Architecture
+
+The framework implements a two-layer architecture based on the Reflection pattern:
+
+- **Knowledge Layer (Meta-Level)**: Manages workflow meta-models, node definitions, and intent configurations
+- **Operational Layer (Base-Level)**: Handles real-time workflow execution and orchestration
+
+### Core Components
+
+#### 🧠 Intent Detection Service
+- Analyzes natural language requests
+- Retrieves or creates intent metadata
+- Supports semantic intent matching
+
+#### 🔀 Routing Manager  
+- Queries workflows associated with detected intents
+- Applies scoring and selection algorithms
+- Supports diversity sampling for workflow selection
+
+#### ⚙️ Workflow Engine
+- Custom-built for dynamic AI workflows
+- DAG-based execution with dependency resolution  
+- Runtime adaptation and port matching
+
+#### 🔌 Port Adapter Service
+- Automatic port compatibility resolution using LLMs
+- Runtime workflow patching
+- Reduces system brittleness to interface changes
+
+#### 🔍 Hybrid Search
+- Combines semantic and keyword search
+- Enables component discovery and retrieval
+- Supports workflow synthesis from existing components
+
+
 
 
 ## 🚀 Quick Start
@@ -291,7 +331,7 @@ vectorSearch
 
 
 
-## Running the Application
+## 🚆 Running the Application
 
 ```bash
 # Clone the repository
@@ -310,41 +350,7 @@ To remove a container in order to restart with a fresh new enviroment, exectute 
 make clean
 ```
 
-## 🏗️ Architecture Overview
 
-### Dual-Layer Architecture
-
-The framework implements a two-layer architecture based on the Reflection pattern:
-
-- **Knowledge Layer (Meta-Level)**: Manages workflow meta-models, node definitions, and intent configurations
-- **Operational Layer (Base-Level)**: Handles real-time workflow execution and orchestration
-
-### Core Components
-
-#### 🧠 Intent Detection Service
-- Analyzes natural language requests
-- Retrieves or creates intent metadata
-- Supports semantic intent matching
-
-#### 🔀 Routing Manager  
-- Queries workflows associated with detected intents
-- Applies scoring and selection algorithms
-- Supports diversity sampling for workflow selection
-
-#### ⚙️ Workflow Engine
-- Custom-built for dynamic AI workflows
-- DAG-based execution with dependency resolution  
-- Runtime adaptation and port matching
-
-#### 🔌 Port Adapter Service
-- Automatic port compatibility resolution using LLMs
-- Runtime workflow patching
-- Reduces system brittleness to interface changes
-
-#### 🔍 Hybrid Search
-- Combines semantic and keyword search
-- Enables component discovery and retrieval
-- Supports workflow synthesis from existing components
 
 ## 🧪 Testing
 
@@ -354,7 +360,6 @@ The project includes comprehensive test coverage:
 - **54 Integration Tests**: LLM integration, schema conversion, database operations  
 - **2 End-to-End Tests**: Complete workflow execution scenarios
 
-## 🧪 Testing with Makefile
 
 The `Makefile` provides commands to simplify testing tasks. Below are the available testing commands and their usage:
 
@@ -387,6 +392,7 @@ Runs tests with the `focus` tag, including both unit and integration tests.
 make all_tests
 ```
 Runs all tests: unit, integration, and end-to-end tests.
+
 
 ## 🤝 Contributing
 
