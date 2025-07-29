@@ -12,16 +12,12 @@ import lombok.Data;
 import java.util.List;
 import java.util.Optional;
 
-
 /**
- * Represents a named input or output port of a node, including its schema definition.
+ * Represents a named input or output port of a node, including its schema
+ * definition.
  */
 @Data
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        property = "portType",
-        visible = true
-)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "portType", visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = StandardPort.class, name = "STANDARD"),
         @JsonSubTypes.Type(value = RestPort.class, name = "REST"),
@@ -30,26 +26,27 @@ import java.util.Optional;
         @JsonSubTypes.Type(value = EmbeddingsPort.class, name = "EMBEDDINGS"),
 })
 public class Port {
-    Port() {}
+    Port() {
+    }
 
     /** The key of the port */
-    @NotNull private String key;
+    @NotNull
+    private String key;
 
     /** The type schema of the port */
-    @NotNull private PortSchema schema;
-
+    @NotNull
+    private PortSchema schema;
 
     /** Default value for the port */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Object defaultValue;
 
-
     /**
      * The type of the port.
      * Field for polymorphic deserialization
      */
-    @NotNull private PortImplementationType portType;
-
+    @NotNull
+    private PortImplementationType portType;
 
     public enum PortImplementationType {
         STANDARD,
@@ -59,10 +56,9 @@ public class Port {
         VECTOR_DB
     }
 
-
-
     /**
      * Converts a Port object to JSON string representation.
+     * 
      * @param port Port object to convert
      * @return JSON string representation of the Port object
      */
@@ -74,8 +70,7 @@ public class Port {
         try {
             JsonNode portNode = mapper.valueToTree(port);
             // Remove "portType"
-            if (portNode instanceof ObjectNode)
-            {
+            if (portNode instanceof ObjectNode) {
                 ((ObjectNode) portNode).remove("portType");
                 ((ObjectNode) portNode).remove("role");
             }
@@ -85,15 +80,17 @@ public class Port {
         }
     }
 
-
     /**
-     * Helper method to retrieve and resolve a PortSchema given a full path (e.g., "basePort.nestedField").
-     * @param ports Available ports to search in
+     * Helper method to retrieve and resolve a PortSchema given a full path (e.g.,
+     * "basePort.nestedField").
+     * 
+     * @param ports       Available ports to search in
      * @param fullPathKey The dot-notation path to the port field
      * @return Return the schema of the port field corresponding to the nested path
      */
     public static PortSchema getResolvedSchemaForPort(List<? extends Port> ports, String fullPathKey) {
-        if (fullPathKey == null || fullPathKey.isEmpty() || ports == null || ports.isEmpty()) return null;
+        if (fullPathKey == null || fullPathKey.isEmpty() || ports == null || ports.isEmpty())
+            return null;
 
         // Split into base port key and the rest of the path (if any)
         // "port.field.sub" -> parts[0]="port", parts[1]="field.sub"
@@ -101,18 +98,21 @@ public class Port {
         String basePortKey = parts[0];
         String nestedPath = (parts.length > 1 && parts[1] != null && !parts[1].isEmpty()) ? parts[1] : null;
 
-        if (basePortKey.isEmpty()) return null;
+        if (basePortKey.isEmpty())
+            return null;
 
         Optional<? extends Port> basePortOpt = ports.stream()
                 .filter(p -> p.getKey() != null && p.getKey().equals(basePortKey))
                 .findFirst();
 
-        if (basePortOpt.isEmpty()) return null;
+        if (basePortOpt.isEmpty())
+            return null;
 
         Port basePort = basePortOpt.get();
         PortSchema baseSchema = basePort.getSchema();
 
-        if (baseSchema == null) return null;
+        if (baseSchema == null)
+            return null;
 
         if (nestedPath != null) {
             try {

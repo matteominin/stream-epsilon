@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Abstract class that describes the structure and metadata of a node that can be used in a workflow.
+ * Abstract class that describes the structure and metadata of a node that can
+ * be used in a workflow.
  */
 @Data
 @Document(collection = "meta_nodes")
@@ -28,17 +29,25 @@ public abstract class NodeMetamodel {
 
     // Metadata:
     private Boolean isLatest = true; // If the node is the latest version in the current family
-    @NotNull private Boolean enabled = true; // If the node is enabled
-    @NotNull private Version version = new Version(0,0,0,null); // Version of the node
+    @NotNull
+    private Boolean enabled = true; // If the node is enabled
+    @NotNull
+    private Version version = new Version(0, 0, 0, null); // Version of the node
 
-    @NotNull private String name;
-    @NotNull private NodeType type;
-    @NotNull private String description;
-    @NotNull private String author;
+    @NotNull
+    private String name;
+    @NotNull
+    private NodeType type;
+    @NotNull
+    private String description;
+    @NotNull
+    private String author;
 
     // Update and creation date:
-    @CreatedDate private LocalDateTime createdAt;
-    @LastModifiedDate private LocalDateTime updatedAt;
+    @CreatedDate
+    private LocalDateTime createdAt;
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
     /** Qualitative descriptor: what the node does (non-predefined format) */
     private org.bson.Document qualitativeDescriptor;
@@ -46,17 +55,20 @@ public abstract class NodeMetamodel {
     /** Quantitative descriptor (e.g., cSLAs, performance metrics, costs) */
     private org.bson.Document quantitativeDescriptor;
 
-
     /** Embedding field for semantic search **/
     @JsonIgnore
     private List<Double> embedding;
 
     // Abstract methods to be implemented by subclasses
-    @NotNull public abstract List<? extends Port> getInputPorts();
-    @NotNull public abstract List<? extends Port> getOutputPorts();
+    @NotNull
+    public abstract List<? extends Port> getInputPorts();
+
+    @NotNull
+    public abstract List<? extends Port> getOutputPorts();
 
     public enum NodeType {
         AI,
-        TOOL,FLOW
+        TOOL,
+        FLOW
     }
 }

@@ -20,8 +20,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 "BAD_REQUEST",
                 ex.getMessage(),
-                Instant.now()
-        );
+                Instant.now());
         return ResponseEntity.badRequest().body(error);
     }
 
@@ -38,21 +37,20 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 "BAD_REQUEST",
                 errorMessage,
-                Instant.now()
-        );
+                Instant.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         StringBuilder errorMessage = new StringBuilder("Validation failed:");
-        ex.getBindingResult().getFieldErrors().forEach(error -> errorMessage.append(" Field '").append(error.getField()).append("': ").append(error.getDefaultMessage()));
+        ex.getBindingResult().getFieldErrors().forEach(error -> errorMessage.append(" Field '").append(error.getField())
+                .append("': ").append(error.getDefaultMessage()));
 
         ErrorResponse error = new ErrorResponse(
                 "BAD_REQUEST",
                 errorMessage.toString(),
-                Instant.now()
-        );
+                Instant.now());
         return ResponseEntity.badRequest().body(error);
     }
 
@@ -61,18 +59,17 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 "BAD_REQUEST",
                 ex.getMessage(),
-                Instant.now()
-        );
+                Instant.now());
         return ResponseEntity.badRequest().body(error);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException() {
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
+        ex.printStackTrace();
         ErrorResponse error = new ErrorResponse(
                 "INTERNAL_SERVER_ERROR",
                 "An unexpected error occurred",
-                Instant.now()
-        );
+                Instant.now());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
@@ -90,8 +87,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 "METHOD_NOT_ALLOWED",
                 message.toString(),
-                Instant.now()
-        );
+                Instant.now());
 
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
@@ -103,8 +99,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 "NOT_FOUND",
                 "The requested resource could not be found: " + ex.getMessage(),
-                Instant.now()
-        );
+                Instant.now());
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)

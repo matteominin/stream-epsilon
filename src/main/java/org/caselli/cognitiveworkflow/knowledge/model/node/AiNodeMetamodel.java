@@ -11,20 +11,23 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public abstract class AiNodeMetamodel extends NodeMetamodel {
 
     /** Type of the tool */
-    @NotNull private ModelType modelType;
+    @NotNull
+    private ModelType modelType;
 
     /** Provider of the model */
-    @NotNull private String provider;
+    @NotNull
+    private String provider;
 
     /** Name of the model */
-    @NotNull private String modelName;
+    @NotNull
+    private String modelName;
 
     public AiNodeMetamodel() {
         super();
         this.setType(NodeType.AI);
     }
 
-     public enum ModelType {
+    public enum ModelType {
         LLM, EMBEDDINGS
     }
 }

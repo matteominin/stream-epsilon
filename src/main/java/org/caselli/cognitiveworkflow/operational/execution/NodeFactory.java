@@ -7,7 +7,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 /**
- * Factory class to create instances of NodeInstance based on the provided NodeMetamodel.
+ * Factory class to create instances of NodeInstance based on the provided
+ * NodeMetamodel.
+ * 
  * @author niccolocaselli
  */
 @Component
@@ -20,7 +22,6 @@ public class NodeFactory {
     }
 
     public NodeInstance create(NodeMetamodel metamodel) {
-
         Class<?> clazz = getNodeInstanceClass(metamodel);
         Object bean = context.getBean(clazz);
         NodeInstance node = (NodeInstance) bean;
@@ -30,28 +31,24 @@ public class NodeFactory {
         // Set the metamodel
         node.setMetamodel(metamodel);
 
-        this.logger.info("Initializing node instance with ID: " + node.getId() + " and metamodel: " + metamodel.getClass().getName());
+        this.logger.info("Initializing node instance with ID: " + node.getId() + " and metamodel: "
+                + metamodel.getClass().getName());
 
         return (NodeInstance) bean;
     }
-
 
     private Class<? extends NodeInstance> getNodeInstanceClass(NodeMetamodel metamodel) {
         if (metamodel instanceof LlmNodeMetamodel) {
             return LlmNodeInstance.class;
         } else if (metamodel instanceof RestNodeMetamodel) {
             return RestNodeInstance.class;
-        }
-        else if (metamodel instanceof EmbeddingsNodeMetamodel) {
+        } else if (metamodel instanceof EmbeddingsNodeMetamodel) {
             return EmbeddingsNodeInstance.class;
-        }
-        else if (metamodel instanceof VectorDbNodeMetamodel) {
+        } else if (metamodel instanceof VectorDbNodeMetamodel) {
             return VectorDbNodeInstance.class;
-        }
-        else if (metamodel instanceof GatewayNodeMetamodel) {
+        } else if (metamodel instanceof GatewayNodeMetamodel) {
             return GatewayNodeInstance.class;
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Unsupported NodeMetamodel type: " + metamodel.getClass().getName());
         }
     }

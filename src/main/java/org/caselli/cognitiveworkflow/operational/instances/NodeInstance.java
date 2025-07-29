@@ -13,7 +13,10 @@ import org.slf4j.LoggerFactory;
 public abstract class NodeInstance {
     private String id;
 
-    /** If the node is deprecated. If it is, when the last execution finishes it will be re-instanced **/
+    /**
+     * If the node is deprecated. If it is, when the last execution finishes it will
+     * be re-instanced
+     **/
     private boolean isDeprecated;
 
     // Metamodel
@@ -27,11 +30,10 @@ public abstract class NodeInstance {
         process(context, null);
     }
 
-
     /**
      * Method to handle the refresh of the node
      */
-    public void handleRefreshNode(){
+    public void handleRefreshNode() {
         // To override
     }
 }

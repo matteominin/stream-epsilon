@@ -15,11 +15,20 @@ public class WorkflowNode {
     @Field("_id")
     private String id = UUID.randomUUID().toString();
 
-    /** The ID of the metamodel of the node*/
+    /** The ID of the metamodel of the node */
     @NotNull
     private String nodeMetamodelId;
 
     private ExecutionType executionType = ExecutionType.JOIN;
+
+    @Override
+    public String toString() {
+        return "WorkflowNode{" +
+                "id='" + id + '\'' +
+                ", nodeMetamodelId='" + nodeMetamodelId + '\'' +
+                ", executionType=" + executionType +
+                '}';
+    }
 
     public enum ExecutionType {
         MERGE, // Execute when at least one incoming input is ready

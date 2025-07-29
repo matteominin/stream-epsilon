@@ -9,14 +9,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "meta_nodes")
 public abstract class FlowNodeMetamodel extends NodeMetamodel {
-    @NotNull private ControlType controlType;
+    @NotNull
+    private ControlType controlType;
 
     public FlowNodeMetamodel() {
         super();
         this.setType(NodeType.FLOW);
     }
 
-     public enum ControlType {
-        GATEWAY
+    public enum ControlType {
+        GATEWAY,
+        CYCLIC
     }
 }

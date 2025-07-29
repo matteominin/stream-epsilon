@@ -6,6 +6,7 @@ import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.caselli.cognitiveworkflow.operational.observability.NodeObservabilityReport;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 @Component
 @Scope("prototype")
 public class GatewayNodeInstance extends FlowNodeInstance {
@@ -16,14 +17,16 @@ public class GatewayNodeInstance extends FlowNodeInstance {
 
     @Override
     public void setMetamodel(NodeMetamodel metamodel) {
-        if (!(metamodel instanceof GatewayNodeMetamodel)) throw new IllegalArgumentException("GatewayNodeInstance requires GatewayNodeMetamodel");
+        if (!(metamodel instanceof GatewayNodeMetamodel))
+            throw new IllegalArgumentException("GatewayNodeInstance requires GatewayNodeMetamodel");
         super.setMetamodel(metamodel);
     }
 
     @Override
     public void process(ExecutionContext context, NodeObservabilityReport observabilityReport) {
         logger.info("[Node {}]: Processing Transparent Gateway Instance", getId());
-        // Propagate the content of the input ports to the corresponding (same name) output ports
+        // Propagate the content of the input ports to the corresponding (same name)
+        // output ports
         // [as for now context is global, we do not need to do anything here]
         // the metamodel will take care of the validation
     }

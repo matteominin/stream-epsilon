@@ -16,8 +16,8 @@ import javax.validation.Valid;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-@Validated
 @RestController
+@Validated
 @RequestMapping("/api/nodes")
 public class NodeController {
 
@@ -51,7 +51,8 @@ public class NodeController {
      * Create a new LLM node metamodel
      */
     @PostMapping("/llm")
-    public ResponseEntity<NodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody LlmNodeMetamodel llmNodeMetamodel) throws BadRequestException {
+    public ResponseEntity<NodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody LlmNodeMetamodel llmNodeMetamodel)
+            throws BadRequestException {
         var result = nodeMetamodelService.createNodeMetamodel(llmNodeMetamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
@@ -60,27 +61,28 @@ public class NodeController {
      * Create a new REST Tool node metamodel
      */
     @PostMapping("/rest-tool")
-    public ResponseEntity<NodeMetamodel> createRestToolNodeMetamodel(@Valid @RequestBody RestNodeMetamodel restNodeMetamodel) throws BadRequestException {
+    public ResponseEntity<NodeMetamodel> createRestToolNodeMetamodel(
+            @Valid @RequestBody RestNodeMetamodel restNodeMetamodel) throws BadRequestException {
         var result = nodeMetamodelService.createNodeMetamodel(restNodeMetamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
-
 
     /**
      * Create a new Vector DB node metamodel
      */
     @PostMapping("/vector-db")
-    public ResponseEntity<NodeMetamodel> createVectorDbNodeMetamodel(@Valid @RequestBody VectorDbNodeMetamodel metamodel) throws BadRequestException {
+    public ResponseEntity<NodeMetamodel> createVectorDbNodeMetamodel(
+            @Valid @RequestBody VectorDbNodeMetamodel metamodel) throws BadRequestException {
         var result = nodeMetamodelService.createNodeMetamodel(metamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
-
 
     /**
      * Create a new Embeddings AI node metamodel
      */
     @PostMapping("/embeddings")
-    public ResponseEntity<NodeMetamodel> createEmbeddingsNodeMetamodel(@Valid @RequestBody EmbeddingsNodeMetamodel metamodel) throws BadRequestException {
+    public ResponseEntity<NodeMetamodel> createEmbeddingsNodeMetamodel(
+            @Valid @RequestBody EmbeddingsNodeMetamodel metamodel) throws BadRequestException {
         var result = nodeMetamodelService.createNodeMetamodel(metamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
@@ -89,11 +91,28 @@ public class NodeController {
      * Create a new Gateway
      */
     @PostMapping("/gateway")
-    public ResponseEntity<NodeMetamodel> createLlmNodeMetamodel(@Valid @RequestBody GatewayNodeMetamodel gatewayNodeMetamodel) throws BadRequestException {
+    public ResponseEntity<NodeMetamodel> createLlmNodeMetamodel(
+            @Valid @RequestBody GatewayNodeMetamodel gatewayNodeMetamodel) throws BadRequestException {
         var result = nodeMetamodelService.createNodeMetamodel(gatewayNodeMetamodel);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    /**
+     * Create a new Cyclic node
+     */
+    @PostMapping("/cyclic")
+    public ResponseEntity<NodeMetamodel> createCyclicNodeMetamodel(
+            @Valid @RequestBody CyclicNodeMetamodel cyclicNodeMetamodel) throws BadRequestException {
+        var result = nodeMetamodelService.createNodeMetamodel(cyclicNodeMetamodel);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+    // return "ok" for testing purposes
+    @GetMapping("/test")
+    public ResponseEntity<Page<NodeMetamodel>> node(Pageable pageable) {
+        Page<NodeMetamodel> page = nodeMetamodelService.findAll(pageable);
+        return ResponseEntity.ok(page);
+    }
 
     /**
      * Update an existing Vector DB node metamodel
@@ -101,14 +120,13 @@ public class NodeController {
     @PutMapping("/vector-db/{id}")
     public ResponseEntity<NodeMetamodel> updateVectorDbNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody VectorDbNodeMetamodel metamodel) throws  BadRequestException {
+            @Valid @RequestBody VectorDbNodeMetamodel metamodel) throws BadRequestException {
 
         return validateAndUpdateNode(
                 id,
                 metamodel,
                 node -> node.getType() == NodeMetamodel.NodeType.TOOL &&
-                        ((ToolNodeMetamodel) node).getToolType() == ToolNodeMetamodel.ToolType.VECTOR_DB
-        );
+                        ((ToolNodeMetamodel) node).getToolType() == ToolNodeMetamodel.ToolType.VECTOR_DB);
     }
 
     /**
@@ -117,14 +135,13 @@ public class NodeController {
     @PutMapping("/rest-tool/{id}")
     public ResponseEntity<NodeMetamodel> updateRestToolNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody RestNodeMetamodel metamodel)  throws  BadRequestException {
+            @Valid @RequestBody RestNodeMetamodel metamodel) throws BadRequestException {
 
         return validateAndUpdateNode(
                 id,
                 metamodel,
                 node -> node.getType() == NodeMetamodel.NodeType.TOOL &&
-                        ((ToolNodeMetamodel) node).getToolType() == ToolNodeMetamodel.ToolType.REST
-        );
+                        ((ToolNodeMetamodel) node).getToolType() == ToolNodeMetamodel.ToolType.REST);
     }
 
     /**
@@ -133,15 +150,14 @@ public class NodeController {
     @PutMapping("/llm/{id}")
     public ResponseEntity<NodeMetamodel> updateLlmNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody LlmNodeMetamodel metamodel)  throws  BadRequestException {
+            @Valid @RequestBody LlmNodeMetamodel metamodel) throws BadRequestException {
 
         return validateAndUpdateNode(
                 id,
                 metamodel,
                 node -> node.getType() == NodeMetamodel.NodeType.AI &&
                         node instanceof AiNodeMetamodel &&
-                        ((AiNodeMetamodel) node).getModelType() == AiNodeMetamodel.ModelType.LLM
-        );
+                        ((AiNodeMetamodel) node).getModelType() == AiNodeMetamodel.ModelType.LLM);
     }
 
     /**
@@ -150,15 +166,14 @@ public class NodeController {
     @PutMapping("/embeddings/{id}")
     public ResponseEntity<NodeMetamodel> updateEmbeddingsNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody EmbeddingsNodeMetamodel metamodel)  throws  BadRequestException {
+            @Valid @RequestBody EmbeddingsNodeMetamodel metamodel) throws BadRequestException {
 
         return validateAndUpdateNode(
                 id,
                 metamodel,
                 node -> node.getType() == NodeMetamodel.NodeType.AI &&
                         node instanceof AiNodeMetamodel &&
-                        ((AiNodeMetamodel) node).getModelType() == AiNodeMetamodel.ModelType.EMBEDDINGS
-        );
+                        ((AiNodeMetamodel) node).getModelType() == AiNodeMetamodel.ModelType.EMBEDDINGS);
     }
 
     /**
@@ -167,21 +182,21 @@ public class NodeController {
     @PutMapping("/gateway/{id}")
     public ResponseEntity<NodeMetamodel> updateGatewayNodeMetamodel(
             @PathVariable String id,
-            @Valid @RequestBody GatewayNodeMetamodel metamodel)  throws  BadRequestException {
+            @Valid @RequestBody GatewayNodeMetamodel metamodel) throws BadRequestException {
 
         return validateAndUpdateNode(
                 id,
                 metamodel,
                 node -> node.getType() == NodeMetamodel.NodeType.FLOW &&
                         node instanceof GatewayNodeMetamodel &&
-                        ((GatewayNodeMetamodel) node).getControlType() == GatewayNodeMetamodel.ControlType.GATEWAY
-        );
+                        ((GatewayNodeMetamodel) node).getControlType() == GatewayNodeMetamodel.ControlType.GATEWAY);
     }
 
     /**
      * Helper method to validate and update node metamodels
-     * @param familyId The ID of the node family to update
-     * @param metamodel The new node metamodel data
+     * 
+     * @param familyId            The ID of the node family to update
+     * @param metamodel           The new node metamodel data
      * @param validationPredicate Predicate to validate node type
      * @return ResponseEntity with the updated node or appropriate error status
      */
@@ -192,19 +207,20 @@ public class NodeController {
 
         // Check if node exists
         Optional<NodeMetamodel> existing = nodeMetamodelService.getLatestVersionByFamilyId(familyId);
-        if (existing.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (existing.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
         // Validate node type
-        if (!validationPredicate.test(existing.get())) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
+        if (!validationPredicate.test(existing.get()))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
         // Check if the version is valid
         if (!Version.isValidVersionBump(existing.get().getVersion(), metamodel.getVersion())) {
             throw new BadRequestException(
-                    String.format("Invalid version bump: the new version %s is not compatible with the existing version %s",
+                    String.format(
+                            "Invalid version bump: the new version %s is not compatible with the existing version %s",
                             metamodel.getVersion(),
-                            existing.get().getVersion())
-            );
+                            existing.get().getVersion()));
         }
 
         NodeMetamodel result = nodeMetamodelService.updateNode(familyId, metamodel);

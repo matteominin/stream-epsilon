@@ -23,6 +23,7 @@ public class NodeMetamodelValidator {
 
     /**
      * Validate a NodeMetamodel
+     * 
      * @param node The NodeMetamodel to validate.
      * @return A ValidationResult object
      */
@@ -44,18 +45,17 @@ public class NodeMetamodelValidator {
 
         } else if (node instanceof ToolNodeMetamodel) {
             validateToolNode((ToolNodeMetamodel) node, result);
-        }
-        else if (node instanceof LlmNodeMetamodel) {
+        } else if (node instanceof LlmNodeMetamodel) {
             validateLLMNode((LlmNodeMetamodel) node, result);
         }
 
         return result;
     }
 
-
     /**
      * Validates basic properties common to all node types
-     * @param node NodeMetamodel to validate
+     * 
+     * @param node   NodeMetamodel to validate
      * @param result ValidationResult to store errors and warnings
      */
     private void validateBasicNodeProperties(NodeMetamodel node, ValidationResult result) {
@@ -63,21 +63,17 @@ public class NodeMetamodelValidator {
         if (node.getName() == null || node.getName().trim().isEmpty())
             result.addError("Node name cannot be empty", "node");
 
-
         // Check description
         if (node.getDescription() == null || node.getDescription().trim().isEmpty())
             result.addWarning("Node description is empty", "node");
-
 
         // Check author
         if (node.getAuthor() == null || node.getAuthor().trim().isEmpty())
             result.addWarning("Node author is not specified", "node");
 
-
         // Check version
         if (node.getVersion() == null)
             result.addError("Node version cannot be null", "node");
-
 
         // Check type
         if (node.getType() == null)
@@ -86,7 +82,8 @@ public class NodeMetamodelValidator {
 
     /**
      * Validates a collection of ports
-     * @param ports Collection of ports to validate
+     * 
+     * @param ports    Collection of ports to validate
      * @param portType Type of ports (input or output)
      */
     private void validatePorts(List<? extends Port> ports, String portType, ValidationResult result) {
@@ -106,7 +103,8 @@ public class NodeMetamodelValidator {
                 result.addError("Port key cannot be empty", componentPath);
             } else {
                 // Check for duplicate port keys
-                if (portKeys.contains(port.getKey())) result.addError("Duplicate " + portType + " port key: " + port.getKey(), componentPath);
+                if (portKeys.contains(port.getKey()))
+                    result.addError("Duplicate " + portType + " port key: " + port.getKey(), componentPath);
                 portKeys.add(port.getKey());
             }
 
@@ -117,7 +115,8 @@ public class NodeMetamodelValidator {
 
     /**
      * Validates port schema
-     * @param port Port to validate
+     * 
+     * @param port          Port to validate
      * @param componentPath Path to the port in the node
      */
     private void validatePortSchema(Port port, String componentPath, ValidationResult result) {
@@ -141,10 +140,10 @@ public class NodeMetamodelValidator {
         if (schemaType != PortType.ARRAY && schema.getItems() != null)
             result.addError("'items' field should only be used for ARRAY type schemas", componentPath + ".schema");
 
-
         // Check properties field is used only for objects
         if (schemaType != PortType.OBJECT && schema.getProperties() != null && !schema.getProperties().isEmpty())
-            result.addError("'properties' field should only be used for OBJECT type schemas", componentPath + ".schema");
+            result.addError("'properties' field should only be used for OBJECT type schemas",
+                    componentPath + ".schema");
 
         // Validate requirements based on type
         switch (schemaType) {
@@ -168,7 +167,8 @@ public class NodeMetamodelValidator {
 
     /**
      * Validates a tool node metamodel
-     * @param node ToolNodeMetamodel to validate
+     * 
+     * @param node   ToolNodeMetamodel to validate
      * @param result ValidationResult to store errors and warnings
      */
     private void validateToolNode(ToolNodeMetamodel node, ValidationResult result) {
@@ -186,7 +186,8 @@ public class NodeMetamodelValidator {
      */
     private void validateLLMNode(LlmNodeMetamodel node, ValidationResult result) {
 
-        if (node.getModelName() == null) result.addError("LLM Node Model cannot be null", "node.modelName");
+        if (node.getModelName() == null)
+            result.addError("LLM Node Model cannot be null", "node.modelName");
         if (node.getProvider() == null)
             result.addError("LLM Node Model Provider cannot be null", "node.llmProvider");
 
@@ -201,21 +202,23 @@ public class NodeMetamodelValidator {
         if (node.getInvocationMethod() == null)
             result.addError("REST tool invocation method cannot be null", "node.invocationMethod");
 
-
         // Validate service URI format
         String serviceUri = node.getUri();
         if (serviceUri != null && !serviceUri.trim().isEmpty()) {
             if (!serviceUri.startsWith("http://") && !serviceUri.startsWith("https://"))
                 result.addError("REST service URI must start with http:// or https://", "node.serviceUri");
 
-            // Check if the URI contains template variables that are not mapped to input ports
+            // Check if the URI contains template variables that are not mapped to input
+            // ports
             validateRestUriTemplateVariables(node, result);
         }
     }
 
     /**
-     * Validates that URI template variables are mapped to input ports (e.g., /users/{userId})
-     * @param node RestNodeMetamodel to validate
+     * Validates that URI template variables are mapped to input ports (e.g.,
+     * /users/{userId})
+     * 
+     * @param node   RestNodeMetamodel to validate
      * @param result ValidationResult to store errors and warnings
      */
     private void validateRestUriTemplateVariables(RestNodeMetamodel node, ValidationResult result) {
@@ -223,17 +226,20 @@ public class NodeMetamodelValidator {
         List<String> templateVars = extractTemplateVariables(serviceUri);
         List<String> pathVariablesPortKeys = node.getInputPorts().stream()
                 .filter(Objects::nonNull)
-                .filter(port -> (port.getRole() != null) && port.getRole().equals(RestPort.RestPortRole.REQ_PATH_VARIABLE))
+                .filter(port -> (port.getRole() != null)
+                        && port.getRole().equals(RestPort.RestPortRole.REQ_PATH_VARIABLE))
                 .map(Port::getKey)
                 .toList();
 
         for (String var : templateVars)
             if (!pathVariablesPortKeys.contains(var))
-                result.addError("URI template variable '" + var + "' is not mapped to any input port", "node.serviceUri");
+                result.addError("URI template variable '" + var + "' is not mapped to any input port",
+                        "node.serviceUri");
     }
 
     /**
      * Extracts template variables from a URI
+     * 
      * @param uri URI to extract variables from
      * @return List of template variable names
      */
@@ -244,10 +250,12 @@ public class NodeMetamodelValidator {
 
         while (true) {
             int openBrace = uri.indexOf('{', start);
-            if (openBrace == -1) break;
+            if (openBrace == -1)
+                break;
 
             int closeBrace = uri.indexOf('}', openBrace);
-            if (closeBrace == -1) break;
+            if (closeBrace == -1)
+                break;
 
             String variable = uri.substring(openBrace + 1, closeBrace);
             variables.add(variable);
@@ -259,13 +267,15 @@ public class NodeMetamodelValidator {
 
     /**
      * Validates default values for ports
-     * @param port Port to validate
-     * @param schema PortSchema to validate against
+     * 
+     * @param port          Port to validate
+     * @param schema        PortSchema to validate against
      * @param componentPath Path to the port in the node
      */
     private void validateDefaultValue(Port port, PortSchema schema, String componentPath, ValidationResult result) {
         Object defaultValue = port.getDefaultValue();
-        if (defaultValue == null) return;
+        if (defaultValue == null)
+            return;
 
         // Check if the default value is valid according to the schema
         if (!PortSchema.isValidValue(defaultValue, schema))

@@ -1,4 +1,5 @@
 package org.caselli.cognitiveworkflow.knowledge.MOP;
+
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import org.apache.coyote.BadRequestException;
@@ -25,7 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class NodeMetamodelService implements ApplicationListener<ApplicationReadyEvent>  {
+public class NodeMetamodelService implements ApplicationListener<ApplicationReadyEvent> {
     private final Logger logger = LoggerFactory.getLogger(NodeMetamodelService.class);
 
     private final ApplicationEventPublisher eventPublisher;
@@ -36,7 +37,9 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
 
     private final NodeHybridSearchService nodeHybridSearchService;
 
-    public NodeMetamodelService(NodeMetamodelCatalog repository, ApplicationEventPublisher eventPublisher, EmbeddingService embeddingService, NodeMetamodelValidator nodeMetamodelValidator, NodeHybridSearchService nodeHybridSearchService) {
+    public NodeMetamodelService(NodeMetamodelCatalog repository, ApplicationEventPublisher eventPublisher,
+            EmbeddingService embeddingService, NodeMetamodelValidator nodeMetamodelValidator,
+            NodeHybridSearchService nodeHybridSearchService) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
         this.embeddingService = embeddingService;
@@ -50,9 +53,9 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         // generateEmbeddingForAll();
     }
 
-
     /**
      * Get a specific Node Metamodel By Id
+     * 
      * @param id Id of the metamodel
      * @return The requested node
      */
@@ -61,9 +64,9 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         return repository.findById(id);
     }
 
-
     /**
      * Get the latest version of a node family
+     * 
      * @param familyId The family ID
      * @return Optional containing the latest version
      */
@@ -72,29 +75,31 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         return repository.findByFamilyIdAndIsLatestTrue(familyId);
     }
 
-
     /**
      * Search Node in the catalog with filters
-     * @param query Text query for semantic search
+     * 
+     * @param query  Text query for semantic search
      * @param filter Filters
      */
-    public List<NodeHybridSearchService.NodeSearchResult> search(String query, NodeHybridSearchService.NodeSearchFilter filter){
+    public List<NodeHybridSearchService.NodeSearchResult> search(String query,
+            NodeHybridSearchService.NodeSearchFilter filter) {
         return this.nodeHybridSearchService.performHybridSearch(query, filter);
     }
 
     /**
      * Search Node in the catalog
+     * 
      * @param query Text query for semantic search
      */
-    public List<NodeHybridSearchService.NodeSearchResult> search(String query){
+    public List<NodeHybridSearchService.NodeSearchResult> search(String query) {
         return this.nodeHybridSearchService.performHybridSearch(query, new NodeHybridSearchService.NodeSearchFilter());
     }
-
 
     /**
      * Update an existing Node Metamodel
      * Updates the MongoDB document and notifies the Operational Layer
-     * @param familyId Id of the Node Metamodel Family
+     * 
+     * @param familyId    Id of the Node Metamodel Family
      * @param updatedData New Metamodel
      * @return Return the newly saved Document
      */
@@ -102,14 +107,14 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
     public NodeMetamodel updateNode(String familyId, NodeMetamodel updatedData) {
         // Check if the documents exists
         var old = repository.findByFamilyIdAndIsLatestTrue(familyId);
-        if(old.isEmpty()) throw new IllegalArgumentException("NodeMetamodel with familyId " + familyId + " does not exist.");
+        if (old.isEmpty())
+            throw new IllegalArgumentException("NodeMetamodel with familyId " + familyId + " does not exist.");
         var oldVersionDoc = old.get();
 
-
         // Check the the type of update
-        var isBreaking = (updatedData.getVersion().getMajor() - old.get().getVersion().getMajor() ) > 0;
+        var isBreaking = (updatedData.getVersion().getMajor() - old.get().getVersion().getMajor()) > 0;
 
-        if( isBreaking ){
+        if (isBreaking) {
             // If it's a breaking change:
 
             // 1) Clone the metamodel
@@ -120,11 +125,9 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
             // 2) Save the cloned metamodel as a new metamodel in the repository
             NodeMetamodel saved = repository.save(updatedData);
 
-
             // 3) Update the old metamodel
             oldVersionDoc.setIsLatest(false);
             repository.save(oldVersionDoc);
-
 
             return saved;
         }
@@ -139,8 +142,6 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
             updatedData.setUpdatedAt(LocalDateTime.now()); // Set the updated date
             updatedData.setIsLatest(true); // Set the node as the latest of its family
 
-
-
             NodeMetamodel saved = repository.save(updatedData);
 
             // 2) Notify the Operational Level of the modification
@@ -153,6 +154,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
 
     /**
      * Find all node metamodels with pagination.
+     * 
      * @param pageable Pagination information
      */
     @Cacheable(value = "nodeMetamodels")
@@ -162,6 +164,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
 
     /**
      * Save in the DB a new LLM Node Metamodel
+     * 
      * @param nodeMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
@@ -175,9 +178,9 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         return createBaseNodeMetamodel(nodeMetamodel);
     }
 
-
     /**
      * Save in the DB a new Embeddings Node Metamodel
+     * 
      * @param nodeMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
@@ -193,6 +196,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
 
     /**
      * Save in the DB a new Node Metamodel of a REST TOOL
+     * 
      * @param nodeMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
@@ -209,6 +213,7 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
 
     /**
      * Save in the DB a new Node Metamodel of a Vector Database
+     * 
      * @param nodeMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
@@ -223,9 +228,9 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         return createBaseNodeMetamodel(nodeMetamodel);
     }
 
-
     /**
      * Save in the DB a new Gateway Node Metamodel
+     * 
      * @param nodeMetamodel Metamodel to create
      * @return Returns the new Metamodel
      */
@@ -239,9 +244,26 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         return createBaseNodeMetamodel(nodeMetamodel);
     }
 
+    /**
+     * Save in the DB a new Cyclic Node Metamodel
+     * 
+     * @param nodeMetamodel Metamodel to create
+     * @return Returns the new Metamodel
+     */
+    @CacheEvict(value = "nodeMetamodels", allEntries = true)
+    public NodeMetamodel createNodeMetamodel(CyclicNodeMetamodel nodeMetamodel) throws BadRequestException {
+        System.out.println("Creating Cyclic Node Metamodel");
+        nodeMetamodel.setType(NodeMetamodel.NodeType.FLOW);
+        nodeMetamodel.setControlType(FlowNodeMetamodel.ControlType.CYCLIC);
+        // Set the correct port types
+        nodeMetamodel.getInputPorts().forEach(port -> port.setPortType(Port.PortImplementationType.STANDARD));
+        // Create
+        return createBaseNodeMetamodel(nodeMetamodel);
+    }
 
     /**
      * Helper function to create a base Node Metamodel
+     * 
      * @param nodeMetamodel Metamodel to create and save in the database
      * @return Returns the new Metamodel
      * @throws BadRequestException If the Node Metamodel is not valid
@@ -254,18 +276,17 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         nodeMetamodel.setIsLatest(true); // Set the node as the latest of its family
         // Validate
         var res = nodeMetamodelValidator.validate(nodeMetamodel);
-        if(!res.isValid()) throw new BadRequestException("NodeMetamodel is not valid: " + res.getErrors());
+        if (!res.isValid())
+            throw new BadRequestException("NodeMetamodel is not valid: " + res.getErrors());
         // Create
         return repository.save(nodeMetamodel);
     }
-
 
     @Override
     public void onApplicationEvent(@Nonnull ApplicationReadyEvent event) {
         // Only for demo purposes. Not required in production.
         this.validateAllCatalog();
     }
-
 
     /**
      * Validates all workflow metamodels in the MongoDB repository.
@@ -288,8 +309,8 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
 
             if (result.isValid()) {
                 validCount++;
-                logger.info("[{}/{}] Node metamodel with ID {} is valid.", validCount + invalidCount, nodes.size(), node.getId());
-
+                logger.info("[{}/{}] Node metamodel with ID {} is valid.", validCount + invalidCount, nodes.size(),
+                        node.getId());
 
                 int warningCount = result.getWarningCount();
                 if (warningCount > 0) {
@@ -302,7 +323,8 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
             } else {
                 invalidCount++;
 
-                logger.error("[{}/{}] Node metamodel with ID {} is invalid", validCount + invalidCount, nodes.size(), node.getId());
+                logger.error("[{}/{}] Node metamodel with ID {} is invalid", validCount + invalidCount, nodes.size(),
+                        node.getId());
 
                 // Count and log errors/warnings
                 int errorCount = result.getErrorCount();
@@ -310,7 +332,8 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
                 totalErrors += errorCount;
                 totalWarnings += warningCount;
 
-                logger.error("Found {} errors and {} warnings for invalid node ID {}", errorCount, warningCount, node.getId());
+                logger.error("Found {} errors and {} warnings for invalid node ID {}", errorCount, warningCount,
+                        node.getId());
 
                 result.printWarnings(logger);
                 result.printErrors(logger);
@@ -326,10 +349,10 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         logger.info("-------------------------------------------------");
     }
 
-
     /**
      * Private helper method to generate embedding for a node
      * and set it on the intent object.
+     * 
      * @param nodeMetamodel The node to generate embedding for.
      */
     private void generateAndSetEmbedding(NodeMetamodel nodeMetamodel) {
@@ -339,23 +362,28 @@ public class NodeMetamodelService implements ApplicationListener<ApplicationRead
         textBuilder.append("Name: ").append(nodeMetamodel.getName()).append(". ");
         textBuilder.append("Type: ").append(nodeMetamodel.getType()).append(". ");
         textBuilder.append("Description: ").append(nodeMetamodel.getDescription()).append(". ");
-        if (nodeMetamodel.getAuthor() != null && !nodeMetamodel.getAuthor().trim().isEmpty()) textBuilder.append("Author: ").append(nodeMetamodel.getAuthor()).append(". ");
+        if (nodeMetamodel.getAuthor() != null && !nodeMetamodel.getAuthor().trim().isEmpty())
+            textBuilder.append("Author: ").append(nodeMetamodel.getAuthor()).append(". ");
 
         // Qualitative descriptor
-        if (nodeMetamodel.getQualitativeDescriptor() != null && !nodeMetamodel.getQualitativeDescriptor().isEmpty()) textBuilder.append("Qualitative details: ").append(nodeMetamodel.getQualitativeDescriptor().toJson()).append(". ");
+        if (nodeMetamodel.getQualitativeDescriptor() != null && !nodeMetamodel.getQualitativeDescriptor().isEmpty())
+            textBuilder.append("Qualitative details: ").append(nodeMetamodel.getQualitativeDescriptor().toJson())
+                    .append(". ");
 
         // Add input/output ports
         List<? extends Port> inputPorts = nodeMetamodel.getInputPorts();
         if (inputPorts != null && !inputPorts.isEmpty()) {
             textBuilder.append("Input ports: ");
-            for (Port port : inputPorts) textBuilder.append(port.getKey()).append(" ");
+            for (Port port : inputPorts)
+                textBuilder.append(port.getKey()).append(" ");
             textBuilder.append(". ");
         }
 
         List<? extends Port> outputPorts = nodeMetamodel.getOutputPorts();
         if (outputPorts != null && !outputPorts.isEmpty()) {
             textBuilder.append("Output ports: ");
-            for (Port port : outputPorts) textBuilder.append(port.getKey()).append(" ");
+            for (Port port : outputPorts)
+                textBuilder.append(port.getKey()).append(" ");
             textBuilder.append(". ");
         }
 

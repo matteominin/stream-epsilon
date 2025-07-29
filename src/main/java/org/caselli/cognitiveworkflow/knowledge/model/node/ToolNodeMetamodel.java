@@ -11,18 +11,20 @@ import jakarta.validation.constraints.NotNull;
 public abstract class ToolNodeMetamodel extends NodeMetamodel {
 
     /** Type of the tool */
-    @NotNull private ToolType toolType;
+    @NotNull
+    private ToolType toolType;
 
     /** Service endpoint URI */
-    @NotNull private String uri;
+    @NotNull
+    private String uri;
 
     public ToolNodeMetamodel() {
         super();
         this.setType(NodeType.TOOL);
     }
 
-     public enum ToolType {
+    public enum ToolType {
         REST,
-         VECTOR_DB
+        VECTOR_DB
     }
 }

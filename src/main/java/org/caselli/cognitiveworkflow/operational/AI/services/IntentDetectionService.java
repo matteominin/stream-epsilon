@@ -55,13 +55,15 @@ public class IntentDetectionService extends LLMAbstractService {
     }
 
     /**
-     * Analyzes user input to determine intent using an LLM configured for this task.
+     * Analyzes user input to determine intent using an LLM configured for this
+     * task.
+     * 
      * @param userInput The text input from the user.
      * @return The determined intent as an IntentDetectorResult.
      *         <ul>
-     *             <li>Return a predefined intent if a match is found.</li>
-     *             <li>Return an invented intent if no match is found.</li>
-     *             <li>Return null if intent is not clear.</li>
+     *         <li>Return a predefined intent if a match is found.</li>
+     *         <li>Return an invented intent if no match is found.</li>
+     *         <li>Return null if intent is not clear.</li>
      *         </ul>
      */
     public ResultWithObservability<IntentDetectionResponse.IntentDetectorResult> detect(String userInput) {
@@ -77,20 +79,17 @@ public class IntentDetectionService extends LLMAbstractService {
                         intent.getId(), intent.getName(), intent.getDescription()))
                 .collect(Collectors.joining("\n"));
 
-
         observabilityReport.setSimilarIntents(intents);
 
-
-        if(intents.isEmpty()) logger.info("No similar intents found");
-        else logger.info("Found similar intents: " + intentsOutput);
+        if (intents.isEmpty())
+            logger.info("No similar intents found");
+        else
+            logger.info("Found similar intents: " + intentsOutput);
 
         // Create system prompt using template
         Map<String, Object> model = Map.of("availableIntents", intentsOutput);
         SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(SYSTEM_INSTRUCTIONS_TEMPLATE);
         SystemMessage systemMessage = new SystemMessage(systemPromptTemplate.create(model).getContents());
-
-
-
 
         // User message
         UserMessage userMessage = new UserMessage(userInput);
@@ -100,26 +99,25 @@ public class IntentDetectionService extends LLMAbstractService {
 
         logger.debug("Prompt: {}", prompt.getContents());
 
-
-
         // Call the LLM
         ResponseEntity<ChatResponse, IntentDetectionResponse> response = getChatClient().prompt(prompt)
                 .call()
                 .responseEntity(IntentDetectionResponse.class);
 
         Usage usage = response.getResponse().getMetadata().getUsage();
-        if (usage != null) observabilityReport.setTokenUsage(
-                new TokenUsage(usage.getCompletionTokens(), usage.getPromptTokens(), usage.getTotalTokens())
-        );
+        if (usage != null)
+            observabilityReport.setTokenUsage(
+                    new TokenUsage(usage.getCompletionTokens(), usage.getPromptTokens(), usage.getTotalTokens()));
 
         IntentDetectionResponse modelAnswer = response.getEntity();
 
-
         // Determine if the intent is non-existent or there has been an error
-        if (modelAnswer == null || modelAnswer.getData() == null || (modelAnswer.getError() != null && !modelAnswer.getError().isEmpty()) ) {
-            logger.error("Error in intent detection: {}", modelAnswer != null ? modelAnswer.getError() : "Unknown error");
+        if (modelAnswer == null || modelAnswer.getData() == null
+                || (modelAnswer.getError() != null && !modelAnswer.getError().isEmpty())) {
+            logger.error("Error in intent detection: {}",
+                    modelAnswer != null ? modelAnswer.getError() : "Unknown error");
 
-            observabilityReport.markCompleted(false,  modelAnswer.getError(), null );
+            observabilityReport.markCompleted(false, modelAnswer.getError(), null);
 
             return new ResultWithObservability<>(null, observabilityReport);
         }
@@ -128,14 +126,15 @@ public class IntentDetectionService extends LLMAbstractService {
 
         // Post-process: determine isNew flag based on intentId presence
         boolean isNew = intents.stream()
-                .noneMatch(intent -> intent.getId().equals(result.getIntentId()) || intent.getName().equals(result.getIntentName()));
+                .noneMatch(intent -> intent.getId().equals(result.getIntentId())
+                        || intent.getName().equals(result.getIntentName()));
 
-
-        if(isNew){
+        if (isNew) {
             result.setIntentId(null);
             result.setNew(true);
 
-            // Format the invented intent name to be in ALL_UPPERCASE_WITH_UNDERSCORES format
+            // Format the invented intent name to be in ALL_UPPERCASE_WITH_UNDERSCORES
+            // format
             String formattedName = StringUtils.toUppercaseSnakeCase(result.getIntentName());
             result.setIntentName(formattedName);
 
@@ -167,16 +166,17 @@ public class IntentDetectionService extends LLMAbstractService {
             String key = entry.getKey();
             Object value = entry.getValue();
             String formattedKey = StringUtils.toUppercaseSnakeCase(key);
-            if (!formattedKey.equals(key)) newVariables.put(formattedKey, value);
-            else newVariables.put(key, value);
+            if (!formattedKey.equals(key))
+                newVariables.put(formattedKey, value);
+            else
+                newVariables.put(key, value);
 
         }
         result.setUserVariables(newVariables);
 
         // Observability
         observabilityReport.setIntentDetectorResult(result);
-        observabilityReport.markCompleted(true,  null, null );
-
+        observabilityReport.markCompleted(true, null, null);
 
         return new ResultWithObservability<>(result, observabilityReport);
     }
@@ -187,8 +187,6 @@ public class IntentDetectionService extends LLMAbstractService {
         options.setTemperature(temperature);
         return llmModelFactory.createChatClient(intentProvider, intentModel, intentApiKey, options);
     }
-
-
 
     @Data
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -219,47 +217,46 @@ public class IntentDetectionService extends LLMAbstractService {
         }
     }
 
-    private static final String SYSTEM_INSTRUCTIONS_TEMPLATE =
-            """
+    private static final String SYSTEM_INSTRUCTIONS_TEMPLATE = """
                     You are a highly accurate Intent Detection System.
                     Your job is to determine a user's intent from their input and return it in structured JSON format.
-    
+
                     ---
-    
+
                     ## AVAILABLE INTENTS:
                     {availableIntents}
-    
+
                     ---
-    
+
                     ## STEP-BY-STEP INSTRUCTIONS:
-    
+
                     1. **Understand the User Input** \s
                        Carefully read and comprehend the user's input. Break it down into any requests, questions, or tasks.
-    
+
                     2. **Check if the Input is Truly Nonsensical or Not a Request** \s
                         Determine if the input is entirely meaningless, gibberish, or clearly not a request or command directed at you. \s
                            -  If YES (it is nonsensical/not a request), return the JSON error format.
                            -  If NO (it is a meaningful request), continue to the next step.
-    
+
                     3. **Identify the Core Intent** \s
                         What is the user trying to do? Be specific. \s
                         Example: "I want to translate this text to Spanish" → The user wants to *translate text*.
-    
+
                     4. **Match or Propose an Intent**\s
                         Compare the identified core intention against the descriptions of the “AVAILABLE INTENTS. Aim for a clear and confident match to an existing intent whenever the user's request aligns well with one.
                        - If there’s a clear, confident match to an AVAILABLE INTENT, use that intent's ID and Name.
                        - If there is NO good match among the AVAILABLE INTENTS, but the input is a valid request, you MUST propose a NEW intent. The proposed intent name must be descriptive and in UPPERCASE_WITH_UNDERSCORES format (e.g., TRANSLATE_TEXT, SEND_EMAIL, GET_WEATHER).
-    
+
                     5. **Extract Variables** \s
                        Identify important variables needed to fulfill the request. Use descriptive UPPERCASE_WITH_UNDERSCORES names for variables. \s
                        - Example for "translate this text to Spanish": `TARGET_LANGUAGE: "Spanish"`, `SOURCE_TEXT: "this text"` (if the text was provided directly).
                        - Example for "I want to buy a pizza for this evening at 8pm": `FOOD_ITEM: "pizza"`, `TIME: "this evening at 8pm"`.
-    
+
                     6. **Assign a Confidence Score** \s
                        Reflect how confident you are in the determined intent (0.0 for very unsure, 1.0 for very sure).
-    
+
                     ---
-                    
+
                     ## Remember:
                     - If you don't find a strong match in the Available Intents, you MUST propose a new intent with a descriptive name.
                     - *Always prioritize* matching to EXISTING intents when appropriate.

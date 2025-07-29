@@ -1,6 +1,5 @@
 package org.caselli.cognitiveworkflow.operational.AI.services;
 
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.caselli.cognitiveworkflow.knowledge.model.node.LlmNodeMetamodel;
@@ -12,7 +11,6 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ResponseEntity;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 
 /**
  * Service for managing port adaptation using LLM.
@@ -46,19 +43,17 @@ public class PortAdapterService extends LLMAbstractService {
     @Value("${port-adapter.llm.temperature}")
     private double temperature;
 
-
-    private static final String SYSTEM_INSTRUCTIONS =
-            """
+    private static final String SYSTEM_INSTRUCTIONS = """
             You are a Port Adapter Analysis System.
             Your task is to analyze source and target ports and generate attribute mappings based on the provided rules.
             The user will provide you with a list of source ports and a list of target ports.
-           
+
             ## Rules:
             - Use direct paths (e.g., "A.B" not "A.schema.properties.B")
             - Prioritize required attributes
             - Return {"bindings": {}} if no mapping needed
             - Return null if mapping impossible
-                        
+
             ## Output Guidelines:
             You must respond with valid JSON in this format:
             ```json
@@ -75,9 +70,9 @@ public class PortAdapterService extends LLMAbstractService {
         this.llmModelFactory = llmModelFactory;
     }
 
-
     /**
      * Adapts source ports to target ports using LLM
+     * 
      * @param sourcePorts List of source ports
      * @param targetPorts List of target ports
      * @return PortAdaptation object containing the mapping.
@@ -116,7 +111,8 @@ public class PortAdapterService extends LLMAbstractService {
         });
 
         if (!StringUtils.hasText(provider) || !StringUtils.hasText(apiKey) || !StringUtils.hasText(model))
-            throw new IllegalArgumentException("LLM configuration (adapter.llm.provider, adapter.llm.api-key, adapter.llm.model) is missing or incomplete for port adaptation.");
+            throw new IllegalArgumentException(
+                    "LLM configuration (adapter.llm.provider, adapter.llm.api-key, adapter.llm.model) is missing or incomplete for port adaptation.");
 
         try {
 
@@ -124,19 +120,21 @@ public class PortAdapterService extends LLMAbstractService {
                     .map(Port::portToJson)
                     // TODO: note that for now we escape the braces in the JSON string
                     // As reported by others this is a workaround for a bug in Spring AI
-                    // In fact, without escaping the braces, the template engine tries to find variables in the JSON
+                    // In fact, without escaping the braces, the template engine tries to find
+                    // variables in the JSON
                     // See https://github.com/spring-projects/spring-ai/issues/2836
-                    .map(s -> s.replace("{", "\\{").replace("}", "\\}"))  // Escape braces
+                    .map(s -> s.replace("{", "\\{").replace("}", "\\}")) // Escape braces
                     .collect(Collectors.joining(",\n"));
             sourcePortsDescription = "```json\n[" + sourcePortsDescription + "]\n```";
 
             String targetPortsDescription = targetPorts.stream()
                     .map(Port::portToJson)
-                    .map(s -> s.replace("{", "\\{").replace("}", "\\}"))  // Escape braces
+                    .map(s -> s.replace("{", "\\{").replace("}", "\\}")) // Escape braces
                     .collect(Collectors.joining(",\n"));
             targetPortsDescription = "```json\n[" + targetPortsDescription + "]\n```";
 
-            String userContent = "Source Ports:\n" + sourcePortsDescription + "\n\nTarget Ports:\n" + targetPortsDescription;
+            String userContent = "Source Ports:\n" + sourcePortsDescription + "\n\nTarget Ports:\n"
+                    + targetPortsDescription;
 
             Prompt prompt = new Prompt(List.of(new SystemMessage(SYSTEM_INSTRUCTIONS), new UserMessage(userContent)));
 
@@ -145,7 +143,7 @@ public class PortAdapterService extends LLMAbstractService {
                     .call()
                     .responseEntity(PortAdaptationLLMResult.class);
 
-            //  Structured output handling
+            // Structured output handling
             PortAdaptationLLMResult adaptationResult = response.getEntity();
 
             // Init a PortAdaptation object to hold the result
@@ -158,12 +156,12 @@ public class PortAdapterService extends LLMAbstractService {
             if (adaptationResult != null && adaptationResult.getBindings() != null) {
 
                 logger.info("LLM response mapping to PortAdaptation: " + adaptationResult);
-                Map<String,String> adapterPorts = adaptationResult.getBindings();
-                for (String key : adapterPorts.keySet()) logger.info(key + " -> " + adapterPorts.get(key));
+                Map<String, String> adapterPorts = adaptationResult.getBindings();
+                for (String key : adapterPorts.keySet())
+                    logger.info(key + " -> " + adapterPorts.get(key));
 
                 portAdaptation.setBindings(adaptationResult.getBindings());
                 return portAdaptation;
-
 
             } else {
                 if (adaptationResult == null) {
@@ -181,7 +179,6 @@ public class PortAdapterService extends LLMAbstractService {
         }
     }
 
-
     @Override
     protected ChatClient buildChatClient() {
         var options = new LlmNodeMetamodel.LlmModelOptions();
@@ -191,13 +188,14 @@ public class PortAdapterService extends LLMAbstractService {
 
     @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class PortAdaptation extends  PortAdaptationLLMResult  {
+    public static class PortAdaptation extends PortAdaptationLLMResult {
         private TokenUsage tokenUsage;
     }
 
     /**
      * Class representing the adaptation of ports.
-     * It contains a map of bindings that represent the adaptation between source and target ports.
+     * It contains a map of bindings that represent the adaptation between source
+     * and target ports.
      * Use dot notation for nested attributes (e.g. "A.B").
      */
     @Data

@@ -19,10 +19,12 @@ public class WorkflowEdge {
     private String id = UUID.randomUUID().toString();
 
     /** The source node identifier */
-    @NotNull private String sourceNodeId;
+    @NotNull
+    private String sourceNodeId;
 
     /** The target node identifier */
-    @NotNull private String targetNodeId;
+    @NotNull
+    private String targetNodeId;
 
     /** Optional bindings to map outputs from source to inputs on target */
     private Map<String, String> bindings;

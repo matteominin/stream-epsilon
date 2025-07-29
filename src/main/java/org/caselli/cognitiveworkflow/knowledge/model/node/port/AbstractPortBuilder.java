@@ -11,6 +11,7 @@ public abstract class AbstractPortBuilder<T extends Port, B extends AbstractPort
     }
 
     public B withSchema(PortSchema schema) {
+        // TODO: implement copy
         this.schema = schema;
         return self();
     }
@@ -21,12 +22,16 @@ public abstract class AbstractPortBuilder<T extends Port, B extends AbstractPort
     }
 
     protected abstract B self();
+
     protected abstract T createInstance();
 
     public T build() {
-        if (key == null || key.isEmpty()) throw new IllegalStateException("Key must be specified");
-        if (schema == null) throw new IllegalStateException("Schema must be specified");
-        if (defaultValue != null && !schema.isValidValue(defaultValue)) throw new IllegalStateException("Default value is not valid for the schema");
+        if (key == null || key.isEmpty())
+            throw new IllegalStateException("Key must be specified");
+        if (schema == null)
+            throw new IllegalStateException("Schema must be specified");
+        if (defaultValue != null && !schema.isValidValue(defaultValue))
+            throw new IllegalStateException("Default value is not valid for the schema");
 
         T port = createInstance();
         port.setKey(key);

@@ -10,11 +10,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents the metamodel for a Gateway Node, a specialized type of control flow node.
+ * Represents the metamodel for a Gateway Node, a specialized type of control
+ * flow node.
  * This initial implementation provides a Transparent Gateway, which simply
  * forwards data from its input ports directly to its output ports.
  * TODO: Future iterations can introduce specialized Gateway implementations
- * (such as Parallel Gateways, Exclusive Gateways, Inclusive Gateways, Merge and Sync Gateways)
+ * (such as Parallel Gateways, Exclusive Gateways, Inclusive Gateways, Merge and
+ * Sync Gateways)
  * to support diverse control flow patterns.
  */
 
@@ -25,17 +27,15 @@ public class GatewayNodeMetamodel extends FlowNodeMetamodel {
 
     public GatewayNodeMetamodel() {
         super();
-
         this.setControlType(ControlType.GATEWAY);
     }
 
-
     /**
-        The input ports for this node.
-        They are also the output ports as this is a transparent gateway.
+     * The input ports for this node.
+     * They are also the output ports as this is a transparent gateway.
      */
-    @NotNull private List<StandardPort> inputPorts = Collections.emptyList();
-
+    @NotNull
+    private List<StandardPort> inputPorts = Collections.emptyList();
 
     @Override
     @NotNull
