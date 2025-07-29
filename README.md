@@ -33,19 +33,103 @@ The default api port is 3001, in order to set a custom port add this line to you
 APP_PORT=port_number
 ```
 
-### MongoDB Atlas Setup
 
-The application requires specific search indexes to be created in MongoDB Atlas. **All indexes must be in `READY` status before starting the application.**
+### MongoDB Database Setup
 
-| Collection | Index Name | Type |
-|------------|------------|------|
-| `intents` | `intent_vector_index` | vectorSearch |
-| `meta_nodes` | `node_search_index` | search | 
-| `meta_nodes` | `node_vector_index` | vectorSearch | 
+The application requires  **three separate MongoDB databases**  to function properly:
 
-#### Index Configurations
+#### 1. Main Database (MongoDB Atlas - Required)
 
-**1. Full-Text Search Index for Nodes (`node_search_index` on `meta_nodes` collection)**
+**Purpose**: Primary application database supporting hybrid search capabilities
+
+**Requirements**:
+
+-   Must be MongoDB Atlas (for vector and full-text search support)
+-   Collections:  `intents`,  `meta_nodes`,  `workflows`
+-   All search indexes must be in  `READY`  status before starting the application
+
+Collection
+
+Index Name
+
+Type
+
+`intents`
+
+`intent_vector_index`
+
+vectorSearch
+
+`meta_nodes`
+
+`node_search_index`
+
+search
+
+`meta_nodes`
+
+`node_vector_index`
+
+vectorSearch
+
+#### 2. Test Database (Any MongoDB Instance)
+
+**Purpose**: Used exclusively for end-to-end (E2E) tests
+
+**⚠️ Warning**: This database is  **completely cleaned**  at each test execution. Do not store any important data here.
+
+**Requirements**:
+
+-   Collections: Mirror the main database (`intents`,  `meta_nodes`,  `workflows`)
+-   No search indexes required
+-   Can be any MongoDB instance (Atlas not required)
+
+#### 3. Demo Database (MongoDB Atlas - Required)
+
+**Purpose**: RAG demonstration database used in E2E and integration tests
+
+**Requirements**:
+
+-   Must be MongoDB Atlas
+-   Database name:  `sample_mflix`
+-   Collection name:  `embedded_movies`
+-   Vector search index:  `embedded_movies_vector_index`
+
+**Data Source**: Uses the Atlas Sample Mflix Dataset containing movie data with vector embeddings.
+
+**Example Document Schema**:
+
+```json
+{
+  "_id": { "$oid": "573a1392f29313caabcd9ca6" },
+  "plot": "An ambitious and near insanely violent gangster climbs the ladder of success in the mob, but his weaknesses prove to be his downfall.",
+  "genres": ["Action", "Crime", "Drama"],
+  "runtime": 93,
+  "rated": "PASSED",
+  "cast": ["Paul Muni", "Ann Dvorak", "Karen Morley", "Osgood Perkins"],
+  "title": "Scarface",
+  "year": 1932,
+  "plot_embedding": [/* 1536-dimensional vector array */],
+  "imdb": {
+    "rating": 7.8,
+    "votes": 18334,
+    "id": 23427
+  },
+  "type": "movie"
+}
+
+```
+
+**Critical Fields**:
+
+-   `plot_embedding`: Vector embedding field (1536 dimensions)
+-   Database:  `sample_mflix`
+-   Collection:  `embedded_movies`
+-   Vector Index:  `embedded_movies_vector_index`
+
+#### Main Database Index Configurations
+
+**1. Full-Text Search Index for Nodes (`node_search_index`  on  `meta_nodes`  collection)**
 
 ```json
 {
@@ -147,9 +231,10 @@ The application requires specific search indexes to be created in MongoDB Atlas.
     }
   ]
 }
+
 ```
 
-**2. Vector Search Index for Nodes (`node_vector_index` on `meta_nodes` collection)**
+**2. Vector Search Index for Nodes (`node_vector_index`  on  `meta_nodes`  collection)**
 
 ```json
 {
@@ -162,9 +247,10 @@ The application requires specific search indexes to be created in MongoDB Atlas.
     }
   ]
 }
+
 ```
 
-**3. Vector Search Index for Intents (`intent_vector_index` on `intents` collection)**
+**3. Vector Search Index for Intents (`intent_vector_index`  on  `intents`  collection)**
 
 ```json
 {
@@ -177,9 +263,31 @@ The application requires specific search indexes to be created in MongoDB Atlas.
     }
   ]
 }
+
 ```
 
-### Running the Application
+**4. Demo Database Vector Search Index (`embedded_movies_vector_index`  on  `embedded_movies`  collection)**
+
+```json
+{
+  "fields": [
+    {
+      "numDimensions": 1536,
+      "path": "plot_embedding",
+      "similarity": "cosine",
+      "type": "vector"
+    }
+  ]
+}
+
+```
+
+
+
+
+
+
+## Running the Application
 
 ```bash
 # Clone the repository
