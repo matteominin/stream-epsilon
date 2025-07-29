@@ -95,10 +95,6 @@ public class CyclicNodeInstance extends FlowNodeInstance {
             context.put("cycleIndex", i);
 
             executeCyclicSubgraph(nodes, edges, context, observabilityReport);
-
-            // Handle output ports
-            handleOutputPorts(context, metamodel.getOutputPorts());
-
             context.remove("cycleIndex");
         }
     }
@@ -168,22 +164,6 @@ public class CyclicNodeInstance extends FlowNodeInstance {
                 logger.debug("[Edge {}]: Binding transferred {} → {}", edge.getId(), sourceKey, targetKey);
             } else {
                 logger.debug("[Edge {}]: Source key '{}' not found in context for binding", edge.getId(), sourceKey);
-            }
-        }
-    }
-
-    private void handleOutputPorts(ExecutionContext context, List<StandardPort> outputPorts) {
-        if (outputPorts == null || outputPorts.isEmpty()) {
-            logger.warn("[Node {}]: No output ports found", getId());
-            return;
-        }
-
-        for (StandardPort outputPort : outputPorts) {
-            Object value = context.get(outputPort.getKey());
-            if (value != null) {
-                logger.info("[Node {}]: Output port {} has value: {}", getId(), outputPort.getKey(), value);
-            } else {
-                logger.warn("[Node {}]: Output port {} has no value in context", getId(), outputPort.getKey());
             }
         }
     }
