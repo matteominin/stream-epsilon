@@ -1,7 +1,6 @@
 package org.caselli.cognitiveworkflow.operational.instances;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -60,74 +59,67 @@ public class CyclicNodeInstance extends FlowNodeInstance {
 
         for (int i = start; i < end; i += step) {
             logger.info("Processing cycle iteration: {}", i);
-            context.put("iteration", i);
-            executeCyclicSubgraph(nodes, edges, context, observabilityReport);
-            context.remove("iteration");
+
+            context.put("cycleIndex", i);
+            executeCyclicSubgraph(nodes, edges, context);
+            context.remove("cycleIndex");
         }
     }
 
-    private void executeCyclicSubgraph(List<WorkflowNode> nodes,
-            List<WorkflowEdge> edges,
-            ExecutionContext context,
-            NodeObservabilityReport report) {
+    private void executeCyclicSubgraph(List<WorkflowNode> nodes, List<WorkflowEdge> edges, ExecutionContext context) {
+        logger.info("Executing cyclic subgraph with {} nodes and {} edges", nodes.size(), edges.size());
 
-        class NodeExecState {
-            WorkflowNode node;
-            NodeInstance instance;
-            int totalIncoming = 0;
-            int satisfiedIncoming = 0;
-        }
-
-        // Build node states
-        Map<String, NodeExecState> stateMap = new HashMap<>();
-        for (WorkflowNode node : nodes) {
-            NodeExecState state = new NodeExecState();
-            state.node = node;
-            state.instance = nodeInstanceManager.getOrCreate(node.getNodeMetamodelId());
-            stateMap.put(node.getId(), state);
-        }
-
-        // Track adjacency and incoming edges
-        Map<String, List<String>> adjacency = new HashMap<>();
-        for (WorkflowEdge edge : edges) {
-            String from = edge.getSourceNodeId();
-            String to = edge.getTargetNodeId();
-
-            adjacency.computeIfAbsent(from, k -> new ArrayList<>()).add(to);
-
-            NodeExecState targetState = stateMap.get(to);
-            if (targetState != null) {
-                targetState.totalIncoming++;
+        // Validate edges
+        edges.forEach(edge -> {
+            if (edge.getTargetNodeId() == null) {
+                throw new IllegalStateException("Edge with ID " + edge.getId() + " has a null targetNodeId");
             }
-        }
+        });
 
-        // Queue of nodes with no pending dependencies
-        Deque<String> readyQueue = new ArrayDeque<>();
-        for (Map.Entry<String, NodeExecState> entry : stateMap.entrySet()) {
-            if (entry.getValue().totalIncoming == 0) {
-                readyQueue.add(entry.getKey());
+        // Map to track visited nodes
+        Set<String> visitedNodes = new HashSet<>();
+
+        // Find the entry point node
+        WorkflowNode entryPoint = nodes.stream()
+                .filter(node -> edges.stream().noneMatch(edge -> edge.getTargetNodeId().equals(node.getId())))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No entry point found in the graph"));
+
+        // Traverse the graph starting from the entry point
+        Deque<WorkflowNode> stack = new ArrayDeque<>();
+        stack.push(entryPoint);
+
+        while (!stack.isEmpty()) {
+            WorkflowNode currentNode = stack.pop();
+
+            if (visitedNodes.contains(currentNode.getId())) {
+                continue;
             }
+
+            // Mark the node as visited
+            visitedNodes.add(currentNode.getId());
+
+            // Retrieve or create the NodeInstance
+            NodeInstance nodeInstance = nodeInstanceManager.getOrCreate(currentNode.getNodeMetamodelId());
+
+            // Create observability report for the node
+            NodeObservabilityReport observabilityReport = new NodeObservabilityReport(nodeInstance.getId(),
+                    "workflowId-placeholder");
+
+            // Process the node
+            nodeInstance.process(context, observabilityReport);
+
+            logger.info("Executed node: {} with observability report: {}", nodeInstance.getId(), observabilityReport);
+
+            // Push connected nodes to the stack
+            edges.stream()
+                    .filter(edge -> edge.getSourceNodeId().equals(currentNode.getId()))
+                    .map(edge -> nodes.stream().filter(node -> node.getId().equals(edge.getTargetNodeId())).findFirst()
+                            .orElse(null))
+                    .filter(Objects::nonNull)
+                    .forEach(stack::push);
         }
 
-        // Process nodes
-        while (!readyQueue.isEmpty()) {
-            String nodeId = readyQueue.poll();
-            NodeExecState nodeState = stateMap.get(nodeId);
-
-            logger.info("Processing node {} in cyclic subgraph", nodeId);
-            nodeState.instance.process(context, report);
-
-            List<String> successors = adjacency.getOrDefault(nodeId, List.of());
-            for (String succId : successors) {
-                NodeExecState succState = stateMap.get(succId);
-                if (succState != null) {
-                    succState.satisfiedIncoming++;
-                    if (succState.satisfiedIncoming >= succState.totalIncoming) {
-                        readyQueue.add(succId);
-                    }
-                }
-            }
-        }
+        logger.info("Cyclic subgraph execution completed.");
     }
-
 }

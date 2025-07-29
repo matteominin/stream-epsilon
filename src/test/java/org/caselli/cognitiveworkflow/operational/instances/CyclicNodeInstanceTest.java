@@ -1,5 +1,7 @@
 package org.caselli.cognitiveworkflow.operational.instances;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,7 +26,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
-@Tag("focus")
 @ActiveProfiles("test")
 public class CyclicNodeInstanceTest {
     @MockitoBean
@@ -47,20 +48,27 @@ public class CyclicNodeInstanceTest {
 
     @Test
     public void forLoopTest() {
-        WorkflowNode node = mock(WorkflowNode.class);
-        when(node.getNodeMetamodelId()).thenReturn("dummy-node-id");
+        // Create a real WorkflowNode instance, not a mock
+        WorkflowNode node = new WorkflowNode();
+        node.setId("workflow-node-id"); // Node ID inside the graph
+        node.setNodeMetamodelId("dummy-node-id"); // Metamodel ID used to get NodeInstance
 
         CyclicNodeMetamodel cyclicMetamodel = new CyclicNodeMetamodel();
         cyclicMetamodel.setStart(0);
         cyclicMetamodel.setEnd(3);
         cyclicMetamodel.setStep(1);
         cyclicMetamodel.setNodes(List.of(node));
-        cyclicMetamodel.setEdges(List.of(mock(WorkflowEdge.class)));
+        cyclicMetamodel.setEdges(List.of());
 
+        // Mock the NodeInstance and stub getId() to avoid null
         NodeInstance dummyNodeInstance = mock(NodeInstance.class);
+        when(dummyNodeInstance.getId()).thenReturn("dummy-instance-id");
+
+        // Stub nodeInstanceManager to return the mocked NodeInstance for the given
+        // metamodel ID
         when(nodeInstanceManager.getOrCreate("dummy-node-id")).thenReturn(dummyNodeInstance);
 
-        // Prendi l'istanza reale da ApplicationContext
+        // Get the CyclicNodeInstance bean from the application context
         CyclicNodeInstance cyclicInstance = applicationContext.getBean(CyclicNodeInstance.class);
 
         cyclicInstance.setMetamodel(cyclicMetamodel);
@@ -68,7 +76,63 @@ public class CyclicNodeInstanceTest {
 
         cyclicInstance.process(context, report);
 
+        // Verify that getOrCreate and process are called 3 times, as expected
         verify(nodeInstanceManager, times(3)).getOrCreate("dummy-node-id");
-        verify(dummyNodeInstance, times(3)).process(context, report);
+        verify(dummyNodeInstance, times(3)).process(eq(context), any(NodeObservabilityReport.class));
+
+    }
+
+    @Test
+    @Tag("focus")
+    public void testGraphTraversal() {
+        WorkflowNode node1 = mock(WorkflowNode.class);
+        WorkflowNode node2 = mock(WorkflowNode.class);
+        WorkflowNode node3 = mock(WorkflowNode.class);
+
+        when(node1.getId()).thenReturn("node1");
+        when(node2.getId()).thenReturn("node2");
+        when(node3.getId()).thenReturn("node3");
+
+        when(node1.getNodeMetamodelId()).thenReturn("metamodel1");
+        when(node2.getNodeMetamodelId()).thenReturn("metamodel2");
+        when(node3.getNodeMetamodelId()).thenReturn("metamodel3");
+
+        WorkflowEdge edge1 = mock(WorkflowEdge.class);
+        WorkflowEdge edge2 = mock(WorkflowEdge.class);
+
+        when(edge1.getSourceNodeId()).thenReturn("node1");
+        when(edge1.getTargetNodeId()).thenReturn("node2");
+        when(edge2.getSourceNodeId()).thenReturn("node2");
+        when(edge2.getTargetNodeId()).thenReturn("node3");
+
+        CyclicNodeMetamodel cyclicMetamodel = new CyclicNodeMetamodel();
+        cyclicMetamodel.setStart(0);
+        cyclicMetamodel.setEnd(2);
+        cyclicMetamodel.setStep(1);
+        cyclicMetamodel.setNodes(List.of(node1, node2, node3));
+        cyclicMetamodel.setEdges(List.of(edge1, edge2));
+
+        NodeInstance nodeInstance1 = mock(NodeInstance.class);
+        NodeInstance nodeInstance2 = mock(NodeInstance.class);
+        NodeInstance nodeInstance3 = mock(NodeInstance.class);
+
+        when(nodeInstanceManager.getOrCreate("metamodel1")).thenReturn(nodeInstance1);
+        when(nodeInstanceManager.getOrCreate("metamodel2")).thenReturn(nodeInstance2);
+        when(nodeInstanceManager.getOrCreate("metamodel3")).thenReturn(nodeInstance3);
+
+        CyclicNodeInstance cyclicInstance = applicationContext.getBean(CyclicNodeInstance.class);
+
+        cyclicInstance.setMetamodel(cyclicMetamodel);
+        cyclicInstance.setId("test-cycle");
+
+        cyclicInstance.process(context, report);
+
+        verify(nodeInstanceManager, times(2)).getOrCreate("metamodel1");
+        verify(nodeInstanceManager, times(2)).getOrCreate("metamodel2");
+        verify(nodeInstanceManager, times(2)).getOrCreate("metamodel3");
+
+        verify(nodeInstance1, times(2)).process(eq(context), any(NodeObservabilityReport.class));
+        verify(nodeInstance2, times(2)).process(eq(context), any(NodeObservabilityReport.class));
+        verify(nodeInstance3, times(2)).process(eq(context), any(NodeObservabilityReport.class));
     }
 }

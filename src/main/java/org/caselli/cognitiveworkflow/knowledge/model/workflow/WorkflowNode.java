@@ -21,15 +21,6 @@ public class WorkflowNode {
 
     private ExecutionType executionType = ExecutionType.JOIN;
 
-    @Override
-    public String toString() {
-        return "WorkflowNode{" +
-                "id='" + id + '\'' +
-                ", nodeMetamodelId='" + nodeMetamodelId + '\'' +
-                ", executionType=" + executionType +
-                '}';
-    }
-
     public enum ExecutionType {
         MERGE, // Execute when at least one incoming input is ready
         JOIN, // Execute when all incoming inputs are ready
