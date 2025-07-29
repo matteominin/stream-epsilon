@@ -9,8 +9,11 @@ import org.caselli.cognitiveworkflow.operational.AI.LLMAbstractService;
 import org.caselli.cognitiveworkflow.operational.AI.factories.LLMModelFactory;
 import org.caselli.cognitiveworkflow.operational.observability.TokenUsage;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ResponseEntity;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -137,21 +140,20 @@ public class PortAdapterService extends LLMAbstractService {
 
             Prompt prompt = new Prompt(List.of(new SystemMessage(SYSTEM_INSTRUCTIONS), new UserMessage(userContent)));
 
-
-            // Call the LLM with the prompt
-            var response = getChatClient().prompt(prompt).call();
+            // Call the LLM
+            ResponseEntity<ChatResponse, PortAdaptationLLMResult> response = getChatClient().prompt(prompt)
+                    .call()
+                    .responseEntity(PortAdaptationLLMResult.class);
 
             //  Structured output handling
-            PortAdaptationLLMResult adaptationResult = response.entity(PortAdaptationLLMResult.class);
-
+            PortAdaptationLLMResult adaptationResult = response.getEntity();
 
             // Init a PortAdaptation object to hold the result
             PortAdaptation portAdaptation = new PortAdaptation();
             portAdaptation.setBindings(Collections.emptyMap());
 
             // Put the token usage in the PortAdaptation result
-            portAdaptation.setTokenUsage(new TokenUsage(response.chatResponse().getMetadata().getUsage()));
-
+            portAdaptation.setTokenUsage(new TokenUsage(response.getResponse().getMetadata().getUsage()));
 
             if (adaptationResult != null && adaptationResult.getBindings() != null) {
 

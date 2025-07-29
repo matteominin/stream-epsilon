@@ -13,6 +13,7 @@ import org.caselli.cognitiveworkflow.operational.observability.ResultWithObserva
 import org.caselli.cognitiveworkflow.operational.observability.TokenUsage;
 import org.caselli.cognitiveworkflow.operational.utils.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ResponseEntity;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.metadata.Usage;
@@ -99,28 +100,20 @@ public class IntentDetectionService extends LLMAbstractService {
 
         logger.debug("Prompt: {}", prompt.getContents());
 
+
+
         // Call the LLM
-        long startTime = System.nanoTime();
-        ChatClient.CallResponseSpec response = getChatClient().prompt(prompt).call();
-        long endTime = System.nanoTime();
-        System.out.println("LLM call duration: " + (endTime - startTime) / 1_000_000 + " ms");
+        ResponseEntity<ChatResponse, IntentDetectionResponse> response = getChatClient().prompt(prompt)
+                .call()
+                .responseEntity(IntentDetectionResponse.class);
 
-        Usage usage = response.chatResponse().getMetadata().getUsage();
+        Usage usage = response.getResponse().getMetadata().getUsage();
+        if (usage != null) observabilityReport.setTokenUsage(
+                new TokenUsage(usage.getCompletionTokens(), usage.getPromptTokens(), usage.getTotalTokens())
+        );
 
-        if (usage != null) {
-            var tokenUsage = new TokenUsage(usage.getCompletionTokens(), usage.getPromptTokens(), usage.getTotalTokens());
-            System.out.println("LLM token usage: " + tokenUsage);
-            observabilityReport.setTokenUsage(tokenUsage);
-        }
+        IntentDetectionResponse modelAnswer = response.getEntity();
 
-
-        startTime = System.nanoTime();
-        IntentDetectionResponse modelAnswer = response.entity(IntentDetectionResponse.class);
-
-        endTime = System.nanoTime();
-        System.out.println("LLM response parsing duration: " + (endTime - startTime) / 1_000_000 + " ms");
-
-        logger.debug("Model answer: {}", modelAnswer);
 
         // Determine if the intent is non-existent or there has been an error
         if (modelAnswer == null || modelAnswer.getData() == null || (modelAnswer.getError() != null && !modelAnswer.getError().isEmpty()) ) {
