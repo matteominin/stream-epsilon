@@ -31,7 +31,6 @@ services:
     profiles:
       - dev
 
-
 volumes:
   maven_cache:
 

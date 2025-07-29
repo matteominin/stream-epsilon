@@ -2,7 +2,6 @@ package org.caselli.cognitiveworkflow.operational.instances;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -34,6 +33,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+@Tag("focus")
 @SpringBootTest
 @ActiveProfiles("test")
 public class CyclicNodeInstanceTest {
@@ -107,6 +107,8 @@ public class CyclicNodeInstanceTest {
         cyclicMetamodel.setStep(1);
         cyclicMetamodel.setNodes(List.of(node));
         cyclicMetamodel.setEdges(List.of());
+        cyclicMetamodel.setInputPorts(List.of());
+        cyclicMetamodel.setOutputPorts(List.of());
 
         // Mock the NodeInstance and stub getId() to avoid null
         NodeInstance dummyNodeInstance = mock(NodeInstance.class);
@@ -158,6 +160,8 @@ public class CyclicNodeInstanceTest {
         cyclicMetamodel.setStep(1);
         cyclicMetamodel.setNodes(List.of(node1, node2, node3));
         cyclicMetamodel.setEdges(List.of(edge1, edge2));
+        cyclicMetamodel.setInputPorts(List.of());
+        cyclicMetamodel.setOutputPorts(List.of());
 
         NodeInstance nodeInstance1 = mock(NodeInstance.class);
         NodeInstance nodeInstance2 = mock(NodeInstance.class);
@@ -184,7 +188,6 @@ public class CyclicNodeInstanceTest {
     }
 
     @Test
-    @Tag("focus")
     public void testExternalConnections()
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 

@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
-import java.beans.ConstructorProperties;
 import java.util.Objects;
 
 @Data
@@ -35,7 +34,6 @@ public class Version {
         return major + "." + minor + "." + patch + (label != null ? "-" + label : "");
     }
 
-    
     /**
      * Determines if version changes are backward compatible
      * - Major version changes = breaking changes
@@ -77,6 +75,7 @@ public class Version {
 
     /**
      * Validates if a version bump follows semantic versioning rules
+     * 
      * @param oldVersion the previous version
      * @param newVersion the new version to validate
      * @return true if the version bump is legitimate, false otherwise
@@ -96,7 +95,8 @@ public class Version {
         // Check for valid major version bump
         if (newVersion.major > oldVersion.major) {
             // Major increment should be +1
-            if (newVersion.major != oldVersion.major + 1) return false;
+            if (newVersion.major != oldVersion.major + 1)
+                return false;
             // Minor and patch should be reset to 0
             return newVersion.minor == 0 && newVersion.patch == 0;
         }
@@ -104,9 +104,11 @@ public class Version {
         // Check for valid minor version bump
         if (newVersion.minor > oldVersion.minor) {
             // Major should be unchanged
-            if (newVersion.major != oldVersion.major) return false;
+            if (newVersion.major != oldVersion.major)
+                return false;
             // Minor increment should be exactly +1
-            if (newVersion.minor != oldVersion.minor + 1) return false;
+            if (newVersion.minor != oldVersion.minor + 1)
+                return false;
             // Patch should be reset to 0
             return newVersion.patch == 0;
         }
@@ -114,7 +116,8 @@ public class Version {
         // Check for valid patch version bump
         if (newVersion.patch > oldVersion.patch) {
             // Major and minor should be unchanged
-            if (newVersion.major != oldVersion.major || newVersion.minor != oldVersion.minor) return false;
+            if (newVersion.major != oldVersion.major || newVersion.minor != oldVersion.minor)
+                return false;
             // Patch increment should be +1
             return newVersion.patch == oldVersion.patch + 1;
         }
@@ -122,10 +125,9 @@ public class Version {
         return false;
     }
 
-
     public enum ChangeType {
-            MAJOR,
-            MINOR,
-            PATCH
+        MAJOR,
+        MINOR,
+        PATCH
     }
 }

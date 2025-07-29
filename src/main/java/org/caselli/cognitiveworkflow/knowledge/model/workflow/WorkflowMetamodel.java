@@ -22,7 +22,8 @@ import jakarta.validation.constraints.NotNull;
 @Document(collection = "meta_workflows")
 @CompoundIndex(name = "handledIntents_intentId_idx", def = "{'handledIntents.intentId': 1}")
 public class WorkflowMetamodel {
-    @Id private String id;
+    @Id
+    private String id;
 
     /**
      * List of nodes included in this workflow.
@@ -34,7 +35,8 @@ public class WorkflowMetamodel {
     private List<WorkflowNode> nodes;
 
     /**
-     * List of edges representing the connections (transitions) between nodes in the DAG workflow.
+     * List of edges representing the connections (transitions) between nodes in the
+     * DAG workflow.
      */
     @NotNull
     @Field("edges")
@@ -44,13 +46,19 @@ public class WorkflowMetamodel {
     private List<WorkflowIntentCapability> handledIntents;
 
     // Meta data
-    @NotNull private String name;
-    @NotNull private String description;
-    @NotNull private Boolean enabled;
-    @NotNull private Version version;
+    @NotNull
+    private String name;
+    @NotNull
+    private String description;
+    @NotNull
+    private Boolean enabled;
+    @NotNull
+    private Version version;
 
-    @CreatedDate private LocalDateTime createdAt;
-    @LastModifiedDate private LocalDateTime updatedAt;
+    @CreatedDate
+    private LocalDateTime createdAt;
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
     /**
      * Represents a handled intent capability of the workflow for a specific intent.
@@ -62,14 +70,15 @@ public class WorkflowMetamodel {
         private Double score;
     }
 
-
     /**
      * Get the entry nodes of the workflow
      * (no incoming edges)
+     * 
      * @return Returns the IDs of the entry WorkflowNodes
      */
     public Set<String> getEntryNodes() {
-        if (this.getNodes() == null || this.getEdges() == null) return Collections.emptySet();
+        if (this.getNodes() == null || this.getEdges() == null)
+            return Collections.emptySet();
 
         Set<String> allNodeIds = this.getNodes().stream()
                 .map(WorkflowNode::getId)
@@ -81,7 +90,6 @@ public class WorkflowMetamodel {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-
         return allNodeIds.stream()
                 .filter(id1 -> !nodesWithIncomingEdges.contains(id1))
                 .collect(Collectors.toSet());
@@ -90,10 +98,12 @@ public class WorkflowMetamodel {
     /**
      * Get the exit nodes of the workflow
      * (no outgoing edges)
+     * 
      * @return Returns the IDs of the exit WorkflowNodes
      */
     public Set<String> getExitNodes() {
-        if (this.getNodes() == null || this.getEdges() == null) return Collections.emptySet();
+        if (this.getNodes() == null || this.getEdges() == null)
+            return Collections.emptySet();
 
         Set<String> allNodeIds = this.getNodes().stream()
                 .map(WorkflowNode::getId)
@@ -111,11 +121,15 @@ public class WorkflowMetamodel {
     }
 
     /**
-     * Detects if the nodes of a workflow have changed between two metamodel versions.
-     * This method compares the structure and content of nodes to determine if there are breaking changes.
+     * Detects if the nodes of a workflow have changed between two metamodel
+     * versions.
+     * This method compares the structure and content of nodes to determine if there
+     * are breaking changes.
+     * 
      * @param oldMetamodel The previous version of the workflow metamodel
      * @param newMetamodel The updated version of the workflow metamodel
-     * @return true if nodes have changed in a way that affects workflow structure, false otherwise
+     * @return true if nodes have changed in a way that affects workflow structure,
+     *         false otherwise
      */
     public static boolean haveNodesChanged(WorkflowMetamodel oldMetamodel, WorkflowMetamodel newMetamodel) {
         // Null safety checks
@@ -127,12 +141,14 @@ public class WorkflowMetamodel {
         List<WorkflowNode> newNodes = newMetamodel.getNodes();
 
         // Handle null node lists
-        if (oldNodes == null && newNodes == null) return false;
-        if (oldNodes == null || newNodes == null) return true;
+        if (oldNodes == null && newNodes == null)
+            return false;
+        if (oldNodes == null || newNodes == null)
+            return true;
 
         // Check if the number of nodes changed
-        if (oldNodes.size() != newNodes.size()) return true;
-
+        if (oldNodes.size() != newNodes.size())
+            return true;
 
         Map<String, WorkflowNode> oldNodeMap = oldNodes.stream()
                 .filter(node -> node.getId() != null)
@@ -142,15 +158,16 @@ public class WorkflowMetamodel {
                 .filter(node -> node.getId() != null)
                 .collect(Collectors.toMap(WorkflowNode::getId, node -> node));
 
-
-        if (!oldNodeMap.keySet().equals(newNodeMap.keySet())) return true;
+        if (!oldNodeMap.keySet().equals(newNodeMap.keySet()))
+            return true;
 
         // Check each node for changes in content
         for (String nodeId : oldNodeMap.keySet()) {
             WorkflowNode oldNode = oldNodeMap.get(nodeId);
             WorkflowNode newNode = newNodeMap.get(nodeId);
 
-            if (hasNodeChanged(oldNode, newNode)) return true;
+            if (hasNodeChanged(oldNode, newNode))
+                return true;
         }
 
         return false;
@@ -158,13 +175,16 @@ public class WorkflowMetamodel {
 
     /**
      * Compares two individual WorkflowNode instances to detect changes.
+     * 
      * @param oldNode The old version of the node
      * @param newNode The new version of the node
      * @return true if the node has changed, false otherwise
      */
     private static boolean hasNodeChanged(WorkflowNode oldNode, WorkflowNode newNode) {
-        if (oldNode == null && newNode == null) return false;
-        if (oldNode == null || newNode == null) return true;
+        if (oldNode == null && newNode == null)
+            return false;
+        if (oldNode == null || newNode == null)
+            return true;
 
         // Compare node metamodel ID
         return !Objects.equals(oldNode.getNodeMetamodelId(), newNode.getNodeMetamodelId());

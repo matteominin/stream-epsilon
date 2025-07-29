@@ -27,13 +27,17 @@ public class CyclicNodeMetamodel extends FlowNodeMetamodel {
     private List<StandardPort> outputPorts;
 
     @NotNull
+    private LoopType loopType = LoopType.FOR;
+
     private Integer start;
 
-    @NotNull
     private Integer end;
 
-    @NotNull
     private Integer step = 1;
+
+    private String iterableVariable;
+
+    private String foreachVariableKey;
 
     @NotNull
     private List<WorkflowNode> nodes;

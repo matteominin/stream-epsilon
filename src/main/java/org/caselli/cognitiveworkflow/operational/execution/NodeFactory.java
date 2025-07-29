@@ -48,6 +48,8 @@ public class NodeFactory {
             return VectorDbNodeInstance.class;
         } else if (metamodel instanceof GatewayNodeMetamodel) {
             return GatewayNodeInstance.class;
+        } else if (metamodel instanceof CyclicNodeMetamodel) {
+            return CyclicNodeInstance.class;
         } else {
             throw new IllegalArgumentException("Unsupported NodeMetamodel type: " + metamodel.getClass().getName());
         }
