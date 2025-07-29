@@ -188,7 +188,7 @@ public class CyclicNodeInstanceTest {
     public void testExternalConnections()
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 
-        // External node instance
+        // External going node
         NodeInstance externalNodeInstance = createNodeInstance("externalNodeId",
                 null, null);
 
@@ -200,7 +200,7 @@ public class CyclicNodeInstanceTest {
         NodeInstance internalNodeInstance = createNodeInstance("internal-node-id", List.of(), List.of());
 
         WorkflowNode internalNode = new WorkflowNode();
-        internalNode.setId("7");
+        internalNode.setId("1");
         internalNode.setNodeMetamodelId("internal-node-id");
 
         // Cyclic node
@@ -228,24 +228,37 @@ public class CyclicNodeInstanceTest {
         cyclicNode.setId("2");
         cyclicNode.setNodeMetamodelId("cyclic-node-id");
 
+        // External outgoing Node
+        NodeInstance externalNodeInstance2 = createNodeInstance("externalNodeId2",
+                null, null);
+
+        WorkflowNode externalNode2 = new WorkflowNode();
+        externalNode2.setId("3");
+        externalNode2.setNodeMetamodelId("externalNodeId2");
+
         // WorflowEdges
         WorkflowEdge edgeToCyclicNode = new WorkflowEdge();
         edgeToCyclicNode.setId("edge1");
-        edgeToCyclicNode.setSourceNodeId("externalNodeId");
-        edgeToCyclicNode.setTargetNodeId("cyclic-node-id");
+        edgeToCyclicNode.setSourceNodeId("1");
+        edgeToCyclicNode.setTargetNodeId("2");
+
+        WorkflowEdge edgeFromCyclicNode = new WorkflowEdge();
+        edgeFromCyclicNode.setId("edge2");
+        edgeFromCyclicNode.setSourceNodeId("2");
+        edgeFromCyclicNode.setTargetNodeId("3");
 
         WorkflowInstance workflow = createWorkflowInstance("test-workflow",
-                List.of(cyclicInstance, externalNodeInstance),
-                List.of(cyclicNode, externalNode),
-                List.of(edgeToCyclicNode));
+                List.of(cyclicInstance, externalNodeInstance, externalNodeInstance2),
+                List.of(cyclicNode, externalNode, externalNode2),
+                List.of(edgeToCyclicNode, edgeFromCyclicNode));
 
         executor.execute(workflow, context);
 
-        // Verifica che l'istanza del nodo interno sia stata processata
-        InOrder inOrder = inOrder(externalNodeInstance, cyclicInstance, internalNodeInstance);
-
+        // Verify that the nodes are called in the correct order
+        InOrder inOrder = inOrder(externalNodeInstance, cyclicInstance, internalNodeInstance, externalNodeInstance2);
         inOrder.verify(externalNodeInstance).process(eq(context), any(NodeObservabilityReport.class));
         inOrder.verify(cyclicInstance).process(eq(context), any(NodeObservabilityReport.class));
         inOrder.verify(internalNodeInstance, times(2)).process(eq(context), any(NodeObservabilityReport.class));
+        inOrder.verify(externalNodeInstance2).process(eq(context), any(NodeObservabilityReport.class));
     }
 }

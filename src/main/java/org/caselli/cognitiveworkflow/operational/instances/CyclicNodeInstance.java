@@ -98,7 +98,7 @@ public class CyclicNodeInstance extends FlowNodeInstance {
             // Process the node
             nodeInstance.process(context, observabilityReport);
 
-            logger.info("Executed node: {}", nodeInstance.getId());
+            logger.info("Executed node: {}\n", nodeInstance.getId());
 
             // Push connected nodes to the stack
             edges.stream()
