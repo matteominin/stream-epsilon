@@ -32,6 +32,7 @@ public class CyclicNodeMetamodel extends FlowNodeMetamodel {
     @NotNull
     private Integer end;
 
+    @NotNull
     private Integer step = 1;
 
     @NotNull

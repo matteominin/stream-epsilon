@@ -18,6 +18,7 @@ import java.util.*;
 /**
  * Class for executing workflows with comprehensive observability.
  * Execution progresses in a topological order.
+ * 
  * @author niccolocaselli
  */
 @Service
@@ -31,9 +32,9 @@ public class WorkflowExecutor {
     private final EdgeConditionEvaluator edgeConditionEvaluator;
 
     public WorkflowExecutor(WorkflowMetamodelService workflowMetamodelService,
-                            PortAdapterService portAdapterService,
-                            WorkflowInstanceManager workflowInstanceManager,
-                            NodeInstanceManager nodeInstanceManager, EdgeConditionEvaluator edgeConditionEvaluator) {
+            PortAdapterService portAdapterService,
+            WorkflowInstanceManager workflowInstanceManager,
+            NodeInstanceManager nodeInstanceManager, EdgeConditionEvaluator edgeConditionEvaluator) {
 
         this.workflowMetamodelService = workflowMetamodelService;
         this.portAdapterService = portAdapterService;
@@ -44,21 +45,23 @@ public class WorkflowExecutor {
 
     /**
      * Executes a workflow
+     * 
      * @param workflow The workflow instance to execute
-     * @param context The execution context
-     * @return Detailed execution result with performance metrics and observability data
+     * @param context  The execution context
+     * @return Detailed execution result with performance metrics and observability
+     *         data
      */
     public WorkflowObservabilityReport execute(WorkflowInstance workflow, ExecutionContext context) {
         // Observability
         WorkflowObservabilityReport executionRecord = new WorkflowObservabilityReport(
                 workflow.getId(),
                 workflow.getMetamodel().getName(),
-                context
-        );
+                context);
 
         try {
             logger.info("-------------------------------------------");
-            logger.info("Starting workflow execution: {} (ID: {})", executionRecord.getWorkflowName(), workflow.getId());
+            logger.info("Starting workflow execution: {} (ID: {})", executionRecord.getWorkflowName(),
+                    workflow.getId());
 
             // Mark the workflow as in execution
             workflowInstanceManager.markRunning(workflow.getId());
@@ -80,7 +83,6 @@ public class WorkflowExecutor {
             // Process nodes with proper MERGE/JOIN semantics
             processWorkflowNodes(workflow, context, executionRecord, executionState);
 
-
             // Mark workflow as successfully completed
             executionRecord.markCompleted(true, null, null);
 
@@ -96,7 +98,8 @@ public class WorkflowExecutor {
             return executionRecord;
 
         } catch (Exception e) {
-            if (executionRecord.isSuccess()) executionRecord.markCompleted(false, e.getMessage(), e);
+            if (executionRecord.isSuccess())
+                executionRecord.markCompleted(false, e.getMessage(), e);
             throw e;
 
         } finally {
@@ -108,9 +111,11 @@ public class WorkflowExecutor {
     /**
      * Processes outgoing edges from a node
      */
-    private void processOutgoingEdges(WorkflowInstance workflow, String sourceNodeId, ExecutionContext context, WorkflowObservabilityReport executionRecord, ExecutionState executionState) {
+    private void processOutgoingEdges(WorkflowInstance workflow, String sourceNodeId, ExecutionContext context,
+            WorkflowObservabilityReport executionRecord, ExecutionState executionState) {
 
-        List<WorkflowEdge> outgoingEdges = executionState.outgoingEdges.getOrDefault(sourceNodeId, Collections.emptyList());
+        List<WorkflowEdge> outgoingEdges = executionState.outgoingEdges.getOrDefault(sourceNodeId,
+                Collections.emptyList());
 
         for (WorkflowEdge edge : outgoingEdges) {
             String targetNodeId = edge.getTargetNodeId();
@@ -135,13 +140,15 @@ public class WorkflowExecutor {
                 // Mark this incoming edge as satisfied
                 targetState.satisfiedIncomingEdges++;
 
-                logger.info("Edge condition passed: {} -> {} (satisfied: {}/{})", sourceNodeId, targetNodeId, targetState.satisfiedIncomingEdges, targetState.totalIncomingEdges);
+                logger.info("Edge condition passed: {} -> {} (satisfied: {}/{})", sourceNodeId, targetNodeId,
+                        targetState.satisfiedIncomingEdges, targetState.totalIncomingEdges);
             } else {
                 logger.info("Edge condition failed: {} -> {}", sourceNodeId, targetNodeId);
             }
 
             // Record edge evaluation
-            executionRecord.recordEdgeEvaluation(sourceNodeId, targetNodeId, edge.getId(), conditionPassed, conditionPassed ? "Condition passed" : "Condition not met", appliedBindings);
+            executionRecord.recordEdgeEvaluation(sourceNodeId, targetNodeId, edge.getId(), conditionPassed,
+                    conditionPassed ? "Condition passed" : "Condition not met", appliedBindings);
 
             // Check if target node is ready to execute based on its execution type
             boolean targetReady = isNodeReadyToExecute(targetState);
@@ -153,7 +160,6 @@ public class WorkflowExecutor {
         }
     }
 
-
     /**
      * Determines if a node is ready to execute based on its execution type
      */
@@ -161,13 +167,12 @@ public class WorkflowExecutor {
         return switch (nodeState.executionType) {
             case MERGE ->
                 // MERGE nodes execute when at least one incoming edge is satisfied
-                    nodeState.satisfiedIncomingEdges > 0;
+                nodeState.satisfiedIncomingEdges > 0;
             default ->
                 // JOIN nodes execute when all incoming edges are satisfied
-                    nodeState.satisfiedIncomingEdges >= nodeState.totalIncomingEdges;
+                nodeState.satisfiedIncomingEdges >= nodeState.totalIncomingEdges;
         };
     }
-
 
     /**
      * Builds the initial execution state for the workflow
@@ -213,16 +218,17 @@ public class WorkflowExecutor {
             }
         }
 
-        logger.info("Execution state initialized: {} nodes, {} ready initially", state.nodeStates.size(), state.readyQueue.size());
+        logger.info("Execution state initialized: {} nodes, {} ready initially", state.nodeStates.size(),
+                state.readyQueue.size());
 
         return state;
     }
 
-
     /**
      * Executes a single node
      */
-    private void executeNode(WorkflowInstance workflow, String workflowNodeId, NodeInstance nodeInstance, ExecutionContext context, WorkflowObservabilityReport executionRecord) throws Exception {
+    private void executeNode(WorkflowInstance workflow, String workflowNodeId, NodeInstance nodeInstance,
+            ExecutionContext context, WorkflowObservabilityReport executionRecord) throws Exception {
 
         try {
             // Apply default values for inputs
@@ -239,14 +245,13 @@ public class WorkflowExecutor {
             // Node Execution Observability
             NodeObservabilityReport nodeObservabilityReport = new NodeObservabilityReport(
                     nodeInstance.getId(),
-                    workflow.getId()
-            );
+                    workflow.getId());
 
             // Execute the node instance
             nodeInstance.process(context, nodeObservabilityReport);
 
             // Check token usage for observability
-            if(!nodeObservabilityReport.getTokenUsage().isEmpty())
+            if (!nodeObservabilityReport.getTokenUsage().isEmpty())
                 executionRecord.recordTokenUsage(nodeObservabilityReport.getTokenUsage());
 
         } finally {
@@ -257,11 +262,11 @@ public class WorkflowExecutor {
         applyDefaultOutputValues(nodeInstance, context);
     }
 
-
     /**
      * Processes workflow nodes
      */
-    private void processWorkflowNodes(WorkflowInstance workflow, ExecutionContext context, WorkflowObservabilityReport executionRecord, ExecutionState executionState) {
+    private void processWorkflowNodes(WorkflowInstance workflow, ExecutionContext context,
+            WorkflowObservabilityReport executionRecord, ExecutionState executionState) {
 
         Set<String> processedNodes = new HashSet<>();
 
@@ -277,14 +282,15 @@ public class WorkflowExecutor {
             logger.info("*******************************************");
             logger.info("Processing node: {} (type: {})", currentId, currentState.executionType);
 
+            logger.info("current state: {}", executionState.nodeStates.get(currentId)); // TODO: remove
             // Record node execution start
             executionRecord.recordNodeStart(
                     currentId,
-                    currentState.nodeInstance.getMetamodel().getName() != null ?
-                            currentState.nodeInstance.getMetamodel().getName() : "Unnamed Node",
+                    currentState.nodeInstance.getMetamodel().getName() != null
+                            ? currentState.nodeInstance.getMetamodel().getName()
+                            : "Unnamed Node",
                     currentState.nodeInstance.getMetamodel().getClass().getSimpleName(),
-                    context
-            );
+                    context);
 
             boolean nodeExecutionSuccessful = false;
             String nodeErrorMessage = null;
@@ -310,7 +316,8 @@ public class WorkflowExecutor {
             }
 
             // Record node completion
-            executionRecord.recordNodeCompletion(currentId, nodeExecutionSuccessful, nodeErrorMessage, nodeException, context);
+            executionRecord.recordNodeCompletion(currentId, nodeExecutionSuccessful, nodeErrorMessage, nodeException,
+                    context);
 
             // Process outgoing edges regardless of node execution success
             processOutgoingEdges(workflow, currentId, context, executionRecord, executionState);
@@ -324,58 +331,72 @@ public class WorkflowExecutor {
         }
     }
 
-
     /**
      * Evaluates the condition on an edge to determine if execution should proceed.
-     * @param edge The edge
+     * 
+     * @param edge    The edge
      * @param context The current context
-     * @return true if the condition passes or there is no condition, false otherwise
+     * @return true if the condition passes or there is no condition, false
+     *         otherwise
      */
     private boolean evaluateEdgeCondition(WorkflowEdge edge, ExecutionContext context) {
-        if(edge.getCondition() == null) return true;
+        if (edge.getCondition() == null)
+            return true;
         return edgeConditionEvaluator.evaluate(edge, context);
     }
 
-
     /**
-     * Ensures all required inputs for a node are satisfied, attempting dynamic port adaptation if needed.
-     * This method checks for missing required inputs and, if found, attempts to generate compatible
-     * port bindings using the port adapter service. Successfully adapted bindings are persisted
+     * Ensures all required inputs for a node are satisfied, attempting dynamic port
+     * adaptation if needed.
+     * This method checks for missing required inputs and, if found, attempts to
+     * generate compatible
+     * port bindings using the port adapter service. Successfully adapted bindings
+     * are persisted
      * to the workflow metamodel for future use.
      *
-     * @param workflowInstance The workflow instance containing the node and its metamodel
-     * @param currentId The ID of the node being prepared for execution
-     * @param context The execution context containing available port values
-     * @param executionResult the execution result for observability
-     * @throws RuntimeException if required inputs cannot be satisfied through port adaptation
+     * @param workflowInstance The workflow instance containing the node and its
+     *                         metamodel
+     * @param currentId        The ID of the node being prepared for execution
+     * @param context          The execution context containing available port
+     *                         values
+     * @param executionResult  the execution result for observability
+     * @throws RuntimeException if required inputs cannot be satisfied through port
+     *                          adaptation
      */
     private void ensureRequiredInputsSatisfied(WorkflowInstance workflowInstance, String currentId,
-                                               ExecutionContext context, WorkflowObservabilityReport executionResult) {
+            ExecutionContext context, WorkflowObservabilityReport executionResult) {
         NodeInstance node = workflowInstance.getInstanceByWorkflowNodeId(currentId);
         List<String> missingRequiredInputs = getUnsatisfiedInputs(node, context);
 
-        if (missingRequiredInputs.isEmpty()) return;
+        if (missingRequiredInputs.isEmpty())
+            return;
 
-        logger.info("Node '{}' has missing required inputs: {}. Attempting port adaptation.", currentId, missingRequiredInputs);
+        logger.info("Node '{}' has missing required inputs: {}. Attempting port adaptation.", currentId,
+                missingRequiredInputs);
 
-        boolean success = attemptPortAdaptationWithTracking(workflowInstance, currentId, context, missingRequiredInputs, executionResult);
-        if (!success) throw new RuntimeException("No compatible port adaptations found for node '" + currentId + "'. Missing required inputs: " + missingRequiredInputs);
+        boolean success = attemptPortAdaptationWithTracking(workflowInstance, currentId, context, missingRequiredInputs,
+                executionResult);
+        if (!success)
+            throw new RuntimeException("No compatible port adaptations found for node '" + currentId
+                    + "'. Missing required inputs: " + missingRequiredInputs);
 
     }
 
     /**
      * Attempts to satisfy missing required inputs through dynamic port adaptation.
      * If successful, updates the workflow metamodel with the new bindings.
-     * @param workflowInstance The instance of the workflow
-     * @param currentId The id of the current node to be executed
-     * @param context The execution context
-     * @param missingRequiredInputs The list of inputs that the node is missing in order to start its execution
-     * @param executionResult the execution result for observability
+     * 
+     * @param workflowInstance      The instance of the workflow
+     * @param currentId             The id of the current node to be executed
+     * @param context               The execution context
+     * @param missingRequiredInputs The list of inputs that the node is missing in
+     *                              order to start its execution
+     * @param executionResult       the execution result for observability
      * @return Returns true if the adaption was successfully
      */
     private boolean attemptPortAdaptationWithTracking(WorkflowInstance workflowInstance, String currentId,
-                                                      ExecutionContext context, List<String> missingRequiredInputs,
-                                                      WorkflowObservabilityReport executionResult) {
+            ExecutionContext context, List<String> missingRequiredInputs,
+            WorkflowObservabilityReport executionResult) {
 
         NodeInstance node = workflowInstance.getInstanceByWorkflowNodeId(currentId);
         Map<WorkflowEdge, Map<String, String>> newBindingsPerEdge = new HashMap<>();
@@ -394,8 +415,9 @@ public class WorkflowExecutor {
             if (sourceNode != null) {
                 for (Port outputPort : sourceNode.getMetamodel().getOutputPorts()) {
                     sourcePorts.add(outputPort);
-                    if(outputPortsMap.get(outputPort.getKey()) != null) {
-                        logger.warn("Output port '{}' is provided by multiple edges. Overriding previous value.", outputPort.getKey());
+                    if (outputPortsMap.get(outputPort.getKey()) != null) {
+                        logger.warn("Output port '{}' is provided by multiple edges. Overriding previous value.",
+                                outputPort.getKey());
                     }
                     outputPortsMap.put(outputPort.getKey(), edge);
                 }
@@ -404,8 +426,10 @@ public class WorkflowExecutor {
 
         // If there are no source ports, we cannot adapt the edges
         if (sourcePorts.isEmpty()) {
-            logger.error("No source ports available to adapt edges for node '{}'. Missing required inputs: {}", currentId, missingRequiredInputs);
-            executionResult.recordPortAdaptation(currentId, missingRequiredInputs, Collections.emptyMap(), false, new TokenUsage());
+            logger.error("No source ports available to adapt edges for node '{}'. Missing required inputs: {}",
+                    currentId, missingRequiredInputs);
+            executionResult.recordPortAdaptation(currentId, missingRequiredInputs, Collections.emptyMap(), false,
+                    new TokenUsage());
             return false;
         }
 
@@ -413,8 +437,10 @@ public class WorkflowExecutor {
         var res = portAdapterService.adaptPorts(sourcePorts, targetPorts);
 
         if (res.getBindings().isEmpty()) {
-            logger.error("No compatible edges found to adapt for node '{}'. Missing required inputs: {}", currentId, missingRequiredInputs);
-            executionResult.recordPortAdaptation(currentId, missingRequiredInputs, Collections.emptyMap(), false, res.getTokenUsage());
+            logger.error("No compatible edges found to adapt for node '{}'. Missing required inputs: {}", currentId,
+                    missingRequiredInputs);
+            executionResult.recordPortAdaptation(currentId, missingRequiredInputs, Collections.emptyMap(), false,
+                    res.getTokenUsage());
             return false;
         }
 
@@ -423,18 +449,20 @@ public class WorkflowExecutor {
             String sourceKey = binding.getKey();
             String targetKey = binding.getValue();
 
-            // Check if the target key is one of the unsatisfied required inputs. If not, skip the binding
-            // (we have to handle the case in which the target key is a path, e.g. "TargetPort.contact.email")
-            if (missingRequiredInputs.stream().noneMatch(requiredKey ->
-                    targetKey.equals(requiredKey) ||
-                            targetKey.startsWith(requiredKey + ".") ||
-                            requiredKey.startsWith(targetKey + ".")
-            )) continue;
+            // Check if the target key is one of the unsatisfied required inputs. If not,
+            // skip the binding
+            // (we have to handle the case in which the target key is a path, e.g.
+            // "TargetPort.contact.email")
+            if (missingRequiredInputs.stream().noneMatch(requiredKey -> targetKey.equals(requiredKey) ||
+                    targetKey.startsWith(requiredKey + ".") ||
+                    requiredKey.startsWith(targetKey + ".")))
+                continue;
 
             // Apply the binding to the context
             Object sourceValue = context.get(sourceKey);
             if (sourceValue == null) {
-                logger.warn("Source key '{}' has no value in context. Skipping binding to target key '{}'", sourceKey, targetKey);
+                logger.warn("Source key '{}' has no value in context. Skipping binding to target key '{}'", sourceKey,
+                        targetKey);
                 continue;
             }
             context.put(targetKey, sourceValue);
@@ -452,11 +480,12 @@ public class WorkflowExecutor {
         var unsatisfiedInputs = getUnsatisfiedInputs(node, context);
         boolean adaptationSuccessful = unsatisfiedInputs.isEmpty();
 
-
-        executionResult.recordPortAdaptation(currentId, missingRequiredInputs, res.getBindings(), adaptationSuccessful, res.getTokenUsage());
+        executionResult.recordPortAdaptation(currentId, missingRequiredInputs, res.getBindings(), adaptationSuccessful,
+                res.getTokenUsage());
 
         if (!adaptationSuccessful) {
-            logger.error("After adaptation, node '{}' still has unsatisfied required inputs: {}", currentId, unsatisfiedInputs);
+            logger.error("After adaptation, node '{}' still has unsatisfied required inputs: {}", currentId,
+                    unsatisfiedInputs);
             return false;
         } else {
             logger.info("All required inputs for node '{}' are now satisfied after adaptation.", currentId);
@@ -497,7 +526,8 @@ public class WorkflowExecutor {
                 context.put(targetKey, value);
                 logger.info("Applied binding: {} -> {} (value: {})", sourceKey, targetKey, value);
             } else {
-                // Source key (or path) not found in context, check if the target port has a default value
+                // Source key (or path) not found in context, check if the target port has a
+                // default value
                 String rootTargetKey = targetKey.split("\\.")[0];
                 NodeInstance targetNode = workflow.getInstanceByWorkflowNodeId(edge.getTargetNodeId());
 
@@ -509,11 +539,13 @@ public class WorkflowExecutor {
                         logger.debug("Used default value for target path '{}' (from root port '{}'): {}",
                                 targetKey, rootTargetKey, targetPort.getDefaultValue());
                     } else {
-                        logger.warn("Cannot apply binding: source key '{}' not found in context and target path '{}' has no default associated with its root port '{}'",
+                        logger.warn(
+                                "Cannot apply binding: source key '{}' not found in context and target path '{}' has no default associated with its root port '{}'",
                                 sourceKey, targetKey, rootTargetKey);
                     }
                 } else {
-                    logger.warn("Cannot apply binding: target node not found for edge from {} to {}", edge.getSourceNodeId(), edge.getTargetNodeId());
+                    logger.warn("Cannot apply binding: target node not found for edge from {} to {}",
+                            edge.getSourceNodeId(), edge.getTargetNodeId());
                 }
             }
         }
@@ -532,7 +564,8 @@ public class WorkflowExecutor {
             // Only apply default if the port doesn't have a value in context
             if (!context.containsKey(portKey) && port.getDefaultValue() != null) {
                 context.put(portKey, port.getDefaultValue());
-                logger.debug("Applied default value for input port '{}' on node '{}': {}", portKey, node.getId(), port.getDefaultValue());
+                logger.debug("Applied default value for input port '{}' on node '{}': {}", portKey, node.getId(),
+                        port.getDefaultValue());
             }
         }
     }
@@ -545,37 +578,50 @@ public class WorkflowExecutor {
      */
     private Port findInputPort(NodeInstance node, String portKey) {
         for (Port port : node.getMetamodel().getInputPorts()) {
-            if (port.getKey().equals(portKey)) return port;
+            if (port.getKey().equals(portKey))
+                return port;
         }
         return null;
     }
 
     /**
-     * Applies default values for output ports that weren't set during node processing.
+     * Applies default values for output ports that weren't set during node
+     * processing.
+     * 
      * @param node    the node instance that was just processed
      * @param context the execution context
      */
     private void applyDefaultOutputValues(NodeInstance node, ExecutionContext context) {
         for (Port port : node.getMetamodel().getOutputPorts()) {
             String portKey = port.getKey();
-            // Only apply default if the port doesn't have a value in context after execution
+            // Only apply default if the port doesn't have a value in context after
+            // execution
             if (!context.containsKey(portKey) && port.getDefaultValue() != null) {
                 context.put(portKey, port.getDefaultValue());
-                logger.debug("Applied default value for output port '{}' on node '{}': {}", portKey, node.getId(), port.getDefaultValue());
+                logger.debug("Applied default value for output port '{}' on node '{}': {}", portKey, node.getId(),
+                        port.getDefaultValue());
             }
         }
     }
 
     /**
-     * Persists adapted port bindings to the workflow metamodel by merging them with existing bindings
-     * and ensuring compatibility through validation. Updates all edges in a single batch operation
+     * Persists adapted port bindings to the workflow metamodel by merging them with
+     * existing bindings
+     * and ensuring compatibility through validation. Updates all edges in a single
+     * batch operation
      * through the MOP service.
-     * @param workflowInstance The workflow instance containing the metamodel to update
-     * @param currentId The ID of the target node (used for error logging context)
-     * @param bindingsPerEdge A map where each key is a WorkflowEdge and each value is a map
-     *                        of source-to-target port bindings to be added to that edge
+     * 
+     * @param workflowInstance The workflow instance containing the metamodel to
+     *                         update
+     * @param currentId        The ID of the target node (used for error logging
+     *                         context)
+     * @param bindingsPerEdge  A map where each key is a WorkflowEdge and each value
+     *                         is a map
+     *                         of source-to-target port bindings to be added to that
+     *                         edge
      */
-    private void persistAdaptedBindings(WorkflowInstance workflowInstance, String currentId, Map<WorkflowEdge, Map<String, String>> bindingsPerEdge) {
+    private void persistAdaptedBindings(WorkflowInstance workflowInstance, String currentId,
+            Map<WorkflowEdge, Map<String, String>> bindingsPerEdge) {
         // Save the adapted bindings for later use
         try {
             logger.info("Saving the adapted bindings for {} edges...", bindingsPerEdge.size());
@@ -587,10 +633,12 @@ public class WorkflowExecutor {
                 WorkflowEdge edge = entry.getKey();
                 var source = workflowInstance.getInstanceByWorkflowNodeId(edge.getSourceNodeId());
                 var target = workflowInstance.getInstanceByWorkflowNodeId(edge.getTargetNodeId());
-                if (source == null || target == null) continue;
+                if (source == null || target == null)
+                    continue;
 
                 // Merge the new bindings with the existing ones
-                Map<String, String> mergedBindings = edge.getBindings() != null ? new HashMap<>(edge.getBindings()) : new HashMap<>();
+                Map<String, String> mergedBindings = edge.getBindings() != null ? new HashMap<>(edge.getBindings())
+                        : new HashMap<>();
                 mergedBindings.putAll(entry.getValue());
 
                 // Add to batch update map if there are valid bindings
@@ -603,34 +651,33 @@ public class WorkflowExecutor {
             if (!edgeBindingsMap.isEmpty()) {
                 this.workflowMetamodelService.updateMultipleEdgeBindings(
                         workflowInstance.getMetamodel().getId(),
-                        edgeBindingsMap
-                );
-                logger.info("Successfully persisted adapted bindings for {} edges in workflow {}", edgeBindingsMap.size(), workflowInstance.getMetamodel().getId());
+                        edgeBindingsMap);
+                logger.info("Successfully persisted adapted bindings for {} edges in workflow {}",
+                        edgeBindingsMap.size(), workflowInstance.getMetamodel().getId());
             } else {
                 logger.info("No valid bindings to persist for node '{}'", currentId);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error("Error saving adapted bindings for node '{}': {}", currentId, e.getMessage(), e);
         }
     }
 
     /**
      * Get a list of unsatisfied required inputs for a node instance.
-     * @param node the node instance to check
+     * 
+     * @param node    the node instance to check
      * @param context the execution context to check against
      * @return a list of keys for unsatisfied required input ports
      */
     private List<String> getUnsatisfiedInputs(NodeInstance node, ExecutionContext context) {
         List<String> unsatisfied = new ArrayList<>();
         for (Port port : node.getMetamodel().getInputPorts()) {
-            if (port.getSchema() != null && port.getSchema().getRequired() != null && port.getSchema().getRequired() && !context.containsKey(port.getKey()))
+            if (port.getSchema() != null && port.getSchema().getRequired() != null && port.getSchema().getRequired()
+                    && !context.containsKey(port.getKey()))
                 unsatisfied.add(port.getKey());
         }
         return unsatisfied;
     }
-
-
 
     private static class ExecutionState {
         final Map<String, NodeExecutionState> nodeStates = new HashMap<>();

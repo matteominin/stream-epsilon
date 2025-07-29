@@ -61,22 +61,15 @@ public class CyclicNodeInstance extends FlowNodeInstance {
             logger.info("Processing cycle iteration: {}", i);
 
             context.put("cycleIndex", i);
-            executeCyclicSubgraph(nodes, edges, context);
+            executeCyclicSubgraph(nodes, edges, context, observabilityReport);
             context.remove("cycleIndex");
         }
     }
 
-    private void executeCyclicSubgraph(List<WorkflowNode> nodes, List<WorkflowEdge> edges, ExecutionContext context) {
+    public void executeCyclicSubgraph(List<WorkflowNode> nodes, List<WorkflowEdge> edges, ExecutionContext context,
+            NodeObservabilityReport observabilityReport) {
         logger.info("Executing cyclic subgraph with {} nodes and {} edges", nodes.size(), edges.size());
 
-        // Validate edges
-        edges.forEach(edge -> {
-            if (edge.getTargetNodeId() == null) {
-                throw new IllegalStateException("Edge with ID " + edge.getId() + " has a null targetNodeId");
-            }
-        });
-
-        // Map to track visited nodes
         Set<String> visitedNodes = new HashSet<>();
 
         // Find the entry point node
@@ -102,14 +95,10 @@ public class CyclicNodeInstance extends FlowNodeInstance {
             // Retrieve or create the NodeInstance
             NodeInstance nodeInstance = nodeInstanceManager.getOrCreate(currentNode.getNodeMetamodelId());
 
-            // Create observability report for the node
-            NodeObservabilityReport observabilityReport = new NodeObservabilityReport(nodeInstance.getId(),
-                    "workflowId-placeholder");
-
             // Process the node
             nodeInstance.process(context, observabilityReport);
 
-            logger.info("Executed node: {} with observability report: {}", nodeInstance.getId(), observabilityReport);
+            logger.info("Executed node: {}", nodeInstance.getId());
 
             // Push connected nodes to the stack
             edges.stream()

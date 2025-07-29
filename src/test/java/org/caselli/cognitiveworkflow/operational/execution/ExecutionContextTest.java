@@ -1,6 +1,5 @@
 package org.caselli.cognitiveworkflow.operational.execution;
 
-import org.caselli.cognitiveworkflow.operational.execution.ExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,6 @@ class ExecutionContextTest {
     void setUp() {
         context = new ExecutionContext();
     }
-
 
     @Test
     void testSimpleKey() {
@@ -75,7 +73,6 @@ class ExecutionContextTest {
         // Path: data -> user -> name
         assertNull(context.get("data.user.name"));
     }
-
 
     @Test
     void testLastKeyIsNull() {
@@ -157,7 +154,6 @@ class ExecutionContextTest {
         Object nestedValue = ((Map<?, ?>) targetRoot).get("nestedKey");
         assertEquals("Value After Overwrite", nestedValue);
     }
-
 
     @Test
     void testPutNullValue() {
@@ -299,7 +295,7 @@ class ExecutionContextTest {
     }
 
     @Test
-    void testPutAndReadDotNotationArrayOfObjects(){
+    void testPutAndReadDotNotationArrayOfObjects() {
         context.put("user.details.0.name", "Alice");
         context.put("user.details.0.surname", "Smith");
         context.put("user.details.1.name", "Bob");
@@ -323,9 +319,8 @@ class ExecutionContextTest {
         assertEquals("Johnson", ((Map<?, ?>) detailsList.get(1)).get("surname"));
     }
 
-
     @Test
-    void testPutAndReadDotNotationArrayOfStrings(){
+    void testPutAndReadDotNotationArrayOfStrings() {
         context.put("user.details.0", "Alice");
         context.put("user.details.1", "Bob");
 

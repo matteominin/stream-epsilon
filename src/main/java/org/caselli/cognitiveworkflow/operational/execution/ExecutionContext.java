@@ -6,35 +6,43 @@ import java.util.*;
 
 /**
  * ExecutionContext extends HashMap to provide enhanced put and get operations
- * that support dot notation for accessing and manipulating nested Map structures
+ * that support dot notation for accessing and manipulating nested Map
+ * structures
  * and List/array elements using numeric indices.
+ * 
  * @author niccolocaselli
  */
 @NoArgsConstructor
 public class ExecutionContext extends HashMap<String, Object> {
 
-
     /**
      * Put a value in the context.
      * The value is placed at the specified nested path within the context.
      * Intermediate Maps and Lists are created if they do not exist along the path.
-     * If an intermediate key maps to a non-Map/non-List value, that value is overwritten
+     * If an intermediate key maps to a non-Map/non-List value, that value is
+     * overwritten
      * with a new HashMap or ArrayList to continue the path.
-     * @param key The key, potentially using dot notation (e.g., "data.users.0.name").
+     * 
+     * @param key   The key, potentially using dot notation (e.g.,
+     *              "data.users.0.name").
      * @param value The value to associate with the key.
      * @return Always returns null.
      */
     @Override
     public Object put(String key, Object value) {
-        if (key == null) return super.put(null, value);
+        if (key == null)
+            return super.put(null, value);
         putByDotNotation(key, value);
         return null;
     }
 
     /**
-     * Overrides the standard get method to support dot notation keys with array indices.
+     * Overrides the standard get method to support dot notation keys with array
+     * indices.
      * Retrieves the value located at the specified nested path within the context.
-     * @param key The key to retrieve, potentially using dot notation (e.g., "data.users.0.name").
+     * 
+     * @param key The key to retrieve, potentially using dot notation (e.g.,
+     *            "data.users.0.name").
      * @return The value found at the specified path.
      */
     @Override
@@ -49,13 +57,17 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Overrides the standard putAll method to support dot notation in the keys of the provided map.
-     * Each entry in the map is processed through the put method to ensure dot notation is handled.
+     * Overrides the standard putAll method to support dot notation in the keys of
+     * the provided map.
+     * Each entry in the map is processed through the put method to ensure dot
+     * notation is handled.
+     * 
      * @param m The map whose entries are to be added to this context.
      */
     @Override
     public void putAll(Map<? extends String, ?> m) {
-        if (m == null) return;
+        if (m == null)
+            return;
 
         for (Map.Entry<? extends String, ?> entry : m.entrySet()) {
             put(entry.getKey(), entry.getValue());
@@ -63,8 +75,11 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Overrides the standard containsKey method to support dot notation keys with array indices.
-     * @param key The key to check, potentially using dot notation (e.g., "data.users.0.name").
+     * Overrides the standard containsKey method to support dot notation keys with
+     * array indices.
+     * 
+     * @param key The key to check, potentially using dot notation (e.g.,
+     *            "data.users.0.name").
      * @return If a value found at the specified path.
      */
     @Override
@@ -80,22 +95,29 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Overrides the standard remove method to support dot notation keys with array indices.
+     * Overrides the standard remove method to support dot notation keys with array
+     * indices.
      * Removes the mapping for the specified key from this map if present.
-     * @param key The key to be removed, potentially using dot notation (e.g., "data.users.0.name").
-     * @return The previous value associated with the key, or null if there was no mapping.
+     * 
+     * @param key The key to be removed, potentially using dot notation (e.g.,
+     *            "data.users.0.name").
+     * @return The previous value associated with the key, or null if there was no
+     *         mapping.
      */
     @Override
     public Object remove(Object key) {
-        if (!(key instanceof String keyStr)) return super.remove(key);
+        if (!(key instanceof String keyStr))
+            return super.remove(key);
 
         String[] keys = keyStr.split("\\.");
 
-        if (keys.length == 1) return super.remove(keyStr);
+        if (keys.length == 1)
+            return super.remove(keyStr);
 
         // For nested keys we have to navigate to the parent container
         NavigationResult parentResult = navigateToParentContainer(keys);
-        if (parentResult == null) return null;
+        if (parentResult == null)
+            return null;
 
         // Remove the key from the parent container
         String lastKey = keys[keys.length - 1];
@@ -103,30 +125,35 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Overrides the standard getOrDefault method to support dot notation keys with array indices.
-     * @param key The key to retrieve, potentially using dot notation (e.g., "data.users.0.name").
+     * Overrides the standard getOrDefault method to support dot notation keys with
+     * array indices.
+     * 
+     * @param key          The key to retrieve, potentially using dot notation
+     *                     (e.g., "data.users.0.name").
      * @param defaultValue The default value to return if the key is not found.
-     * @return The value found at the specified path, or the defaultValue if no mapping exists.
+     * @return The value found at the specified path, or the defaultValue if no
+     *         mapping exists.
      */
     @Override
     public Object getOrDefault(Object key, Object defaultValue) {
-        if (!(key instanceof String)) return super.getOrDefault(key, defaultValue);
+        if (!(key instanceof String))
+            return super.getOrDefault(key, defaultValue);
 
         Object value = getByDotNotation((String) key);
         return value != null ? value : defaultValue;
     }
 
-
-
     /**
      * Copy constructor that creates a deep copy of another ExecutionContext.
      * This ensures that nested Maps and Lists are also copied, preventing
      * shared references between the original and copied contexts.
+     * 
      * @param other The ExecutionContext to copy from
      */
     public ExecutionContext(ExecutionContext other) {
         super();
-        if (other != null) deepCopyFrom(other);
+        if (other != null)
+            deepCopyFrom(other);
     }
 
     /**
@@ -145,6 +172,7 @@ public class ExecutionContext extends HashMap<String, Object> {
 
     /**
      * Recursively creates deep copies of nested structures (Maps and Lists).
+     * 
      * @param value The value to copy
      * @return A deep copy of the value
      */
@@ -179,11 +207,6 @@ public class ExecutionContext extends HashMap<String, Object> {
         return value;
     }
 
-
-
-
-
-
     /**
      * Prints the entire context structure in a readable format with indentation
      * to show nesting levels.
@@ -207,9 +230,13 @@ public class ExecutionContext extends HashMap<String, Object> {
 
     /**
      * Helper: navigates to the parent container for the given key path.
-     * Example: with a path like "user.profiles.0.name" the method navigates to the list at "profiles.0".
-     * @param keys Array of keys representing the path. Example [user, profiles, 0, name]
-     * @return NavigationResult containing the parent container, or null if path doesn't exist
+     * Example: with a path like "user.profiles.0.name" the method navigates to the
+     * list at "profiles.0".
+     * 
+     * @param keys Array of keys representing the path. Example [user, profiles, 0,
+     *             name]
+     * @return NavigationResult containing the parent container, or null if path
+     *         doesn't exist
      */
     private NavigationResult navigateToParentContainer(String[] keys) {
         Object currentContainer = this;
@@ -219,7 +246,8 @@ public class ExecutionContext extends HashMap<String, Object> {
             String currentKey = keys[i];
             Object nextLevel = getFromContainer(currentContainer, currentKey, isMap);
 
-            if (nextLevel == null) return null;
+            if (nextLevel == null)
+                return null;
 
             if (nextLevel instanceof Map) {
                 currentContainer = nextLevel;
@@ -236,7 +264,9 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Helper method to get a value from the context using a key which may use dot notation with array indices.
+     * Helper method to get a value from the context using a key which may use dot
+     * notation with array indices.
+     * 
      * @param key The key in dot notation
      * @return The retrieved value
      */
@@ -247,12 +277,14 @@ public class ExecutionContext extends HashMap<String, Object> {
 
         for (int i = 0; i < keys.length; i++) {
             String currentKey = keys[i];
-            if (currentContainer == null) return null;
+            if (currentContainer == null)
+                return null;
 
             Object currentValue = getFromContainer(currentContainer, currentKey, isMap);
 
             if (i < keys.length - 1) {
-                // If it's an intermediate key, the value must be a Map or List to continue the path
+                // If it's an intermediate key, the value must be a Map or List to continue the
+                // path
                 if (currentValue instanceof Map) {
                     currentContainer = currentValue;
                     isMap = true;
@@ -272,8 +304,10 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     /**
-     * Helper method to put a value in the context using a key which may use dot notation with array indices.
-     * @param key The key in dot notation
+     * Helper method to put a value in the context using a key which may use dot
+     * notation with array indices.
+     * 
+     * @param key   The key in dot notation
      * @param value The value to insert
      */
     private void putByDotNotation(String key, Object value) {
@@ -320,13 +354,15 @@ public class ExecutionContext extends HashMap<String, Object> {
             }
         } else {
             // List access
-            if (!isNumeric(key)) return null;
+            if (!isNumeric(key))
+                return null;
 
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) container;
             int index = Integer.parseInt(key);
 
-            if (index < 0 || index >= list.size()) return null;
+            if (index < 0 || index >= list.size())
+                return null;
             return list.get(index);
         }
     }
@@ -345,7 +381,8 @@ public class ExecutionContext extends HashMap<String, Object> {
             }
         } else {
             // List access
-            if (!isNumeric(key)) return;
+            if (!isNumeric(key))
+                return;
 
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) container;
@@ -369,13 +406,15 @@ public class ExecutionContext extends HashMap<String, Object> {
             Map<String, Object> map = (Map<String, Object>) container;
             return map.remove(key);
         } else if (container instanceof List) {
-            if (!isNumeric(key)) return null;
+            if (!isNumeric(key))
+                return null;
 
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) container;
             int index = Integer.parseInt(key);
 
-            if (index < 0 || index >= list.size()) return null;
+            if (index < 0 || index >= list.size())
+                return null;
             return list.remove(index);
         }
         return null;
@@ -385,7 +424,8 @@ public class ExecutionContext extends HashMap<String, Object> {
      * Check if a string represents a valid numeric index
      */
     private boolean isNumeric(String str) {
-        if (str == null || str.isEmpty()) return false;
+        if (str == null || str.isEmpty())
+            return false;
         try {
             Integer.parseInt(str);
             return true;
@@ -403,7 +443,8 @@ public class ExecutionContext extends HashMap<String, Object> {
 
     /**
      * An helper method to print a container with indentation (for debug purposes)
-     * @param container The container to print (Map or List)
+     * 
+     * @param container   The container to print (Map or List)
      * @param indentLevel The level of indentation
      */
     private void printContext(Object container, int indentLevel) {
@@ -469,7 +510,8 @@ public class ExecutionContext extends HashMap<String, Object> {
     }
 
     private String toString(Object obj) {
-        if (obj == null) return "null";
+        if (obj == null)
+            return "null";
         return obj.toString();
     }
 }
