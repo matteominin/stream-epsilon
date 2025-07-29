@@ -131,6 +131,7 @@ public class CyclicNodeInstance extends FlowNodeInstance {
 
             NodeInstance nodeInstance = nodeInstanceManager.getOrCreate(currentNode.getNodeMetamodelId());
             nodeInstance.process(context, observabilityReport);
+
             logger.info("[Node {}]: Executed node: {}", getId(), currentNode.getId());
 
             edges.stream()
